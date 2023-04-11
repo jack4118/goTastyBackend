@@ -55,8 +55,9 @@
 	General::insertDailyTable("acc_credit");
     General::insertDailyTable("sent_history");
 	
-    $filterCommands = array("adminLogin", "memberLogin", "getRegistrationDetailMember", "publicRegistration", "publicRegistrationConfirmation", "memberRegistrationAdmin", "memberRegistrationConfirmationAdmin", "getRegistrationPaymentDetailMember", "getRegistrationPackageDetailMember", "sendOTPCode", "sendOTPCodeDouble", "memberResetPassword", "theNuxFundInCallBack", "apiRegistration", "apiLogin", "requestOTP", "apiInboxUnreadMessage", "apiDashboardDetails", "apiNewsDisplay", "apiWalletDetails", "apiWalletTransfer", "apiWalletWithdrawal", "apiDocumentDownloadList", "apiDocumentDownload", "apiEditMemberDetailMember", "apiGetCoinRate", "apiBuildRegistration", "apiGetTreeSponsor", "apiGetSponsorTreeVerticalView", "apiGetAffiliateBonusList", "apiChangeTransactionPassword", "apiForgotLoginPassword", "apiForgotTransactionPassword", "apiGetProfileDetails", "apiGetWalletHistory", "apiGetBtcData","getAllLanguage","getLanguageVersion","getLanguageList","recordPerformance","addKYC","theNuxFundOutCallback","getDeliveryOrderDetail", "getBuyProductDetails", "getProductIDForSearch", "addTicket", "addPublicTicket", "getTicketList","getECatalogueList","getECatalogue", "accountOwnerVerification", "memberResetPasswordVerification","getDashboardBanner", "memberGetMemberName", "memberGetMemoList", "nicepayCallback", "getInvoiceDetail");
-    $filterSpecialCharCommands = array("theNuxFundInCallBack","theNuxFundOutCallback", "nicepayCallback");
+    $filterCommands = array("adminLogin", "memberLogin", "getRegistrationDetailMember", "publicRegistration", "publicRegistrationConfirmation", "memberRegistrationAdmin", "memberRegistrationConfirmationAdmin", "getRegistrationPaymentDetailMember", "getRegistrationPackageDetailMember", "sendOTPCode", "sendOTPCodeDouble", "memberResetPassword", "theNuxFundInCallBack", "apiRegistration", "apiLogin", "requestOTP", "apiInboxUnreadMessage", "apiDashboardDetails", "apiNewsDisplay", "apiWalletDetails", "apiWalletTransfer", "apiWalletWithdrawal", "apiDocumentDownloadList", "apiDocumentDownload", "apiEditMemberDetailMember", "apiGetCoinRate", "apiBuildRegistration", "apiGetTreeSponsor", "apiGetSponsorTreeVerticalView", "apiGetAffiliateBonusList", "apiChangeTransactionPassword", "apiForgotLoginPassword", "apiForgotTransactionPassword", "apiGetProfileDetails", "apiGetWalletHistory", "apiGetBtcData","getAllLanguage","getLanguageVersion","getLanguageList","recordPerformance","addKYC","theNuxFundOutCallback","getDeliveryOrderDetail", "getBuyProductDetails", "getProductIDForSearch", "addTicket", "addPublicTicket", "getTicketList","getECatalogueList","getECatalogue", "accountOwnerVerification", "memberResetPasswordVerification","getDashboardBanner", "memberGetMemberName", "memberGetMemoList", "nicepayCallback", "getInvoiceDetail", "accountSignUpVerification", "guestOwnerVerification", "getState", "getCategoryInventoryMember", "getBankDetails", "addNewPayment", "getProviderSettingFPX", "getProductInventoryList", "getProductDetails", "getProductListMember", "updateSaleOrder", "getPaymentDeliveryOptions", "FPXBackendVerify", "uploadReceipt", "getDeliveryMethod", "CheckOutCalculation");
+
+    $filterSpecialCharCommands = array("theNuxFundInCallBack","theNuxFundOutCallback", "nicepayCallback", "memberLogin", "publicRegistrationConfirmation", "memberResetPassword", "FPXBackendVerify", "addPurchaseRequest", "purchaseOrderEdit", "assignSerial", "confirmSerial", "getPurchaseOrderList", "getPurchaseRequestList", "purchaseRequestEdit", "getProductDetails" );
     
     if ($source == "Apps" || $source == "Api"){
 
@@ -202,7 +203,7 @@
                         $char = $array['value'];
                         $pregCheck = preg_match('/[\\'.$char.']/', $value);
                         $check = ($pregCheck == 0)?true:false;
-                        
+
                         if(!$check){
                             $data["field"][] = array(
                                                         'id'  => $key."Error",
@@ -336,7 +337,7 @@
 
             case "publicRegistrationConfirmation":
                 $apiType = "insert";
-                $outputArray = Subscribe::memberRegistrationConfirmation($msgpackData['params']);
+                $outputArray = Subscribe::memberRegistrationConfirmation($msgpackData);
                 break;  
 
             case "adminLogin":
@@ -354,6 +355,21 @@
                 $outputArray = Admin::getAdminList($msgpackData['params']);
                 break;
 
+            case "getPurchaseRequestList":
+                $apiType = "get";
+                $outputArray = Admin::getPurchaseRequestList($msgpackData['params']);
+                break;
+
+            case "getVendorList":
+                $apiType = "get";
+                $outputArray = Admin::getVendorList($msgpackData['params']);
+                break;
+
+            case "getProductList":
+                $apiType = "get";
+                $outputArray = Admin::getProductList($msgpackData['params']);
+                break;
+
             case "getAdminDetails":
                 $apiType = "get";
                 $outputArray = Admin::getAdminDetails($msgpackData['params']);
@@ -364,9 +380,24 @@
                 $outputArray = Admin::addAdmins($msgpackData['params']);
                 break;
 
+            case "addPurchaseRequest":
+                $apiType = "insert";
+                $outputArray = Admin::addPurchaseRequest($msgpackData['params']);
+                break;
+            
+            case "addPurchaseProduct":
+                $apiType = "insert";
+                $outputArray = Admin::addPurchaseProduct($msgpackData['params']);
+                break;
+
             case "editAdmins":
                 $apiType = "insert";
                 $outputArray = Admin::editAdmins($msgpackData['params']);
+                break;
+
+            case "purchaseRequestEdit":
+                $apiType = "insert";
+                $outputArray = Admin::purchaseRequestEdit($msgpackData['params'], $msgpackData['username']);
                 break;
 
             case "getPortfolioList":
@@ -2051,6 +2082,16 @@
                 $outputArray = Tree::getIntroducer($params);
                 break;
 
+            case "getCategoryInventoryMember":
+                $apiType = "get";
+                $outputArray = Client::getCategoryInventoryMember($params);
+                break;
+            
+            case "getProductListMember":
+                $apiType = "get";
+                $outputArray = Client::getProductListMember($params);
+                break;
+
             case "getCategoryInventory":
                 $apiType = "get";
                 $outputArray = Inventory::getCategoryInventory($params);
@@ -2476,12 +2517,26 @@
                 $apiType = "get";
                 $outputArray = Dashboard::getProductStockDetail($params);
                 break;
-
+            case "accountSignUpVerification":
+                $apiType = "verify";
+                $outputArray = Client::accountOwnerVerification($params);
+                break;
             case "accountOwnerVerification":
                 $apiType = "verify";
                 $outputArray = Client::accountOwnerVerification($params);
                 break;
-
+            case "getState":
+                $apiType = "verify";
+                $outputArray = Client::getState($params);
+                break;
+            case "guestOwnerVerification":
+                $apiType = "verify";
+                $outputArray = Client::guestOwnerVerification($params);
+                break;
+            case "getPurchaseHistory":
+                $apiType = "get";
+                $outputArray = Client::clientPurchaseHistory($params);
+                break;
             case "memberResetPasswordVerification":
                 $apiType = "verify";
                 $outputArray = Client::accountOwnerVerification($params, "resetPassword");
@@ -2637,6 +2692,231 @@
                 $outputArray = Excel::instantMemberExcelExport($params, $config);
                 break;
 
+            case "getPurchaseRequestDetails":
+                $apiType = "get";
+                $outputArray = Admin::getPurchaseRequestDetails($msgpackData['params']);
+                break;
+
+            case "getShopOwnerList":
+                $apiType = "get";
+                $outputArray = Admin::getShopOwnerList($msgpackData['params']);
+                break;
+
+            case "getShopOwnerDetail":
+                $apiType = "get";
+                $outputArray = Admin::getShopOwnerDetail($msgpackData['params']);
+                break;
+
+            case "addShopOwner":
+                $apiType = "insert";
+                $outputArray = Admin::addShopOwner($msgpackData['params']);
+                break;
+
+            case "editShopOwner":
+                $apiType = "insert";
+                $outputArray = Admin::editShopOwner($msgpackData['params']);
+                break;
+
+            case "getShopList":
+                $apiType = "get";
+                $outputArray = Admin::getShopList($msgpackData['params']);
+                break;
+
+            case "getShopDetail":
+                $apiType = "get";
+                $outputArray = Admin::getShopDetail($msgpackData['params']);
+                break;
+
+            case "addShop":
+                $apiType = "insert";
+                $outputArray = Admin::addShop($msgpackData['params']);
+                break;
+
+            case "editShop":
+                $apiType = "insert";
+                $outputArray = Admin::editShop($msgpackData['params']);
+                break;
+
+            case "purchaseRequestApprove":
+                $apiType = "get";
+                $outputArray = Admin::purchaseRequestApprove($msgpackData['params'], $msgpackData['username']);
+                break;
+
+            case "getProductInventoryList":
+                $apiType = "get";
+                $outputArray = Inventory::getProductInventoryList($params);
+                break;
+
+            case "getProductDetails":
+                $apiType = "get";
+                $outputArray = Inventory::getProductDetails($params);
+                break;
+
+            case 'getBankDetails':
+                $apiType = "get";
+                $outputArray = Cash::getBankDetails($params,$userID);
+                break;
+
+            case 'addNewPayment':
+                $apiType = "insert";
+                $outputArray = Cash::addNewPayment($params,$userID);
+                break;
+
+            case 'CheckOutCalculation':
+                $apiType = "get";
+                $outputArray = Cash::CheckOutCalculation($params,$userID);
+                break;
+
+            case 'getDeliveryMethod':
+                $apiType = "get";
+                $outputArray = Cash::getDeliveryMethod($params);
+                break;
+
+            case "addAttribute":
+                $apiType = "insert";
+                $outputArray = Inventory::addAttribute($params);
+                break;
+
+            case "editAttribute":
+                $apiType = "insert";
+                $outputArray = Inventory::editAttribute($params);
+                break;
+
+            case "getAttributeList":
+                $apiType = "get";
+                $outputArray = Inventory::getAttributeList($params);
+                break;
+
+            case "getAttributeDetail":
+                $apiType = "get";
+                $outputArray = Inventory::getAttributeDetail($params);
+                break;
+
+            case "generateProductSKU":
+                $apiType = "get";
+                $outputArray = Inventory::generateProductSKU($params);
+                break;
+
+            case "getPackageProductList":
+                $apiType = "get";
+                $outputArray = Inventory::getPackageProductList($params);
+                break;
+
+            case "getShopDeviceList":
+                $apiType = "get";
+                $outputArray = Admin::getShopDeviceList($msgpackData['params']);
+                break;
+
+            case "addShopDevice":
+                $apiType = "insert";
+                $outputArray = Admin::addShopDevice($msgpackData['params']);
+                break;
+
+            case "getShopDeviceDetail":
+                $apiType = "get";
+                $outputArray = Admin::getShopDeviceDetail($msgpackData['params']);
+                break;
+
+            case "editShopDevice":
+                $apiType = "insert";
+                $outputArray = Admin::editShopDevice($msgpackData['params']);
+                break;
+
+            case "getShopWorkerList":
+                $apiType = "get";
+                $outputArray = Admin::getShopWorkerList($msgpackData['params']);
+                break;
+            
+            case "getProviderSettingFPX":
+                $apiType = "get";
+                $outputArray = Cash::getProviderSettingFPX();
+                break;
+
+            case "updateSaleOrder":
+                $apiType = "update";
+                $outputArray = Cash::updateSaleOrder($params);
+                break;
+            
+            case "getPaymentDeliveryOptions":
+                $apiType = "get";
+                $outputArray = Cash::getPaymentDeliveryOptions();
+                break;
+
+            case "uploadReceipt":
+                $apiType = "get";
+                $outputArray = Cash::uploadReceipt($params);
+                break;
+
+            case "getReceipt":
+                $apiType = "get";
+                $outputArray = Cash::getReceipt($params);
+                break;
+
+            case "FPXBackendVerify":
+                $apiType = "get";
+                $outputArray = Cash::FPXBackendVerify($params);
+                break;
+
+            case "getPurchaseOrderList":
+                $apiType = "get";
+                $outputArray = Admin::getPurchaseOrderList($msgpackData['params']);
+                break;
+    
+            case "getPurchaseOrderDetails":
+                $apiType = "get";
+                $outputArray = Admin::getPurchaseOrderDetails($msgpackData['params']);
+                break;
+
+            case "purchaseOrderEdit":
+                $apiType = "insert";
+                $outputArray = Admin::purchaseOrderEdit($msgpackData['params']);
+                break;
+
+            case "assignSerial":
+                $apiType = "insert";
+                $outputArray = Admin::assignSerial($msgpackData['params']);
+                break;
+
+            case "confirmSerial":
+                $apiType = "insert";
+                $outputArray = Admin::confirmSerial($msgpackData['params']);
+                break;
+
+            case "getVendor":
+                $apiType = "get";
+                $outputArray = Admin::getVendor($msgpackData['params']);
+                break;
+
+            case "getWarehouse":
+                $apiType = "get";
+                $outputArray = Admin::getWarehouse($msgpackData['params']);
+                break;
+
+            case "approvePurchaseOrder":
+                $apiType = "insert";
+                $outputArray = Admin::approvePurchaseOrder($msgpackData['params'], $msgpackData['username']);
+                break;
+
+            case "getStockList":
+                $apiType = "get";
+                $outputArray = Admin::getStockList($msgpackData['params']);
+                break;
+
+            case "getSaleDetail":
+                $apiType = "get";
+                $outputArray = Inventory::getSODetail($params);
+                break;
+
+            case "getProduct":
+                $apiType = "get";
+                $outputArray = Admin::getProduct($msgpackData['params']);
+                break;
+
+            case "editOrderDetails":
+                $apiType = "update";
+                $outputArray = Inventory::editOrderDetails($params);
+                break;
+    
             default:
                 $outputArray = array('status' => "error", 'code' => 1, 'statusMsg' => "Command not found.", 'data' => '');
                 $find = array("%%apiName%%");

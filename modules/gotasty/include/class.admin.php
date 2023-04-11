@@ -4,7 +4,7 @@
      * This file is contains the Database functionality for Admins.
      * Date  11/07/2017.
      **/
-
+    
     class Admin {
 
         function __construct() {
@@ -484,7 +484,7 @@
 
             //Meaning a = admin table
             if($masterAdminIDAry) $db->where("id", $masterAdminIDAry, "NOT IN");
-            $result = $db->get("admin", $limit, $getRoleName. ", id, username, name as Name, email, disabled, created_at, last_login");
+            $result = $db->get("admin", $limit, $getRoleName. ", id, username, name, email, disabled, created_at, last_login");
             // print_r($result);
             $totalRecord = $copyDb->getValue ("admin", "count(*)");
 
@@ -492,13 +492,12 @@
                 foreach($result as $value) {
                     $admin['id']           = $value['id'];
                     $admin['username']     = $value['username'];
-                    $admin['name']         = $value['Name'];
+                    $admin['name']         = $value['name'];
                     $admin['email']        = $value['email'];
                     $admin['roleName']     = $value['roleName'];
                     $admin['disabled']     = ($value['disabled'] == 1)? 'Yes':'No';
                     $admin['createdAt']    = $value['created_at'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['created_at'])) : "-";
-                    $admin['price']    = $value['last_login'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['last_login'])) : "-";
-                    // $admin['price']        = $value['last_login'];
+                    $admin['lastLogin']    = $value['last_login'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['last_login'])) : "-";
 
                     $adminList[] = $admin;
                 }
@@ -760,7 +759,7 @@
             $limit              = General::getLimit($pageNumber);
             $searchData         = $params['searchData'];
             
-    		$adminLeaderAry = Setting::getAdminLeaderAry();
+    		// $adminLeaderAry = Setting::getAdminLeaderAry();
 
             if($params['type'] == "export"){
                 $params['command'] = __FUNCTION__;
@@ -906,9 +905,9 @@
                 }
             }
 
-            if($adminLeaderAry){
-            	$db->where('id', $adminLeaderAry, 'IN');
-            }
+            // if($adminLeaderAry){
+            // 	$db->where('id', $adminLeaderAry, 'IN');
+            // }
             //try this if face query performance issues
             //$sub = $db->subQuery();
             //$sub->where('ag.admin_id', $userID);
@@ -916,10 +915,17 @@
             //$sub->get('tree_sponsor ts',null,'ts.client_id');
 
             //if($sub) $db->where('id',$sub,'IN');
+            
             $getCountryName = "(SELECT name FROM country WHERE country.id=country_id) AS country_name";
+            // $getCountryName = "(SELECT amount FROM client WHERE client.id) AS country_name";
             $getSponsorUsername = "(SELECT username FROM client sponsor WHERE sponsor.id=client.sponsor_id) AS sponsor_username";
             $getSponsorMemberID = "(SELECT member_id FROM client sponsor WHERE sponsor.id=client.sponsor_id) AS sponsor_id";
+            // $getSponsorMemberID = "(SELECT amount FROM credit_transaction INNER JOIN client WHERE credit_transaction.data = client.member_id) AS sponsor_id";
+            // $getSponsorMemberID = "(SELECT * FROM credit_transaction INNER JOIN client WHERE credit_transaction.data = client.member_id) AS sponsor_id";
             $getSponsorName = "(SELECT name FROM client sponsor WHERE sponsor.id=client.sponsor_id) AS sponsor_name";
+
+            ///$balance =Cash::getBalance($accountID, $creditType);
+
             $db->where('type', "Client");
             if ($params['pageType'] == "lockAccount"){
                 $db->where('disabled', "0");
@@ -931,10 +937,10 @@
                 $limit = array(0, $totalRecords);
             }
             $db->orderBy("created_at","DESC");
-            $result = $db->get('client', $limit, 'id, member_id, name, username, '.$getCountryName.','.$getSponsorUsername.','.$getSponsorMemberID.','.$getSponsorName.',activated, disabled, suspended, freezed, 
+            $result = $db->get('client', $limit, 'id, member_id, name, username, '.$getCountryName.','.$getSponsorUsername.','.$getSponsorMemberID.','.$getSponsorName.', activated, disabled, suspended, freezed, 
                 `terminated`, last_login, last_login_ip, created_at, email');
 
-            if(empty($result))
+                if(empty($result))
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations['B00105'][$language] /* No Results Found. */, 'data' => "");
 
             // first day of this month
@@ -987,7 +993,7 @@
             if($clientIDAry){
                 $db->where('client_id', $clientIDAry, "IN");
                 $db->where('address_type', 'billing');
-                $city = $db->map('client_id')->get('address', null, 'client_id, city_id');
+                $city = $db->map('client_id')->get('address', null, 'client_id, city');
 
                 foreach($clientIDAry as $clientIDRow){
                     $db->where('client_id', $clientIDRow);
@@ -1020,9 +1026,6 @@
                
 
 
-
-
-
  
                 // if($clientSalesRes[$value['id']]['activated']){
                 //     $client['status'] = General::getTranslationByName('Active');
@@ -1045,7 +1048,11 @@
                 } elseif ($value['terminated'] == 1) {
                     $client['status'] = $translations['A01131'][$language];
                 }
-
+                // $client['balance'] = Cash::getBalance($value['id'], 'mfizCredit'); //balance in
+                // $client['balance'] = Cash::getBalance($value['id'], 'bonusCredit');
+                $client['balance'] = Cash::getBalance($value['id'], 'gotastyCredit');
+                $client['balance_to_point'] = floor($client['balance']); // balance to credit point
+                $client['point_to_balance'] = floor($client['balance_to_point'] * 0.005);
                 $client['memberID'] = $value['member_id'];
                 $client['name'] = $value['name'];
                 $client['username'] = $value['username'];
@@ -1068,6 +1075,7 @@
                 $client['nearDirector'] = $nearDirectorData[$nearDirector[$value['id']]]?:"-";
 
                 $clientList[] = $client;
+                // return $clientList;
             }
 
             $data['memberList']  = $clientList;
@@ -1076,7 +1084,7 @@
             $data['totalRecord'] = $totalRecords;
             $data['numRecord']   = $limit[1];
             $data['countryList'] = $db->get('country', null, 'id, name');
-
+            // return $data;
             return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
 
@@ -1151,6 +1159,94 @@
             $db->where('id', $newestID, 'IN');
             $db->where('client_id',$clientID);
             $checkKYCDetails = $db->map('doc_type')->get('mlm_kyc',null,'doc_type, id, status');
+
+            $credit = 'bonusDef';
+            $db->where('client_id', $userID);
+            $db->where('type', $credit);
+            $db->groupBy("group_id");
+            $db->orderBy("created_at", "DESC");
+            $db->orderBy("id", "DESC");
+            $result = $db->get("credit_transaction", $limit, "client_id, subject, from_id, to_id, SUM(amount) AS amount, remark, batch_id, creator_id, creator_type, created_at, portfolio_id, belong_id, type, coin_rate, data");
+
+            foreach($result as $value) {
+                $transactionSubject             = $bonusPayoutSubjectAry[$value['subject']] ? $bonusPayoutSubjectAry[$value['subject']] : General::getTranslationByName($value['subject']);
+                $transaction['created_at']      = General::formatDateTimeToString($value['created_at'], "d/m/Y H:i:s");
+
+                $transacDay = date('d', strtotime($value['created_at']));
+
+                if($transacDay > 1 && $transacDay <= 16){
+                    $transaction['fromToDate'] = date('16/m/Y', strtotime($value['created_at']));
+                }else if($transacDay == 1){
+                    $transaction['fromToDate'] = date('01/m/Y', strtotime($value['created_at']));
+                }else{
+                    $transaction['fromToDate'] = date('01/m/Y', strtotime($value['created_at']." +1 month"));
+                }
+
+                $transaction['subject'] = $transactionSubject ? $transactionSubject : $value['subject'] ;   
+
+                if($value['subject'] == "Transfer Out") {
+                    $transaction['to_from']     = $batchUsername[$value['batch_id']]["Transfer In"] ? $batchUsername[$value['batch_id']]["Transfer In"] : "-";
+                }
+                else if($value['subject'] == "Transfer In") {
+                    $transaction['to_from']     = $batchUsername[$value['batch_id']]["Transfer Out"] ? $batchUsername[$value['batch_id']]["Transfer Out"] : "-";
+                }
+                else if($value['subject'] == "Convert Credit") {
+                    $transaction['to_from']     = $belongCreditType[$value['belong_id']][$value['subject']] ? $belongCreditType[$value['belong_id']][$value['subject']] : "-";
+                }else if($value['subject'] == "Bonus Package Reentry") {
+                    $transaction['to_from'] = $bonusReentryPortfolio[$value["portfolio_id"]] ? $bonusReentryPortfolio[$value["portfolio_id"]] : "-";
+                }
+                else if($value['from_id'] == "9")
+                    $transaction['to_from']     = $translations["B00224"][$language];
+                else
+                    $transaction['to_from']     = "-";
+
+                $dateTimeStr = $value['created_at'];
+                $dateTimeAry = explode(' ', $dateTimeStr);
+                $dateAry = explode('-', $dateTimeAry[0]);
+                $timeAry = explode(':', $dateTimeAry[1]);
+
+                $startTimeStr = $dateAry[0].'-'.$dateAry[1].'-'.$dateAry[2].' '.$timeAry[0].':'.$timeAry[1].':00';
+                $endTimeStr = $dateAry[0].'-'.$dateAry[1].'-'.$dateAry[2].' '.$timeAry[0].':'.$timeAry[1].':59';
+
+                $db->where("name", $creditType);
+                $db->orWhere("type", $creditType);
+                $decimal = $db->getValue("credit", "dcm");
+
+                $db->where('created_on', $startTimeStr, '>=');
+                $db->where('created_on', $endTimeStr, '<=');
+                $db->where('type', $creditType);
+                $currentRate = $db->getValue('mlm_coin_rate', 'rate');
+                if(!$currentRate) $currentRate = '-';
+                if($value['from_id'] >= "1000000") {
+                    $transaction['credit_in'] = "-";
+                    $transaction['credit_out'] = Setting::setDecimal($value['amount'], $creditType);
+                    $transaction['coin_rate'] = $value['coin_rate']==0 ? "-" : $value['coin_rate'];
+                    $transaction['balance'] = Setting::setDecimal($currentBalance, $creditType);
+                    $currentBalance += Setting::setDecimal($value['amount'],$creditType);
+                }
+                else {
+                    $transaction['credit_in'] = Setting::setDecimal($value['amount'], $creditType);
+                    $transaction['credit_out'] = "-";
+                    $transaction['coin_rate'] = $value['coin_rate']==0 ? "-" : $value['coin_rate'];
+                    $transaction['balance'] = Setting::setDecimal($currentBalance, $creditType);
+                    $currentBalance -= Setting::setDecimal($value['amount'],$creditType);
+                }
+
+                if($value['from_id'] == "9" || $value['subject'] == "Package Cashback" || $value['creator_type'] == "System"){
+                    $transaction['creator_id']  = General::getTranslationByName("System");
+                }else{
+                    $transaction['creator_id']  = $usernameList[$value['creator_type']][$value['creator_id']];
+                }
+
+                $transaction['remark']      = $value['remark'] ? $value['remark'] : "-";
+
+                if($portfolio == 1) $transaction["portfolio_id"] = $value["portfolio_id"];
+
+                $transaction['maxCapMultiplier'] = ($value["data"] ? $value["data"] : 0.00);
+
+                $transactionList[] = $transaction;
+                unset($transaction);
+            }
 
             foreach($checkKYCDetails as $value){
                 if($value['status'] == 'Waiting Approval'){
@@ -1284,7 +1380,7 @@
             $db->where('disabled', '0');
             $db->where('address_type', 'billing');
             $db->where('client_id', $clientID);
-            $billingRes = $db->getOne('address', 'name, email, phone, address, state_id, district_id, sub_district_id, post_code_id, city_id, remarks, country_id');
+            $billingRes = $db->getOne('address', 'name, email, phone, address, state_id, district_id, sub_district_id, post_code, city, remarks, country_id');
 
             $billingInfo['name'] = $billingRes['name'];
             $billingInfo['email'] = $billingRes['email'];
@@ -1297,7 +1393,7 @@
             $db->where('address_type', 'delivery');
             $db->where('client_id', $clientID);
             $db->orderBy('created_at', 'DESC');
-            $deliveryRes = $db->getOne('address', 'client_id, name, email, phone, address, state_id, district_id, sub_district_id, post_code_id, city_id, remarks, country_id');
+            $deliveryRes = $db->getOne('address', 'client_id, name, email, phone, address, state_id, district_id, sub_district_id, post_code, city, remarks, country_id');
 
             $deliveryInfo['name'] = $deliveryRes['name'];
             $deliveryInfo['email'] = $deliveryRes['email'];
@@ -1315,10 +1411,10 @@
             $db->where("id", array($billingRes["sub_district_id"]?:"", $deliveryRes["sub_district_id"]?:""), "IN");
             $subCountyDisplay = $db->map("id")->get("sub_county", null, "id,name,translation_code");
 
-            $db->where("id", array($billingRes["post_code_id"]?:"", $deliveryRes["post_code_id"]?:""), "IN");
+            $db->where("id", array($billingRes["post_code"]?:"", $deliveryRes["post_code"]?:""), "IN");
             $zipCodeDisplay = $db->map("id")->get("zip_code", null, "id,name,translation_code");
 
-            $db->where("id", array($billingRes["city_id"]?:"", $deliveryRes["city_id"]?:""), "IN");
+            $db->where("id", array($billingRes["city"]?:"", $deliveryRes["city"]?:""), "IN");
             $cityDisplay = $db->map("id")->get("city", null, "id,name,translation_code");
 
             $db->where("id", array($billingRes["state_id"]?:"", $deliveryRes["state_id"]?:""), "IN");
@@ -1334,11 +1430,11 @@
             $billingInfo["subDistrictID"] = $billingRes["sub_district_id"];
             $billingInfo["subDistrict"] = $translations[$subCountyDisplay[$billingRes["sub_district_id"]]["translation_code"]][$language] ? $translations[$subCountyDisplay[$billingRes["sub_district_id"]]["translation_code"]][$language] : $subCountyDisplay[$billingRes["sub_district_id"]]["name"];
 
-            $billingInfo["postCodeID"] = $billingRes["post_code_id"];
-            $billingInfo["postCode"] = $translations[$zipCodeDisplay[$billingRes["post_code_id"]]["translation_code"]][$language] ? $translations[$zipCodeDisplay[$billingRes["post_code_id"]]["translation_code"]][$language] : $zipCodeDisplay[$billingRes["post_code_id"]]["name"];
+            $billingInfo["postCodeID"] = $billingRes["post_code"];
+            $billingInfo["postCode"] = $translations[$zipCodeDisplay[$billingRes["post_code"]]["translation_code"]][$language] ? $translations[$zipCodeDisplay[$billingRes["post_code"]]["translation_code"]][$language] : $zipCodeDisplay[$billingRes["post_code"]]["name"];
 
-            $billingInfo["cityID"] = $billingRes["city_id"];
-            $billingInfo["city"] = $translations[$cityDisplay[$billingRes["city_id"]]["translation_code"]][$language] ? $translations[$cityDisplay[$billingRes["city_id"]]["translation_code"]][$language] : $cityDisplay[$billingRes["city_id"]]["name"];
+            $billingInfo["cityID"] = $billingRes["city"];
+            $billingInfo["city"] = $translations[$cityDisplay[$billingRes["city"]]["translation_code"]][$language] ? $translations[$cityDisplay[$billingRes["city"]]["translation_code"]][$language] : $cityDisplay[$billingRes["city"]]["name"];
 
             $billingInfo["stateID"] = $billingRes["state_id"];
             $billingInfo["state"] = $translations[$stateDisplay[$billingRes["state_id"]]["translation_code"]][$language] ? $translations[$stateDisplay[$billingRes["state_id"]]["translation_code"]][$language] : $stateDisplay[$billingRes["state_id"]]["name"];
@@ -1349,20 +1445,23 @@
             $deliveryInfo["subDistrictID"] = $deliveryRes["sub_district_id"];
             $deliveryInfo["sub_district"] = $translations[$subCountyDisplay[$deliveryRes["sub_district_id"]]["translation_code"]][$language] ? $translations[$subCountyDisplay[$deliveryRes["sub_district_id"]]["translation_code"]][$language] : $subCountyDisplay[$deliveryRes["sub_district_id"]]["name"];
 
-            $deliveryInfo["post_code_id"] = $deliveryRes["post_code_id"];
-            $deliveryInfo["post_code"] = $translations[$zipCodeDisplay[$deliveryRes["post_code_id"]]["translation_code"]][$language] ? $translations[$zipCodeDisplay[$deliveryRes["post_code_id"]]["translation_code"]][$language] : $zipCodeDisplay[$deliveryRes["post_code_id"]]["name"];
+            $deliveryInfo["post_code"] = $deliveryRes["post_code"];
+            $deliveryInfo["post_code"] = $translations[$zipCodeDisplay[$deliveryRes["post_code"]]["translation_code"]][$language] ? $translations[$zipCodeDisplay[$deliveryRes["post_code"]]["translation_code"]][$language] : $zipCodeDisplay[$deliveryRes["post_code"]]["name"];
 
-            $deliveryInfo["cityID"] = $deliveryRes["city_id"];
-            $deliveryInfo["city"] = $translations[$cityDisplay[$deliveryRes["city_id"]]["translation_code"]][$language] ? $translations[$cityDisplay[$deliveryRes["city_id"]]["translation_code"]][$language] : $cityDisplay[$deliveryRes["city_id"]]["name"];
+            $deliveryInfo["cityID"] = $deliveryRes["city"];
+            $deliveryInfo["city"] = $translations[$cityDisplay[$deliveryRes["city"]]["translation_code"]][$language] ? $translations[$cityDisplay[$deliveryRes["city"]]["translation_code"]][$language] : $cityDisplay[$deliveryRes["city"]]["name"];
 
             $deliveryInfo["stateID"] = $deliveryRes["state_id"];
             $deliveryInfo["state"] = $translations[$stateDisplay[$deliveryRes["state_id"]]["translation_code"]][$language] ? $translations[$stateDisplay[$deliveryRes["state_id"]]["translation_code"]][$language] : $stateDisplay[$deliveryRes["state_id"]]["name"];
+            $currentBalance = Cash::getBalance($userID, $credit, date("Y-m-d H:i:s", $date));
 
             $data['credentials'] = $credentials;
             $data['additionalInfo'] = $additionalInfo;
             $data['bankInfo'] = $bankInfo;
             $data['billingInfo'] = $billingInfo;
             $data['deliveryInfo'] = $deliveryInfo;
+            $data['userPointBalance'] = $currentBalance;
+            $data['transactionList'] = $transactionList;
 
             $data['identityType'] = $member['identity_number']?'nric':'passport';
 
@@ -1395,23 +1494,28 @@
             $martialStatusArr = array("single","married","widowed","divorced","separated");
             $genderArr = array("male", "female");
 
-            $status         = trim($params['status']);
+            // $status         = trim($params['status']);
             $clientID       = trim($params['clientID']);
-            $fullName       = trim($params['name']);
-            $gender         = trim($params['gender']);
-            $email          = trim($params['email']);
-            $country        = trim($params['countryID']);
-            $phone          = trim($params['phone']);
+            $fullName       = trim($params['fullName']);
+            $username         = trim($params['username']);
+            $number          = trim($params['number']);
+            $dialCode        = trim($params['dialCode']);
+            $password          = trim($params['password']);
+            $confirmPassword          = trim($params['confirmPassword']);
             $dateOfBirth    = trim($params['dob']);
-            $identityType   = trim($params['identityType']);
-            $identityNumber = trim($params['identityNumber']);
-            $passport       = trim($params['passport']);
+            $address   = trim($params['address']);
+            $email     = trim($params['email']);
+
+            if($phone == null || $phone == '')
+            {
+                $phone = $dialCode.$number;
+            }
 
             // additional param
-            $martialStatus = trim($params['martialStatus']);
-            $childNumber   = trim($params['childNumber']);
-            $childAge      = $params['childAge'];
-            $taxNumber     = trim($params['taxNumber']);
+            // $martialStatus = trim($params['martialStatus']);
+            // $childNumber   = trim($params['childNumber']);
+            // $childAge      = $params['childAge'];
+            // $taxNumber     = trim($params['taxNumber']);
 
             // bank param
             $bankInfo['clientID']     = trim($params['clientID']);
@@ -1465,17 +1569,17 @@
             // $checkEmailValidate = $db->has('client_detail');
 
             // Checking for Success verification
-            $newestID = $db->subQuery();
-            $newestID->where('client_id', $clientID);
-            $newestID->groupBy('doc_type');
-            $newestID->get('mlm_kyc', null, 'MAX(id)');
-            $db->where('id', $newestID, 'IN');
-            $db->where('status', 'Approved');
-            $getSuccessKYCRes = $db->map('doc_type')->get('mlm_kyc',null,'doc_type');
+            // $newestID = $db->subQuery();
+            // $newestID->where('client_id', $clientID);
+            // $newestID->groupBy('doc_type');
+            // $newestID->get('mlm_kyc', null, 'MAX(id)');
+            // $db->where('id', $newestID, 'IN');
+            // $db->where('status', 'Approved');
+            // $getSuccessKYCRes = $db->map('doc_type')->get('mlm_kyc',null,'doc_type');
 
             // Get member original details
-            $db->where('id', $clientID);
-            $oriDetailRes = $db->getOne('client', 'name, email, country_id, identity_number, passport');
+            // $db->where('id', $clientID);
+            // $oriDetailRes = $db->getOne('client', 'name, email, country_id, identity_number, passport');
             // $db->where('client_id',$clientID);
             // $oriNPWPRes = $db->getOne('client_detail','tax_number');
 
@@ -1502,20 +1606,21 @@
             }
 
             // Validate Gender
-            if(empty($gender) || (!in_array($gender, $genderArr))){
-                $errorFieldArr[] = array(
-                    'id' => 'genderError',
-                    'msg' => $translations["E00766"][$language] /* Invalid gender */
-                );
-            } 
+            // if(empty($gender) || (!in_array($gender, $genderArr))){
+            //     $errorFieldArr[] = array(
+            //         'id' => 'genderError',
+            //         'msg' => $translations["E00766"][$language] /* Invalid gender */
+            //     );
+            // } 
 
             // Valid email
-            if (empty($email)) {
-                $errorFieldArr[] = array(
-                    'id' => 'emailError',
-                    'msg' => $translations["E00318"][$language] /* Please fill in email */
-                );
-            } else {
+            // if (empty($email)) {
+            //     $errorFieldArr[] = array(
+            //         'id' => 'emailError',
+            //         'msg' => $translations["E00318"][$language] /* Please fill in email */
+            //     );
+            // }
+             if(!empty($email)) {
                 if ($email) {
                     // if($checkEmailValidate && $email != $oriDetailRes['email']){
                     //     $errorFieldArr[] = array(
@@ -1542,26 +1647,26 @@
             }
 
             // Validate country
-            if(in_array('ID Verification',$getSuccessKYCRes) && $country != $oriDetailRes['country_id']){
-                    $errorFieldArr[] = array(
-                        'id'    => 'countryIDError',
-                        'msg'   => $translations["E01108"][$language] /* ID had been validated. Unable to edit */
-                    );
-            }else if(!is_numeric($country) || empty($country)) {
-                $errorFieldArr[] = array(
-                    'id'  => "countryIDError",
-                    'msg' => $translations['E00947'][$language]
-                );
-            }else{
-                $db->where('id', $country);
-                $dialingArea = $db->getValue('country', 'country_code');
-                if(!$dialingArea){
-                    $errorFieldArr[] = array(
-                        'id'  => "countryIDError",
-                        'msg' => $translations['E00947'][$language]
-                    );
-                }
-            }
+            // if(in_array('ID Verification',$getSuccessKYCRes) && $country != $oriDetailRes['country_id']){
+            //         $errorFieldArr[] = array(
+            //             'id'    => 'countryIDError',
+            //             'msg'   => $translations["E01108"][$language] /* ID had been validated. Unable to edit */
+            //         );
+            // }else if(!is_numeric($country) || empty($country)) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "countryIDError",
+            //         'msg' => $translations['E00947'][$language]
+            //     );
+            // }else{
+            //     $db->where('id', $country);
+            //     $dialingArea = $db->getValue('country', 'country_code');
+            //     if(!$dialingArea){
+            //         $errorFieldArr[] = array(
+            //             'id'  => "countryIDError",
+            //             'msg' => $translations['E00947'][$language]
+            //         );
+            //     }
+            // }
 
             // Validate phone
             if (empty($phone)) {
@@ -1579,25 +1684,25 @@
             }
 
             // Validate Date of Birth
-            if (!is_numeric($dateOfBirth)){
-                $errorFieldArr[] = array(
-                    'id' => 'dateOfBirthError',
-                    'msg' => $translations["E00156"][$language] /* Invalid date. */
-                );
-            }
+            // if (!is_numeric($dateOfBirth)){
+            //     $errorFieldArr[] = array(
+            //         'id' => 'dateOfBirthError',
+            //         'msg' => $translations["E00156"][$language] /* Invalid date. */
+            //     );
+            // }
 
-            if($dateOfBirth){
-                // check Date of Birth, min 18 years old
-                $ts1 = date("Y-m-d", $dateOfBirth); 
-                $tempDob = date("Y-m-d", strtotime('-18 year', strtotime("now")));
-                $ts2 = $tempDob;
-                if($ts1 > $ts2){
-                    $errorFieldArr[] = array(
-                        'id' => 'dateOfBirthError',
-                        'msg' => $translations["E01053"][$language] /* You must be 18 and above to register. */
-                    );
-                }    
-            }
+            // if($dateOfBirth){
+            //     // check Date of Birth, min 18 years old
+            //     $ts1 = date("Y-m-d", $dateOfBirth); 
+            //     $tempDob = date("Y-m-d", strtotime('-18 year', strtotime("now")));
+            //     $ts2 = $tempDob;
+            //     if($ts1 > $ts2){
+            //         $errorFieldArr[] = array(
+            //             'id' => 'dateOfBirthError',
+            //             'msg' => $translations["E01053"][$language] /* You must be 18 and above to register. */
+            //         );
+            //     }    
+            // }
 
             // Validate identity
             // if(in_array('ID Verification',$getSuccessKYCRes) && ($passport != $oriDetailRes['passport'] || $identityNumber != $oriDetailRes['identity_number'])){
@@ -1617,68 +1722,68 @@
             //         'msg'   => $translations["E01108"][$language] /* ID had been validated. Unable to edit */
             //     );
             // } else {
-            if($identityType == "nric"){
-                if(empty($identityNumber)){
-                    $errorFieldArr[] = array(
-                        'id' => 'identityNumberError',
-                        'msg' => $translations["E01040"][$language] /* Please Insert Identity Number */
-                    );
-                }
-            } else if ($identityType == "passport"){
-                if(empty($passport)){
-                    $errorFieldArr[] = array(
-                        'id' => 'identityNumberError',
-                        'msg' => $translations["E01042"][$language] /* Please Insert Passport Number */
-                    );
-                }
-            }else{
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00218"][$language], 'data' => "");
-            }
+            // if($identityType == "nric"){
+            //     if(empty($identityNumber)){
+            //         $errorFieldArr[] = array(
+            //             'id' => 'identityNumberError',
+            //             'msg' => $translations["E01040"][$language] /* Please Insert Identity Number */
+            //         );
+            //     }
+            // } else if ($identityType == "passport"){
+            //     if(empty($passport)){
+            //         $errorFieldArr[] = array(
+            //             'id' => 'identityNumberError',
+            //             'msg' => $translations["E01042"][$language] /* Please Insert Passport Number */
+            //         );
+            //     }
+            // }else{
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00218"][$language], 'data' => "");
+            // }
             
             // ===== CREDENTIALS END =====
 
             // ===== ADDITIONAL INFO START =====
 
             // Validate Marital status
-            if(empty($martialStatus) || (!in_array($martialStatus, $martialStatusArr))){
-                $errorFieldArr[] = array(
-                    'id' => 'martialStatusError',
-                    'msg' => $translations["E01037"][$language] /* Please Select Marital Status */
-                );
-            }
+            // if(empty($martialStatus) || (!in_array($martialStatus, $martialStatusArr))){
+            //     $errorFieldArr[] = array(
+            //         'id' => 'martialStatusError',
+            //         'msg' => $translations["E01037"][$language] /* Please Select Marital Status */
+            //     );
+            // }
 
-            if(!is_numeric($childNumber) || $childNumber < 0){
-                $errorFieldArr[] = array(
-                    'id' => 'childNumberError',
-                    'msg' => $translations["E01038"][$language] /* Please Insert Child Number */
-                );
-            }
+            // if(!is_numeric($childNumber) || $childNumber < 0){
+            //     $errorFieldArr[] = array(
+            //         'id' => 'childNumberError',
+            //         'msg' => $translations["E01038"][$language] /* Please Insert Child Number */
+            //     );
+            // }
 
-            if($childNumber > 0){
-                $childAgeOption = explode('#', Setting::$systemSetting['childAgeOption']);
-                // childAge
-                if(!is_array($childAge)){
-                    $errorFieldArr[] = array(
-                        'id' => 'childAgeError',
-                        'msg' => $translations["E01111"][$language] /* Invalid Age. */
-                    );
-                }else if(count($childAge) != $childNumber){
-                    $errorFieldArr[] = array(
-                        'id' => 'childAgeError',
-                        'msg' => $translations["E01112"][$language] /* Total count of age not match. */
-                    );
-                }else{
-                    foreach ($childAge as $childAgeRow) {
-                        if(!$childAgeOption[$childAgeRow]){
-                            $errorFieldArr[] = array(
-                                'id' => 'childAgeError',
-                                'msg' => $translations["E01111"][$language] /* Invalid Age. */
-                            );
-                            break;
-                        }
-                    }
-                }
-            }
+            // if($childNumber > 0){
+            //     $childAgeOption = explode('#', Setting::$systemSetting['childAgeOption']);
+            //     // childAge
+            //     if(!is_array($childAge)){
+            //         $errorFieldArr[] = array(
+            //             'id' => 'childAgeError',
+            //             'msg' => $translations["E01111"][$language] /* Invalid Age. */
+            //         );
+            //     }else if(count($childAge) != $childNumber){
+            //         $errorFieldArr[] = array(
+            //             'id' => 'childAgeError',
+            //             'msg' => $translations["E01112"][$language] /* Total count of age not match. */
+            //         );
+            //     }else{
+            //         foreach ($childAge as $childAgeRow) {
+            //             if(!$childAgeOption[$childAgeRow]){
+            //                 $errorFieldArr[] = array(
+            //                     'id' => 'childAgeError',
+            //                     'msg' => $translations["E01111"][$language] /* Invalid Age. */
+            //                 );
+            //                 break;
+            //             }
+            //         }
+            //     }
+            // }
 
             // if(empty($taxNumber)){
             //     // $errorFieldArr[] = array(
@@ -1694,10 +1799,10 @@
             // ===== ADDITIONAL INFO END =====
 
             // ===== BANK INFO START =====
-            $db->where('status', 'Active');
-            $db->where('client_id', $clientID);
-            $db->orderBy('created_at', 'DESC');
-            $curBankRes = $db->getOne('mlm_client_bank', 'bank_id, account_no, branch, bank_city, account_holder');
+            // $db->where('status', 'Active');
+            // $db->where('client_id', $clientID);
+            // $db->orderBy('created_at', 'DESC');
+            // $curBankRes = $db->getOne('mlm_client_bank', 'bank_id, account_no, branch, bank_city, account_holder');
 
             // if(in_array('Bank Account Cover', $getSuccessKYCRes)){
             //     if($bankInfo['bankID'] != $curBankRes['bank_id']){
@@ -1731,63 +1836,63 @@
             //         );
             //     }
             // }else 
-            if($curBankRes &&
-                ( $bankInfo['bankID'] != $curBankRes['bank_id']
-                    || $bankInfo['accountNo'] != $curBankRes['account_no']
-                    || $bankInfo['branch'] != $curBankRes['branch']
-                    || $bankInfo['bankCity'] != $curBankRes['bank_city']
-                    || $bankInfo['accountHolder'] != $curBankRes['account_holder'] )
-            ){
-                // add bank flag
-                $addBankFlag = true;
-            }else if(!$curBankRes && $bankInfo['bankID']){
-                $addBankFlag = true;
-            }
+            // if($curBankRes &&
+            //     ( $bankInfo['bankID'] != $curBankRes['bank_id']
+            //         || $bankInfo['accountNo'] != $curBankRes['account_no']
+            //         || $bankInfo['branch'] != $curBankRes['branch']
+            //         || $bankInfo['bankCity'] != $curBankRes['bank_city']
+            //         || $bankInfo['accountHolder'] != $curBankRes['account_holder'] )
+            // ){
+            //     // add bank flag
+            //     $addBankFlag = true;
+            // }else if(!$curBankRes && $bankInfo['bankID']){
+            //     $addBankFlag = true;
+            // }
 
-            if($addBankFlag){
-                $bankValidation = Client::addBankAccountDetailVerification($bankInfo);
-                if(strtolower($bankValidation['status']) != 'ok'){
-                    return $bankValidation;
-                }
-            }
+            // if($addBankFlag){
+            //     $bankValidation = Client::addBankAccountDetailVerification($bankInfo);
+            //     if(strtolower($bankValidation['status']) != 'ok'){
+            //         return $bankValidation;
+            //     }
+            // }
             // ===== BANK INFO END =====
 
             // ===== BILLING INFO START =====
-            $db->where('disabled', '0');
-            $db->where('address_type', 'billing');
-            $db->where('client_id', $clientID);
-            $curBillingRes = $db->getOne('address', 'id, name, email, phone, address, state_id, district_id, sub_district_id, remarks, city_id, post_code_id, country_id');
-            // $billingInfo['dialingArea'] != $curBillingRes['']
+            // $db->where('disabled', '0');
+            // $db->where('address_type', 'billing');
+            // $db->where('client_id', $clientID);
+            // $curBillingRes = $db->getOne('address', 'id, name, email, phone, address, state_id, district_id, sub_district_id, remarks, city_id, post_code_id, country_id');
+            // // $billingInfo['dialingArea'] != $curBillingRes['']
 
-            if($curBillingRes &&
-                ( $billingInfo['fullname'] != $curBillingRes['name']
-                    || $billingInfo['phone'] != $curBillingRes['phone']
-                    || $billingInfo['email'] != $curBillingRes['email']
-                    || $billingInfo['address'] != $curBillingRes['address']
-                    || $billingInfo['districtID'] != $curBillingRes['district_id']
-                    || $billingInfo['subDistrictID'] != $curBillingRes['sub_district_id']
-                    || $billingInfo['cityID'] != $curBillingRes['city_id']
-                    || $billingInfo['postalCodeID'] != $curBillingRes['post_code_id']
-                    || $billingInfo['stateID'] != $curBillingRes['state_id']
-                    || $billingInfo['countryID'] != $curBillingRes['country_id'] )
-            ){
-                // add billing address flag
-                $addBillingAddrFlag = true;
+            // if($curBillingRes &&
+            //     ( $billingInfo['fullname'] != $curBillingRes['name']
+            //         || $billingInfo['phone'] != $curBillingRes['phone']
+            //         || $billingInfo['email'] != $curBillingRes['email']
+            //         || $billingInfo['address'] != $curBillingRes['address']
+            //         || $billingInfo['districtID'] != $curBillingRes['district_id']
+            //         || $billingInfo['subDistrictID'] != $curBillingRes['sub_district_id']
+            //         || $billingInfo['cityID'] != $curBillingRes['city_id']
+            //         || $billingInfo['postalCodeID'] != $curBillingRes['post_code_id']
+            //         || $billingInfo['stateID'] != $curBillingRes['state_id']
+            //         || $billingInfo['countryID'] != $curBillingRes['country_id'] )
+            // ){
+            //     // add billing address flag
+            //     $addBillingAddrFlag = true;
 
-            }else if(!$curBillingRes && $billingInfo['fullname']){
-                $addBillingAddrFlag = true;
-            }
+            // }else if(!$curBillingRes && $billingInfo['fullname']){
+            //     $addBillingAddrFlag = true;
+            // }
 
-            if($addBillingAddrFlag){
-                $errorFieldArrBilling = Inventory::verifyAddress($billingInfo);
-                if($errorFieldArrBilling){
-                    foreach ($errorFieldArrBilling as $key => &$value) {
-                        $value['id'] = $value['id']."Billing";
-                    }
-                    $data['field'] = $errorFieldArrBilling;
-                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
-                }
-            }
+            // if($addBillingAddrFlag){
+            //     $errorFieldArrBilling = Inventory::verifyAddress($billingInfo);
+            //     if($errorFieldArrBilling){
+            //         foreach ($errorFieldArrBilling as $key => &$value) {
+            //             $value['id'] = $value['id']."Billing";
+            //         }
+            //         $data['field'] = $errorFieldArrBilling;
+            //         return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
+            //     }
+            // }
             // ===== BILLING INFO END =====
 
             // ===== DELIVERY INFO START =====
@@ -1795,7 +1900,7 @@
             $db->where('address_type', 'delivery');
             $db->where('client_id', $clientID);
             $db->orderBy('created_at', 'DESC');
-            $curDeliveryRes = $db->getOne('address', 'id, name, email, phone, address, state_id, district_id, sub_district_id, remarks, city_id, post_code_id, country_id');
+            $curDeliveryRes = $db->getOne('address', 'id, name, email, phone, address, state_id, district_id, sub_district_id, remarks, city, post_code, country_id');
             // $deliveryInfo['dialingArea'] != $curDeliveryRes['']
 
             if($curDeliveryRes &&
@@ -1805,8 +1910,8 @@
                     || $deliveryInfo['address'] != $curDeliveryRes['address']
                     || $deliveryInfo['districtID'] != $curDeliveryRes['district_id']
                     || $deliveryInfo['subDistrictID'] != $curDeliveryRes['sub_district_id']
-                    || $deliveryInfo['cityID'] != $curDeliveryRes['city_id']
-                    || $deliveryInfo['postalCodeID'] != $curDeliveryRes['post_code_id']
+                    || $deliveryInfo['cityID'] != $curDeliveryRes['city']
+                    || $deliveryInfo['postalCodeID'] != $curDeliveryRes['post_code']
                     || $deliveryInfo['stateID'] != $curDeliveryRes['state_id']
                     || $deliveryInfo['countryID'] != $curDeliveryRes['country_id'] )
             ){
@@ -1817,16 +1922,16 @@
                 $addDeliveryAddrFlag = true;
             }
 
-            if($addDeliveryAddrFlag){
-                $errorFieldArrDelivery = Inventory::verifyAddress($deliveryInfo);
-                if($errorFieldArrDelivery){
-                    foreach ($errorFieldArrDelivery as $key => &$value) {
-                        $value['id'] = $value['id']."Delivery";
-                    }
-                    $data['field'] = $errorFieldArrDelivery;
-                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
-                }
-            }
+            // if($addDeliveryAddrFlag){
+            //     $errorFieldArrDelivery = Inventory::verifyAddress($deliveryInfo);
+            //     if($errorFieldArrDelivery){
+            //         foreach ($errorFieldArrDelivery as $key => &$value) {
+            //             $value['id'] = $value['id']."Delivery";
+            //         }
+            //         $data['field'] = $errorFieldArrDelivery;
+            //         return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
+            //     }
+            // }
             // ===== DELIVERY INFO END =====
 
             $data['field'] = $errorFieldArr;
@@ -1839,15 +1944,15 @@
             $db->where("id", $clientID);
             $clientOldData = $db->getOne("client", "name, email, phone, address, country_id, disabled, suspended, freezed, `terminated`,turnOffPopUpMemo");
 
-            if (Cash::$creatorType == "Admin") {
+            // if (Cash::$creatorType == "Admin") {
 
                 $updateData["name"] = $fullName;
                 $updateData["email"] = $email;
-                $updateData["passport"] = $passport;
-                $updateData["identity_number"] = $identityNumber;
-                $updateData["dial_code"] = $dialingArea;
-                $updateData["phone"] = $phone;
-                $updateData["country_id"] = $country;
+                $updateData["phone"] = $number;
+                $updateData["dial_code"] = $dialCode;
+                // $updateData["password"] = $password;
+                // $updateData["dob"] = $dateOfBirth;
+                // $updateData["address"] = $address;
 
                if($status == "active"){
                     $updateData["activated"] = 1;
@@ -1882,7 +1987,7 @@
 
                 $db->where('id', $clientID);
                 $updateResult = $db->update('client', $updateData);
-            }
+            // }
 
             //Insert Terminate time for Rerun bonus module
             $db->where('client_id',$clientID);
@@ -4198,7 +4303,7 @@
             $limit      = General::getLimit($pageNumber);
             $searchData = $params['searchData'];
             
-    		$adminLeaderAry = Setting::getAdminLeaderAry();
+    		// $adminLeaderAry = Setting::getAdminLeaderAry();
 
             // Means the search params is there
             if (count($searchData) > 0) {
@@ -4299,7 +4404,7 @@
             $getCountryName = "(SELECT name FROM country WHERE country.id=country_id) AS country_name";
             $getSponsorUsername = "(SELECT username FROM client sponsor WHERE sponsor.id=client.sponsor_id) AS sponsor_username";
             
-            if($adminLeaderAry) $db->where('id', $adminLeaderAry, 'IN');
+            // if($adminLeaderAry) $db->where('id', $adminLeaderAry, 'IN');
 
             $db->where("type", "Client");
             $copyDb = $db->copy();
@@ -7592,6 +7697,1681 @@
             $data['bonusTaxStgArr'] = $bonusTaxStgArr;
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations['E00547'][$language] /*Successfully retrieved.*/, 'data'=> $data);
+        }
+
+        public function getPurchaseRequestList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['inputData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+                        
+                    switch($dataName) {
+                        case 'name':
+                            if ($dataType == "like") {
+                                $db->where('name', "%" . $dataValue . "%", 'LIKE');
+                            }else{
+                                $db->where('name', $dataValue);
+                            }
+                            break;
+                                
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            // $db->join('vendor v', 'v.id = pr.vendor_id');
+            $copyDb = $db->copy();
+            $db->orderBy('id', 'DESC');
+            $db->join('vendor v', 'v.id = pr.vendor_id');
+            $db->join('product p', 'p.id = pr.id');
+            // $results = $db->get('purchase_request pr', $limit, 'pr.id, pr.product_name, pr.vendor_id, pr.total_quantity, pr.total_cost, pr.approved_by, pr.approved_date, v.name');
+            $results = $db->get('purchase_request pr', $limit, 'pr.id, pr.product_name as pr_name, pr.vendor_id, pr.total_quantity, pr.total_cost, pr.buying_date, pr.status, pr.approved_by, pr.approved_date, p.name, v.name as vendor_name, p.id as pid');
+
+            $totalRecord = $copyDb->getValue ('purchase_request pr', 'count(*)');
+
+            if (!empty($results)) {
+                foreach($results as $value) {
+                    $purchaseRequest['id']              = $value['id'];
+                    $purchaseRequest['pr_name']            = $value['pr_name'];
+                    $purchaseRequest['vendor']          = $value['vendor_name'];
+                    $purchaseRequest['quantity']        = $value['total_quantity'];
+                    $purchaseRequest['cost']            = $value['total_cost'];
+                    $purchaseRequest['buying_date']     = $value['buying_date'];
+                    $purchaseRequest['status']          = $value['status'];
+                    $purchaseRequest['approved_by']     = $value['approved_by'];
+                    $purchaseRequest['approved_date']   = $value['approved_date'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['approved_date'])) : "-";
+
+                    $purchaseRequestList[] = $purchaseRequest;
+                }
+                $data['purchaseRequestList']    = $purchaseRequestList;
+                $data['pageNumber']             = $pageNumber;
+                $data['totalRecord']            = $totalRecord;
+                $data['numRecord']              = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' =>"", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found. */, 'data' => "");
+            }
+        }
+
+        public function addPurchaseRequest($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $product_name       = trim($params['product_name']);
+            $product_id         = trim($params['product_id']);
+            $vendor_id        = trim($params['vendor_id']);
+            $quantity           = trim($params['quantity']);
+            $product_cost       = trim($params['product_cost']);
+            $buying_date        = trim($params['buying_date']);
+            $product_list       = ($params['product_list']);
+            $product_request_id       = ($params['product_request_id']);
+            $approved_by       = trim($params['approved_by']);
+            $remark            = ($params['remarks']);
+
+            // $dateObj = DateTime::createFromFormat('m/d/Y', $buying_date);
+            // $buying_date = $dateObj ? $dateObj->format('Y-m-d H:i:s') : null;
+            // $buying_date = DateTime::createFromFormat('Y-m-d H:i:s', $buying_date); 
+
+            // if (!$vendor_name)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => 'Please enter vendor!', 'data' => "");
+            
+            // if (!$product_name)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => 'Please enter product name!', 'data' => "");
+
+            // if  (!$quantity)
+                // return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00107"][$language] /* Please Enter Username */, 'data' => "");
+
+            // if (!$cost)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00108"][$language] / Please Enter Email /, 'data'=>"");
+
+            // if(strlen($vendor_name) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00108"][$language], 'data'=>"");
+
+            // if(strlen($total_cost) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00108"][$language]/ Please Select a Role /, 'data'=>"");
+
+            // if(strlen($approved_by) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00108"][$language]/ Please Select a Role /, 'data'=>"");
+
+            // if(strlen($approved_date) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00108"][$language]/ Please Select a Role /, 'data'=>"");
+
+            if(!$total_quantity){
+                $total_quantity = $quantity;
+            }
+
+            if(!$total_cost){
+                $total_cost = $product_cost * $quantity;
+            }
+
+            $current_time = date("Y-m-d H:i:s");
+            $fields = array("product_name", "vendor_id", "product_id", "quantity", "product_cost","total_quantity", "total_cost", "buying_date", "remarks", "approved_date", "approved_by", "status", "created_at");
+            $values = array($product_name, $vendor_id, $product_id, $quantity, $product_cost, $total_quantity, $total_cost, $buying_date, $remarks, $current_time, $approved_by, "Save", $current_time);
+            $arrayData = array_combine($fields, $values);
+            
+            try{
+                $result = $db->insert('purchase_request', $arrayData);
+                $db->where('created_at', $current_time);
+                $prId = $db->getOne('purchase_request','id');
+                $arrayData['id'] = $prId['id'];
+                $params['product_request_id'] = $arrayData['id'];
+                Admin::addPurchaseProduct($params);
+            }
+            catch (Exception $e) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00112"][$language] /* Failed to add new user */, 'data' => "");
+            }
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> 'Purchase Request Has Been Added Successfully', 'data'=>$arrayData);
+        }
+
+        public function addPurchaseProduct($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $product_name       = trim($params['product_name']);
+            $product_id         = trim($params['product_id']);
+            $vendor_id        = trim($params['vendor_id']);
+            $quantity           = trim($params['quantity']);
+            $product_cost       = trim($params['product_cost']);
+            $buying_date        = trim($params['buying_date']);
+            $product_list       = ($params['product_list']);
+            $product_request_id       = ($params['product_request_id']);
+            $dateObj = DateTime::createFromFormat('m/d/Y', $buying_date);
+            $buying_date = $dateObj ? $dateObj->format('Y-m-d') : null;
+
+            foreach($product_list as $list)
+            {
+                $total_cost = intval($list['quantity']) * floatval($list['cost']);
+                $fields = array("purchase_request_id", "vendor_id", "product_id", 'product_name', "quantity", "cost", "total_cost", "created_at");
+                $values = array($product_request_id, $vendor_id, $list['id'], $list['name'], $list['quantity'], $list['cost'], $total_cost, date("Y-m-d H:i:s"));
+                $arrayData = array_combine($fields, $values);
+
+                try{
+                    $result = $db->insert('purchase_product', $arrayData);
+                    // return $result;
+                }
+                catch (Exception $e) {
+                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00932"][$language] /* Failed to add product */, 'data' => "");
+                }
+                $costList[] = $total_cost;
+                $nameList[] = $list['name'];
+                $productList[] = $list['id'];
+                $quantityList[] = $list['quantity'];
+            }
+            $totalCost = 0;
+            foreach($costList as $row)
+            {
+                $totalCost = intval($row) + $totalCost;
+            }
+            $quantity = 0;
+            foreach($quantityList as $quantity)
+            {
+                $totalQuantity = intval($quantity) + $quantity;
+            }
+            $nameList = implode(", ", $nameList);
+            $productList = implode(", ", $productList);
+            // update pr request
+            $current_time = date("Y-m-d H:i:s");
+            $fields = array("product_name", "product_cost", "product_id", "quantity","total_quantity", "total_cost", "updated_at");
+            $values = array($nameList, $totalCost, $productList, $totalQuantity, $totalQuantity, $totalCost, $current_time);
+            $data = array_combine($fields, $values);
+
+            $db->where('id', $product_request_id);
+            $db->update('purchase_request', $data);
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> 'Purchase Product Has Been Added Successfully', 'data'=> $data);
+        }
+
+        public function purchaseRequestEdit($params, $username) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id                 = trim($params['id']);
+            // $product_name       = trim($params['product_name']);
+            // $quantity           = trim($params['quantity']);
+            // $product_cost       = trim($params['product_cost']);
+            // $total_quantity     = trim($params['total_quantity']);
+            // $total_cost         = trim($params['total_cost']);
+            // $approved_by        = trim($params['approved_by']);
+            $approved_date      = trim($params['approved_date']);
+            $remarks            = ($params['remarks']);
+            $buying_date        = trim($params['buying_date']);
+            $purchase_product_list   = ($params['purchase_product_list']);
+            
+            if($total_cost || !$total_cost)
+                $total_cost = $product_cost * $quantity;
+
+            if($total_quantity || !$total_quantity)
+                $total_quantity = $quantity;
+
+            if($approved_by || !$approved_by)
+                $approved_by = $approved_by;
+                        
+            // $fields = array("product_name", "quantity", "product_cost", "total_quantity", "total_cost", "buying_date", "remarks", "approved_date", "approved_by");
+            // $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, $buying_date, $remarks ,date("Y-m-d H:i:s"), $username);
+            // $arrayData = array_combine($fields, $values);
+            // $db->where('id', $id);
+            // $result = $db->update("purchase_request", $arrayData);
+
+            // get all the product list from purchase_product table
+
+            // edit purchase product
+            foreach($purchase_product_list as $row)
+            {
+                $productDetail['quantity']    = $row['quantity'];
+                $productDetail['cost']        = $row['cost'];
+                $productDetail['total_cost']  = floatval($row['quantity'] * $row['cost']);
+
+                $fields = array("quantity", "cost", "total_cost", "updated_at");
+                $values = array($productDetail['quantity'],$productDetail['cost'], $productDetail['total_cost'], date("Y-m-d H:i:s"));
+                $arrayData = array_combine($fields, $values);
+
+
+                $db->where('id', $row['id']);
+                $db->update('purchase_product', $arrayData);
+
+                $costList[]     = $productDetail['total_cost'];
+                $quantityList[] = $productDetail['quantity'];
+                $nameList[]     = $row['name'];
+                $productList[]  = $row['product_id'];
+            }
+            // update on pr
+            $totalCost = 0;
+            foreach($product_list as $list)
+            {
+                $nameList[] = $nameList;
+            }
+            $nameList = implode(", ", $nameList);
+            $productList = implode(", ", $productList);
+            $totalCost = 0;
+            foreach($costList as $row)
+            {
+                $totalCost = floatval($row) + $totalCost;
+            }
+            foreach($quantityList as $quantity)
+            {
+                $totalQuantity = intval($quantity) + $quantity;
+            }
+
+            // update pr request
+            $current_time = date("Y-m-d H:i:s");
+            $fields = array("product_name", "product_cost", "product_id", "quantity","total_quantity", "total_cost", "buying_date", "remarks", "updated_at");
+            $values = array($nameList, $totalCost, $productList, $totalQuantity, $totalQuantity, $totalCost, $buying_date, $remarks, $current_time);
+            $data = array_combine($fields, $values);
+
+            $db->where('id', $id);
+            $result = $db->update('purchase_request', $data);
+
+            if ($result) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> 'Purchase Request Has Updated', 'data' => "");
+            }
+            else{
+                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Invalid Purchase Request', 'data' => "");
+            }
+        }
+
+        public function getPurchaseRequestDetails($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            if (strlen($id)==0)
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00104"][$language] /* Please Select Admin */, 'data'=> '');
+
+            $db->where('pr.id', $id);
+            $db->join('vendor v', 'pr.vendor_id = v.id', 'LEFT');
+            $db->join('purchase_product pp', 'pr.id = pp.purchase_request_id', "LEFT");
+            $result = $db->get('purchase_request pr', null, 'pp.id as purchase_product_id, pp.product_id, pp.cost, pp.product_name as name, pp.quantity, v.id as vendor_id, v.name as vendor_name, pr.approved_by, pr.id as purchase_request_id, pr.total_cost');
+
+            if (empty($result))
+            {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => '', 'data' => "");
+            }
+            else
+            {
+                foreach($result as $row)
+                {
+                    $productDetail['purchase_product_id'] = $row['purchase_product_id'];
+                    $productDetail['product_id'] = $row['product_id'];
+                    $productDetail['cost'] = $row['cost'];
+                    $productDetail['name'] = $row['name'];
+                    $productDetail['quantity'] = $row['quantity'];
+                    $productDetail['vendor_id'] = $row['vendor_id'];
+                    $productDetail['vendor_name'] = $row['vendor_name'];
+                    $otherDetails['approved_by'] = $row['approved_by'];
+                    $productDetail['purchase_request_id'] = $row['purchase_request_id'];
+                    $otherDetails['total_cost'] = $row['total_cost'];
+
+                    $productList[] = $productDetail;
+                }
+                $data['productList'] = $productList;
+                $data['total_cost'] = $otherDetails['total_cost'];
+                $data['approved_by'] = $otherDetails['approved_by'];
+                return array("code" => 0, "status" => "ok", "statusMsg" => '', 'data' => $data);
+            }
+        }
+
+        public function getShopOwnerList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['searchData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+            $flag           = trim($params['getShopOwnerFlag']) ? $params['getShopOwnerFlag'] : 0;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            if ($flag) {
+                $db->where('type', "Owner");
+                $db->where('deleted', 0);
+                $result = $db->get('client', null, 'id, name');
+
+                foreach($result as $key => $value) {
+                    $getShopOwner['id']     = $value['id'];
+                    $getShopOwner['name']   = $value['name'];
+
+                    $getShopOwnerList[] = $getShopOwner;
+                }
+
+                $data['getShopOwnerList'] = $getShopOwnerList;
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations['B00514'][$language] /*Successfully retrieved.*/, 'data' => $data);
+            }
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+
+                    switch($dataName) {
+                        case 'username':
+                            if ($dataType == "like") {
+                                $db->where('name', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('name', $dataValue);
+                            }
+                            break;
+
+                        case 'name':
+                            if ($dataType == "like") {
+                                $db->where('name', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('name', $dataValue);
+                            }
+                            break;
+
+                        case 'disabled':
+                            $db->where('disabled', $dataValue);
+                            break;
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            $db->where('type', "Owner");
+            $db->orderBy('id', "DESC");
+            $copyDb = $db->copy();
+            $result = $db->get('client', $limit, 'id, username, name, disabled, created_at, last_login');
+
+            $totalRecord = $copyDb->getValue('client', 'count(*)');
+
+            if (!empty($result)) {
+                foreach($result as $value) {
+                    $owner['id']            = $value['id'];
+                    $owner['username']      = $value['username'] != "" ? $value['username'] : "-";
+                    $owner['name']          = $value['name'] != "" ? $value['name'] : "-";
+                    $owner['disabled']      = ($value['disabled'] == 0) ? 'No' : 'Yes';
+                    $owner['lastLogin']     = $value['last_login'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['last_login'])) : "-";
+                    $owner['createdAt']     = $value['created_at'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['created_at'])) : "-";
+
+                    $ownerList[] = $owner;
+                }
+
+                $data['ownerList']      = $ownerList;
+                $data['totalPage']      = ceil($totalRecord/$limit[1]);
+                $data['pageNumber']     = $pageNumber;
+                $data['totalRecord']    = $totalRecord;
+                $data['numRecord']      = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => "", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => $translations['B00101'][$language] /* No Results Found. */, 'data' => "");
+            }
+        }
+
+        public function addShopOwner($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $ownername      = trim($params['ownername']);
+            $username       = trim($params['username']);
+            $password       = trim($params['password']);
+            $type           = "Owner"; // user type => owner
+
+            if (!$ownername) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01153"][$language] /* Owner's name cannot be empty. */, 'data' => "");
+            }
+            if (!$username) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01154"][$language] /* Username cannot be empty. */, 'data' => "");
+            }
+            if (!$password) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01155"][$language] /* Password cannot be empty. */, 'data' => "");
+            }
+            if (strlen($password) < 8) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01156"][$language] /* Password must be at least 8 characters. */, 'data' => "");
+            }
+            if (!preg_match('/^[a-z0-9@$!%*#?&]*$/', $password, $matches)) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01157"][$language] /* Password must be alphanumeric and (@!%*#?&]) only. */, 'data' => "");
+            }
+
+            $db->where('username', $username);
+            $checkUsername = $db->getOne('client', 'username');
+            if ($checkUsername && $checkUsername['username']) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01158"][$language] /* Username already exists. */, 'data' => ""); 
+            }
+
+            /* Encrypt password */
+            $encryptedPassword = $db->encrypt($password);
+
+            /* Create new shop owner */
+            $insertShopOwnerData = array(
+                'name'          => $ownername,
+                'username'      => $username,
+                'password'      => $encryptedPassword,
+                'type'          => $type,
+                'activated'     => 1,
+                'disabled'      => 0,
+                'created_at'    => date('Y-m-d H:i:s')
+            );
+            $insertShopOwnerResult = $db->insert('client', $insertShopOwnerData);
+
+            if ($insertShopOwnerResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00102"][$language] /* Successfully Added */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00511"][$language] /* Failed to insert */, 'data' => "");
+            }
+        }
+
+        public function getShopOwnerDetail($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            if (!$id)
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => '');
+
+            $db->where('id', $id);
+            $result = $db->getOne('client', 'id, username, name, password, disabled');
+
+            if (!empty($result)) {
+                foreach ($result as $key => $value) {
+                    $ownerDetail[$key] = $value;
+                }
+
+                $data['ownerDetail'] = $ownerDetail;
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00514"][$language] /* Successfully Retrieved */, 'data' => $data);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00515"][$language] /* Failed to Retrieved. */, 'data' => "");
+            }
+        }
+
+        public function editShopOwner($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $ownername      = trim($params['ownername']);
+            $username       = trim($params['username']);
+            $password       = trim($params['password']);
+            $disabled       = trim($params['disabled']) ? : 0;
+
+            if ($disabled == 0) {
+                $activated = 1;
+            }
+            else {
+                $activated = 0;
+            }
+
+            if (!$id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => "");
+            }
+            if (!$ownername) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01153"][$language] /* Owner's name cannot be empty. */, 'data' => "");
+            }
+            if (!$username) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01154"][$language] /* Username cannot be empty. */, 'data' => "");
+            }
+
+            $db->where('id', $id);
+            $checkUser = $db->getOne('client');
+
+            if ($checkUser && $checkUser['id']) {
+                if (strlen($password) >= 8) {
+                    if (strlen($password) < 8) {
+                        return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01156"][$language] /* Password must be at least 8 characters. */, 'data' => "");
+                    }
+                    if (!preg_match('/^[a-z0-9@$!%*#?&]*$/', $password, $matches)) {
+                        return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01157"][$language] /* Password must be alphanumeric and (@!%*#?&]) only. */, 'data' => "");
+                    }
+
+                    /* Encrypt password */
+                    $encryptedPassword = $db->encrypt($password);
+
+                    /* Update shop owner (password) */
+                    $updateShopOwnerData = array(
+                        'name'          => $ownername,
+                        'username'      => $username,
+                        'password'      => $encryptedPassword,
+                        'disabled'      => $disabled,
+                        'activated'     => $activated,
+                        'updated_at'    => date('Y-m-d H:i:s')
+                    );
+                }
+                else {
+                    /* Update shop owner */
+                    $updateShopOwnerData = array(
+                        'name'          => $ownername,
+                        'username'      => $username,
+                        'activated'     => $activated,
+                        'disabled'      => $disabled,
+                        'updated_at'    => date('Y-m-d H:i:s')
+                    );
+                }
+                $db->where('id', $id);
+                $updateShopOwnerResult = $db->update('client', $updateShopOwnerData);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => "");
+            }
+
+            if ($updateShopOwnerResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00512"][$language] /* Successfully Updated */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00513"][$language] /* Failed to update */, 'data' => "");
+            }
+        }
+
+        public function getShopList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['searchData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+            $flag           = trim($params['getShopFlag']) ? $params['getShopFlag'] : 0;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            if ($flag) {
+                $db->where('deleted', 0);
+                $result = $db->get('shop', null, 'id, name');
+
+                foreach($result as $key => $value) {
+                    $getShop['id']      = $value['id'];
+                    $getShop['name']    = $value['name'];
+
+                    $getShopList[] = $getShop;
+                }
+
+                $data['getShopList'] = $getShopList;
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations['B00514'][$language] /*Successfully retrieved.*/, 'data' => $data);
+            }
+
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+
+                    switch($dataName) {
+                        case 'shopname':
+                            if ($dataType == "like") {
+                                $db->where('shop.name', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('shop.name', $dataValue);
+                            }
+                            break;
+
+                        case 'ownername':
+                            if ($dataType == "like") {
+                                $db->where('client.name', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('client.name', $dataValue);
+                            }
+                            break;
+
+                        case 'deleted':
+                            $db->where('shop.deleted', $dataValue);
+                            break;
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            $db->join('client', 'client.id = shop.client_id');
+            $copyDb = $db->copy();
+            $db->orderBy('shop.id', "DESC");
+            $result = $db->get('shop', $limit, 'shop.id, shop.name, shop.address, client.name as ownername, shop.deleted, shop.created_at');
+
+            $totalRecord = $copyDb->getValue('shop', 'count(*)');
+
+            if (!empty($result)) {
+                foreach($result as $value) {
+                    $shop['id']             = $value['id'];
+                    $shop['name']           = $value['name'] != "" ? $value['name'] : "-";
+                    $shop['address']        = $value['address'] != "" ? $value['address'] : "-";
+                    $shop['ownername']      = $value['ownername'] != "" ? $value['ownername'] : "-";
+                    $shop['deleted']        = ($value['deleted'] == 0) ? 'No' : 'Yes';
+                    $shop['createdAt']      = $value['created_at'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['created_at'])) : "-";
+
+                    $shopList[] = $shop;
+                }
+
+                $data['shopList']       = $shopList;
+                $data['totalPage']      = ceil($totalRecord/$limit[1]);
+                $data['pageNumber']     = $pageNumber;
+                $data['totalRecord']    = $totalRecord;
+                $data['numRecord']      = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => "", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => $translations['B00101'][$language] /* No Results Found. */, 'data' => $data);
+            }
+        }
+
+        public function addShop($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $owner_id       = trim($params['ownerId']);
+            $shop_name      = trim($params['shopName']);
+            $address        = trim($params['address']);
+
+            if (!$owner_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01160"][$language] /* Please assign a shop owner. */, 'data' => "");
+            }
+            if (!$shop_name) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01161"][$language] /* Shop name cannot be empty. */, 'data' => "");
+            }
+            if (!$address) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01162"][$language] /* Address cannot be empty. */, 'data' => "");
+            }
+
+            $db->where('id', $owner_id);
+            $checkUser = $db->getOne('client');
+
+            if ($checkUser && $checkUser['id']) {
+                $insertShopData = array(
+                    'name'          => $shop_name,
+                    'address'       => $address,
+                    'client_id'     => $owner_id,
+                    'deleted'       => 0,
+                    'created_at'    => date('Y-m-d H:i:s')
+                );
+                $insertShopResult = $db->insert('shop', $insertShopData);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => "");
+            }
+
+            if ($insertShopResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00102"][$language] /* Successfully Added */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00511"][$language] /* Failed to insert */, 'data' => "");
+            }
+        }
+
+        public function editShop($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $shop_id        = trim($params['shopId']);
+            $owner_id       = trim($params['ownerId']);
+            $shop_name      = trim($params['shopName']);
+            $address        = trim($params['address']);
+            $deleted        = trim($params['deleted']) ? : 0;
+
+            if (!$shop_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exist. */, 'data' => "");
+            }
+            if (!$owner_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01160"][$language] /* Please assign a shop owner. */, 'data' => "");
+            }
+            if (!$shop_name) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01161"][$language] /* Shop name cannot be empty. */, 'data' => "");
+            }
+            if (!$address) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01162"][$language] /* Address cannot be empty. */, 'data' => "");
+            }
+
+            /* Check existing shop */
+            $db->where('id', $shop_id);
+            $checkShop = $db->getOne('shop');
+
+            if (!$checkShop || !$checkShop['id']) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exist. */, 'data' => "");
+            }
+
+            /* Check existing shop owner */
+            $db->where('id', $owner_id);
+            $checkUser = $db->getOne('client');
+
+            if ($checkUser && $checkUser['id']) {
+                $updateShopData = array(
+                    'name'          => $shop_name,
+                    'address'       => $address,
+                    'client_id'     => $owner_id,
+                    'deleted'       => $deleted,
+                    'updated_at'    => date('Y-m-d H:i:s')
+                );
+                $db->where('id', $shop_id);
+                $updateShopResult = $db->update('shop', $updateShopData);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => "");
+            }
+
+            if ($updateShopResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00512"][$language] /* Successfully Updated */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00513"][$language] /* Failed to Update */, 'data' => "");
+            }
+        }
+
+        public function getShopDetail($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $flag           = trim($params['getShopOwnerFlag']) ? $params['getShopOwnerFlag'] : 1;
+
+            if (!$id)
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exist. */, 'data' => "");
+
+            $getShopOwnerList = self::getShopOwnerList($params);
+
+            if ($getShopOwnerList) {
+                $data['getShopOwnerList'] = $getShopOwnerList['data']['getShopOwnerList'];
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01159"][$language] /* Shop owner does not exist. */, 'data' => "");
+            }
+
+            $db->where('id', $id);
+            $result = $db->getOne('shop', 'id, name, address, client_id as owner_id, deleted');
+
+            if (!empty($result)) {
+                foreach ($result as $key => $value) {
+                    $shopDetail[$key] = $value;
+                }
+
+                $data['shopDetail'] = $shopDetail;
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00514"][$language] /* Successfully Retrieved */, 'data' => $data);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00515"][$language] /* Failed to Retrieve. */, 'data' => "");
+            }
+        }
+
+        public function purchaseRequestApprove($params, $username) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $status         = trim($params['status']);
+            $dateTime       = date("Y-m-d H:i:s");
+            
+            // if($status != 'save')
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00118"][$language] /* Invalid Admin */, 'data' => "");
+
+            
+            // if(strlen($id) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00113"][$language] / Admin ID does not exist /, 'data'=>"");
+
+            // if(strlen($total_quantity) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00114"][$language] / Please Enter Email /, 'data'=>"");
+
+            // if(strlen($total_cost) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00115"][$language] / Please Enter Full Name /, 'data'=>"");
+
+            // if(strlen($product_name) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00116"][$language] / Please Enter Username /, 'data'=>"");
+
+            // if(strlen($roleID) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations[""][$language]/ Please Select a Role /, 'data'=>"");
+
+            // $fields = array("product_name", "quantity", "product_cost","total_quantity", "total_cost", "approved_date", "approved_by");
+            // $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, date("Y-m-d H:i:s"), $approved_by);
+            
+            $fields = array("id", "approved_date", "approved_by", "status");
+            $values = array($id, $dateTime, $username, $status);
+            // return $values;
+            $arrayData = array_combine($fields, $values);
+            
+            $db->where('id', $id);
+            $result = $db->update("purchase_request", $arrayData);
+
+            // Insert into new table
+            // $fields = array("product_name", "quantity", "product_cost","total_quantity", "total_cost");
+            // $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost);
+            // $arrayData = array_combine($fields, $values);
+
+            
+            $db->where('id', $id);
+            $to_po = $db->getOne("purchase_request");
+            $customDataIn['product_name'] = $to_po['product_name'];
+            $customDataIn['pr_id'] = $to_po['id'];
+            $customDataIn['quantity'] = $to_po['quantity'];
+            $customDataIn['product_cost'] = $to_po['product_cost'];
+            $customDataIn['total_quantity'] = $to_po['total_quantity'];
+            $customDataIn['total_cost'] = $to_po['total_cost'];
+            $customDataIn['status'] = 'Pending For Stock In';
+            $customDataIn['approved_by'] = $username;
+            $customDataIn['approved_date'] = $to_po['approved_date'];
+            $customDataIn['created_at'] = $to_po['approved_date'];
+            $po_draft = $db->insert("purchase_order", $customDataIn);
+
+
+            // update purchase_product table
+            $db->where('approved_date', $to_po['approved_date']);
+            $db->where('created_at', $to_po['approved_date']);
+            $db->where('approved_by', $username);
+            $poId = $db->getOne('purchase_order','id');
+            $poId = $poId['id'];
+
+            $fields = array("purchase_order_id");
+            $values = array($poId);
+            $arrayData = array_combine($fields, $values);
+
+            $db->where('purchase_request_id',$to_po['id']);
+            $db->update('purchase_product', $arrayData);
+
+            //return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'data' => $db->getLastQuery());      
+           
+
+            // return $to_po;   
+            if ($result) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'data' => $arrayData);
+            }
+            else{
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00118"][$language] /* Invalid Admin */, 'data' => "");
+            }
+        }
+
+        public function getVendorList($params)
+        {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $vendorList = '';
+            $vendorList = $db->get('vendor');
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> "", 'data' => $vendorList);
+        }
+
+        public function getProductList($params)
+        {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $vendorName                   = trim($params['vendor_name']);
+
+            // get vendor ID
+            $db->where('name',$vendorName);
+            $vendorID = $db->getOne('vendor','id');
+            $vendorID = $vendorID['id'];
+
+            // get product list
+            $db->where('vendor_id',$vendorID);
+            $productList = $db->get('product');
+            
+            if($productList)
+            {
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> "", 'data' => $productList);
+            }
+            else
+            {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => "No product data", 'data' => '');
+            }
+        }
+
+        public function getShopDeviceList() {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['searchData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+
+                    switch($dataName) {
+                        case 'deviceref':
+                            if ($dataType == "like") {
+                                $db->where('device.device_ref', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('device.device_ref', $dataValue);
+                            }
+                            break;
+
+                        case 'devicename':
+                            if ($dataType == "like") {
+                                $db->where('device.devicename', "%" . $dataValue . "%", 'LIKE');
+                            }
+                            else {
+                                $db->where('device.devicename', $dataValue);
+                            }
+                            break;
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            $db->join('shop', 'shop.id = device.shop_id');
+            $copyDb = $db->copy();
+            $db->orderBy('device.id', "DESC");
+            $result = $db->get('device', $limit, 'device.id, device.device_ref, device.name, device.data, shop.name as shop_name, device.disabled, device.created_at');
+
+            $totalRecord = $copyDb->getValue('device', 'count(*)');
+
+            if (!empty($result)) {
+                foreach($result as $value) {
+                    $device['id']           = $value['id'];
+                    $device['deviceRef']    = $value['device_ref'] != "" ? $value['device_ref'] : "-";
+                    $device['name']         = $value['name'] != "" ? $value['name'] : "-";
+                    $device['data']         = $value['data'] != "" ? $value['data'] : "-";
+                    $device['shopName']     = $value['shop_name'] != "" ? $value['shop_name'] : "-";
+                    $device['disabled']     = ($value['disabled'] == 0) ? 'No' : 'Yes';
+                    $device['createdAt']    = $value['created_at'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['created_at'])) : "-";
+
+                    $deviceList[] = $device;
+                }
+
+                $data['deviceList']     = $deviceList;
+                $data['totalPage']      = ceil($totalRecord/$limit[1]);
+                $data['pageNumber']     = $pageNumber;
+                $data['totalRecord']    = $totalRecord;
+                $data['numRecord']      = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => "", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => $translations['B00101'][$language] /* No Results Found. */, 'data' => "");
+            }
+        }
+
+        public function addShopDevice($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $shop_id        = trim($params['shopId']);
+            $device_ref     = trim($params['deviceRef']);
+            $device_name    = trim($params['deviceName']);
+
+            if (!$shop_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exist. */, 'data' => "");
+            }
+            if (!$device_ref) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01173"][$language] /* Please generate a device reference id. */, 'data' => "");
+            }
+            if (!$device_name) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01174"][$language] /* Device name cannot be empty. */, 'data' => "");
+            }
+
+            /* Check shop exists or not */
+            $db->where('id', $shop_id);
+            $checkShop = $db->getOne('shop');
+
+            /* Create device depends on shop id */
+            if ($checkShop && $checkShop['id']) {
+                $insertDeviceData = array(
+                    'name'          => $device_name,
+                    'device_ref'    => $device_ref,
+                    'shop_id'       => $shop_id,
+                    'disabled'      => 0,
+                    'created_at'    => date('Y-m-d H:i:s')
+                );
+                $insertDeviceResult = $db->insert('device', $insertDeviceData);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exist. */, 'data' => "");
+            }
+
+            if ($insertDeviceResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00102"][$language] /* Successfully Added */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00511"][$language] /* Failed to insert */, 'data' => "");
+            }
+        }
+
+        public function getShopDeviceDetail($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $flag           = trim($params['getShopFlag']) ? $params['getShopFlag'] : 1;
+
+            if (!$id)
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01175"][$language] /* Device does not exist. */, 'data' => "");
+
+            $getShopList = self::getShopList($params);
+
+            if ($getShopList) {
+                $data['getShopList'] = $getShopList['data']['getShopList'];
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exists. */, 'data' => "");
+            }
+
+            $db->where('id', $id);
+            $result = $db->getOne('device', 'id, device_ref, name, shop_id, disabled');
+
+            if (!empty($result)) {
+                foreach ($result as $key => $value) {
+                    $deviceDetail[$key] = $value;
+                }
+
+                $data['deviceDetail'] = $deviceDetail;
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00514"][$language] /* Successfully Retrieved */, 'data' => $data);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00515"][$language] /* Failed to Retrieve. */, 'data' => "");
+            }
+        }
+
+        public function editShopDevice($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $device_id      = trim($params['deviceId']);
+            $shop_id        = trim($params['shopId']);
+            $device_ref     = trim($params['deviceRef']);
+            $device_name    = trim($params['deviceName']);
+            $disabled       = trim($params['disabled']) ? : 0;
+
+            if (!$device_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01175"][$language] /* Device does not exists. */, 'data' => "");
+            }
+            if (!$shop_id) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01163"][$language] /* Shop does not exists. */, 'data' => "");
+            }
+            if (!$device_ref) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01173"][$language] /* Please generate a device reference id. */, 'data' => "");
+            }
+            if (!$device_name) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01174"][$language] /* Device name cannot be empty. */, 'data' => "");
+            }
+
+            /* Check existing device */
+            $db->where('id', $device_id);
+            $checkDevice = $db->getOne('device');
+
+            if (!$checkDevice || !$checkDevice['id']) {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01175"][$language] /* Device does not exists. */, 'data' => "");
+            }
+
+            /* Check existing shop owner */
+            $db->where('id', $shop_id);
+            $checkShop = $db->getOne('shop');
+
+            if ($checkShop && $checkShop['id']) {
+                $updateDeviceData = array(
+                    'name'          => $device_name,
+                    'device_ref'    => $device_ref,
+                    'shop_id'       => $shop_id,
+                    'disabled'      => $disabled,
+                    'updated_at'    => date('Y-m-d H:i:s')
+                );
+                $db->where('id', $device_id);
+                $updateDeviceResult = $db->update('device', $updateDeviceData);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01175"][$language] /* Device does not exists. */, 'data' => "");
+            }
+
+            if ($updateDeviceResult) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00512"][$language] /* Successfully Updated */, 'data' => "");
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["B00513"][$language] /* Failed to Update */, 'data' => "");
+            }
+        }
+
+        public function getShopWorkerList() {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['searchData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+
+                    // switch($dataName) {
+                    //     case 'deviceref':
+                    //         if ($dataType == "like") {
+                    //             $db->where('device.device_ref', "%" . $dataValue . "%", 'LIKE');
+                    //         }
+                    //         else {
+                    //             $db->where('device.device_ref', $dataValue);
+                    //         }
+                    //         break;
+
+                    //     case 'devicename':
+                    //         if ($dataType == "like") {
+                    //             $db->where('device.devicename', "%" . $dataValue . "%", 'LIKE');
+                    //         }
+                    //         else {
+                    //             $db->where('device.devicename', $dataValue);
+                    //         }
+                    //         break;
+                    // }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            $db->where('client.type', "Worker");
+            $db->join('assign_shop', 'assign_shop.client_id = client.id', 'INNER');
+            $db->join('shop', 'shop.id = assign_shop.shop_id', 'INNER');
+            $db->join('client shopowner', 'shopowner.id = shop.client_id', 'INNER');
+            $copyDb = $db->copy();
+            $db->orderBy('client.id', "DESC");
+            $result = $db->get('client', null, 'client.id, client.username, client.name, client.dial_code, client.phone, client.last_login, assign_shop.id as assign_id, assign_shop.assigned_at, shop.id as shop_id, shop.name as shop_name, shopowner.name as ownername');
+
+            $totalRecord = $copyDb->getValue('client', 'count(*)');
+
+            if (!empty($result)) {
+                foreach($result as $value) {
+                    $worker['id']           = $value['id'];
+                    $worker['username']     = $value['username'] != "" ? $value['username'] : "-";
+                    $worker['name']         = $value['name'] != "" ? $value['name'] : "-";
+                    $worker['phone']        = $value['phone'] != "" ? $value['phone'] : "-";
+                    $worker['shopName']     = $value['shop_name'] != "" ? $value['shop_name'] : "-";
+                    $worker['assignId']     = $value['assign_id'] != "" ? $value['assign_id'] : "-";
+                    $worker['ownername']    = $value['ownername'] != "" ? $value['ownername'] : "-";
+                    $worker['disabled']     = ($value['disabled'] == 0) ? 'No' : 'Yes';
+                    $worker['lastLogin']    = $value['last_login'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['last_login'])) : "-";
+                    $worker['createdAt']    = $value['created_at'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['created_at'])) : "-";
+
+                    $workerList[] = $worker;
+                }
+
+                $data['workerList']     = $workerList;
+                $data['totalPage']      = ceil($totalRecord/$limit[1]);
+                $data['pageNumber']     = $pageNumber;
+                $data['totalRecord']    = $totalRecord;
+                $data['numRecord']      = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => "", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'msg' => "", 'statusMsg' => $translations['B00101'][$language] /* No Results Found. */, 'data' => "");
+            }
+        }
+
+        public function getPurchaseOrderList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['inputData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+
+            //Get the limit.
+            $limit          = General::getLimit($pageNumber);
+
+            // Means the search params is there
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType = trim($v['dataType']);
+                        
+                    switch($dataName) {
+                        case 'name':
+                            if ($dataType == "like") {
+                                $db->where('name', "%" . $dataValue . "%", 'LIKE');
+                            }else{
+                                $db->where('name', $dataValue);
+                            }
+                            break;
+                                
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            // $db->join('vendor v', 'v.id = pr.vendor_id');
+            $copyDb = $db->copy();
+            $db->orderBy('id', 'DESC');
+            $results = $db->get('purchase_order', $limit, 'id, pr_id, product_name, total_quantity, total_cost, status, approved_by, approved_date, created_at');
+            
+            $totalRecord = $copyDb->getValue ('purchase_order', 'count(*)');
+
+            if (!empty($results)) {
+                foreach($results as $value) {
+                    $purchaseOrder['id']              = $value['id'];
+                    $purchaseOrder['pr_id']           = $value['pr_id'];
+                    $purchaseOrder['product_name']    = $value['product_name'];
+                    $purchaseOrder['total_quantity']  = $value['total_quantity'];
+                    $purchaseOrder['total_cost']      = $value['total_cost'];
+                    $purchaseOrder['status']          = $value['status'];
+                    $purchaseOrder['approved_by']     = $value['approved_by'];
+                    $purchaseOrder['approved_date']   = $value['approved_date'];
+                    $purchaseOrder['created_at']      = $value['created_at'];
+                    // $purchaseRequest['approved_date']   = $value['approved_date'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['approved_date'])) : "-";
+
+                    $purchaseOrderList[] = $purchaseOrder;
+                }
+
+                $data['purchaseOrderList']    = $purchaseOrderList;
+                $data['pageNumber']             = $pageNumber;
+                $data['totalRecord']            = $totalRecord;
+                $data['numRecord']              = $limit[1];
+
+                return array('status' => "ok", 'code' => 0, 'statusMsg' =>"", 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found. */, 'data' => "");
+            }
+        }
+
+        public function getPurchaseOrderDetails($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            // $db->where('id', $id);
+            // $prId = $db->get('purchase_request', null, 'id');
+            // return $id;
+            // return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00104"][$language], 'data'=> $prId);
+
+            if (strlen($id)==0)
+                // return strlen($id)==0;
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00104"][$language] /* Please Select Admin */, 'data'=> '');
+
+            $getWarehouse = self::getWarehouse();
+            $data['warehouse'] = $getWarehouse['data'];
+
+            $db->where('po.id', $id);
+            // $db->join('purchase_request pr', 'pr.id = po.pr_id', 'INNER');
+            $result = $db->getOne('purchase_order po', 'po.id, po.product_name, po.quantity, po.product_cost, po.total_quantity, po.total_cost, po.warehouse_id, po.status');
+            // return $result;
+            if (empty($result)) {
+                // return $result;
+                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Unexpected Error Occured', 'data' => $result);
+            }
+            $data['purchaseOrderDetail'] = $result;
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $data);
+        }
+
+        public function purchaseOrderEdit($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id                 = trim($params['id']);
+            $product_name       = trim($params['product_name']);
+            $quantity           = trim($params['quantity']);
+            $product_cost       = trim($params['product_cost']);
+            $warehouse_id     = trim($params['warehouse_id']);
+            $status             = trim($params['status']);
+            
+            if($total_cost || !$total_cost)
+                $total_cost = $product_cost * $quantity;
+
+            if($total_quantity || !$total_quantity)
+                $total_quantity = $quantity;
+
+            if($updated_at || !$updated_at)
+                $updated_at = $updated_at;
+            
+            // if(strlen($id) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00113"][$language] / Admin ID does not exist /, 'data'=>"");
+
+            // if(strlen($total_quantity) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00114"][$language] / Please Enter Email /, 'data'=>"");
+
+            // if(strlen($total_cost) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00115"][$language] / Please Enter Full Name /, 'data'=>"");
+
+            // if(strlen($product_name) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00116"][$language] / Please Enter Username /, 'data'=>"");
+
+            // if(strlen($roleID) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations[""][$language]/ Please Select a Role /, 'data'=>"");
+
+            // if(strlen($warehouse_name) == 0)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => 'Please enter a warehouse!', 'data'=>"");
+
+
+            // $fields = array("product_name", "quantity", "product_cost","total_quantity", "total_cost", "approved_date", "approved_by");
+            // $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, date("Y-m-d H:i:s"), $approved_by);
+            
+            $fields = array("product_name", "quantity", "product_cost", "total_quantity", "total_cost", "warehouse_id", "updated_at");
+            $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, $warehouse_id, date("Y-m-d H:i:s"));
+            
+            $arrayData = array_combine($fields, $values);
+            // return $arrayData;
+            $db->where('id', $id);
+            $result = $db->update("purchase_order", $arrayData);
+
+            // return $arrayData;
+            
+            if ($result) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'data' => '');
+            }
+            else{
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00118"][$language] /* Invalid Admin */, 'data' => '');
+            }
+        }
+
+        public function assignSerial($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $product_name   = trim($params['product_name']);
+
+            $db->where('po.id', $id);
+            $db->join("purchase_order po", "po.id = s.po_id", "LEFT");
+            $db->join("product p ", "p.id = s.product_id", "LEFT");
+            $result = $db->getOne("stock s", "max(s.serial_number) AS serial_number, p.id, p.name, p.barcode, po.total_quantity");
+
+            if (!empty($result)){
+                $getId = $result['id'];
+                $getName = $result['name'];
+                $getBarcode = $result['barcode'];
+                $getSerial = $result['serial_number'];
+                $getTotalQuantity = $result['total_quantity'];
+                $getSerialSplit = explode('-', $getSerial);
+                $lastThreeNumbers = $getSerialSplit[2]; // Convert the second element to an integer
+                $startFromFirstNum = '000';
+
+                // separate the product by comma
+                $itemsArray = explode(',', $product_name);
+                $itemsArray = array_map('trim', $itemsArray);
+                foreach ($itemsArray as $item) {
+                    $itemDetail = $item;
+                    // Get the current product details
+                    $db->where('p.name', $item);
+                    $db->join('purchase_order po', 'po.product_name = p.name', 'LEFT');
+                    $db->join('stock s', 's.product_id = p.id', 'LEFT');
+                    $getLastSerial = $db->getOne('product p', 'p.id, p.name, p.barcode, max(s.serial_number) as serial');
+                    $getLastSerialList[] = $getLastSerial;
+                }
+                
+                foreach($getLastSerialList as $getLastSerial)
+                {
+                    $currentBarcode = $getLastSerial['barcode'];
+                    $currentSerial = $getLastSerial['serial'];
+                    $currentSerialSplit = explode('-', $currentSerial);
+                    $currentFirstSecond = $currentSerialSplit[0] . '-' . $currentSerialSplit[1];
+                    $currentLastThreeNum = $currentSerialSplit[2];
+
+                    $incrementedNumbers = array();
+                    $date = array();
+
+                    if ($currentBarcode == $currentFirstSecond){
+                        for ($i = 0; $i < $getTotalQuantity; $i++) {
+                            $currentLastThreeNum++;
+                            $currentLastThreeNum = str_pad($currentLastThreeNum, 3, '0', STR_PAD_LEFT);
+                            $incrementedNumbers = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
+                            $showIncrement[] = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
+                            $data = $showIncrement;
+                            $date[] = date("Y-m-d H:i:s");
+                            $serial = $incrementedNumbers;
+                        }
+                    }
+                    else if ($getBarcode != $currentFirstSecond){
+                        for ($i = 0; $i < $getTotalQuantity; $i++) {
+                            $startFromFirstNum++;
+                            $startFromFirstNum = str_pad($startFromFirstNum, 3, '0', STR_PAD_LEFT);
+                            $incrementedNumbers = $currentBarcode . '-' . $startFromFirstNum;
+                            $showIncrement[] = $currentBarcode . '-' . $startFromFirstNum;
+                            $data = $showIncrement;
+                            $date[] = date("Y-m-d H:i:s");
+                            $serial = $incrementedNumbers;
+                        }
+                    }
+                    $showIncrementList[] = $showIncrement;
+                }
+                
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'data' =>$showIncrementList);
+            }
+            
+        }
+
+        function confirmSerial($params, $username){
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $dateTime       = date("Y-m-d H:i:s");
+
+            $insertSerial = array();
+            $product_name = trim($params['product_name']);
+            $insertSerial = $params['serial'];
+            $arr = explode(",", $insertSerial);
+
+            $db->where('name', $product_name);
+            $result = $db->getOne('product', 'id, name, barcode');
+            // return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'last_query' => $db->getLastQuery(), 'data' => $result);
+
+            foreach ($arr as $serial) {
+                $new_item = array(
+                    "po_id"         => $id,
+                    "product_id"    => $result['id'],
+                    "serial_number" => $serial,
+                    "stock_in_datetime" => $dateTime,
+                    "created_at"    => $dateTime,
+                    "status"        => 'Available'
+                );
+                $new_list[] = $new_item;
+            }
+            
+            $insertSerial = $db->insertMulti("stock", $new_list);
+
+            $fields = array("status");
+            $values = array("Done");
+            $arrayData = array_combine($fields, $values);
+
+            $db->where('id', $id);
+            $updateStatus = $db->update("purchase_order", $arrayData);
+            
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'last_query' => $db->getLastQuery(), 'data' => $arrayData);
+        }
+
+        function getVendor($params){
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            // $insertVendor = array();
+
+            $getVendor = $db->get("vendor", null, "id, name, vendor_code");
+            
+            foreach ($getVendor as $key => $value) {
+                $getVendorDetail[$key] = $value;
+            }
+            $data['getVendorDetail'] = $getVendorDetail;
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'last_query' => $db->getLastQuery(), 'data' => $data);
+        }
+
+        function getWarehouse($params){
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            // $insertWarehouse = array();
+
+            $getWarehouse = $db->get("warehouse", null, "id, warehouse_location");
+            
+            foreach ($getWarehouse as $key => $value) {
+                $getWarehouseDetail[$key] = $value;
+            }
+            $data = $getWarehouseDetail;
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'last_query' => $db->getLastQuery(), 'data' => $data);
+        }
+
+        function approvePurchaseOrder($params, $username) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+            $status         = trim($params['status']);
+            $dateTime       = date("Y-m-d H:i:s");
+
+            $fields = array("id", "approved_date", "approved_by", "status");
+            $values = array($id, $dateTime, $username, $status);
+
+            $arrayData = array_combine($fields, $values);
+            // return $arrayData;
+
+            $db->where('id', $id);
+            $result = $db->update("purchase_order", $arrayData);
+
+            if($result) {
+                return array("status"=> "ok", 'code' => 0, 'statusMsg' => 'Purchase Order Has Been Approved', 'last_query' => $db->getLastQuery(), 'data' => $result);
+            }
+            else {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Error Occured for Purchase Order', 'data' => "");
+            }
+
+        }
+
+        function getStockList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $searchData     = $params['inputData'];
+            $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
+
+            $limit          = General::getLimit($pageNumber);
+
+            $layer          = $params['layer']; /* Stock Listing Layer */
+            $product_id     = $params['productId'];
+            $po_id          = $params['poId'];
+
+            if (!$layer) return array('status' => "error", 'code' => 1, 'statusMsg' => "Invalid Stock Layer", 'data' => "");
+
+            if ($layer == 1) {
+                // $db->join('product', 'product.id = stock.product_id', 'LEFT');
+                // $db->groupBy('stock.product_id');
+                // $db->orderBy('stock.id', 'DESC');
+                // $result = $db->get('stock', null, 'stock.id, product.name');
+                $result = $db->rawQuery("SELECT stock.id, product.barcode, product.name, COUNT(*) AS on_hand, vendor.name as vendor, stock.expiration_date, stock.product_id FROM `stock` LEFT JOIN `product` ON product.id = stock.product_id LEFT JOIN `vendor` ON vendor.id = product.vendor_id GROUP BY stock.product_id ORDER BY stock.id DESC LIMIT $limit[1];");
+            }
+            else if ($layer == 2) {
+                if (!$product_id) return array('status' => "error", 'code' => 1, 'statusMsg' => "Invalid Product ID", 'data' => "");
+                $result = $db->rawQuery("SELECT stock.id, product.barcode, product.name, COUNT(*) AS on_hand, vendor.name as vendor, stock.expiration_date, stock.stock_in_datetime, stock.po_id FROM `stock` LEFT JOIN `product` ON product.id = stock.product_id LEFT JOIN `vendor` ON vendor.id = product.vendor_id WHERE stock.product_id = $product_id GROUP BY stock.po_id ORDER BY stock.expiration_date ASC LIMIT $limit[1];");
+            }
+            else if ($layer == 3) {
+                if (!$po_id) return array('status' => "error", 'code' => 1, 'statusMsg' => "Invalid Product Order ID", 'data' => "");
+                $result = $db->rawQuery("SELECT stock.id, product.name, stock.serial_number, stock.expiration_date, stock.stock_in_datetime FROM `stock` LEFT JOIN `product` ON product.id = stock.product_id WHERE stock.po_id = $po_id ORDER BY stock.expiration_date ASC LIMIT $limit[1];");
+            }
+
+            if (!empty($result)) {
+                foreach($result as $value) {
+                    $stock['id']                = $value['id'];
+                    $stock['barcode']           = $value['barcode'] ? $value['barcode'] : "-";
+                    $stock['name']              = $value['name'] ? $value['name'] : "-";
+                    $stock['on_hand']           = $value['on_hand'] ? $value['on_hand'] : "0";
+                    $stock['vendor']            = $value['vendor'] ? $value['vendor'] : "-";
+                    $stock['product_id']        = $value['product_id'] ? $value['product_id'] : "";
+                    $stock['expiration_date']   = $value['expiration_date'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['expiration_date'])) : "-";
+                    $stock['stock_in_datetime'] = $value['stock_in_datetime'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['stock_in_datetime'])) : "-";
+                    $stock['po_id']             = $value['po_id'] ? $value['po_id'] : "";
+                    $stock['serial_number']     = $value['serial_number'] ? $value['serial_number'] : "-";
+
+                    $stockList[] = $stock;
+                }
+
+                $data['stockList']      = $stockList;
+                // $data['totalPage']      = ceil($totalRecord/$limit[1]);
+                // $data['pageNumber']     = $pageNumber;
+                // $data['totalRecord']    = $totalRecord;
+                // $data['numRecord']      = $limit[1];
+
+                return array("status"=> "ok", 'code' => 0, 'statusMsg' => $db->getLastQuery(), 'data' => $data);
+            }
+            else {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => "No Record Found", 'data' => "");
+            }
+        }
+
+        function getProduct($params){
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $id             = trim($params['id']);
+
+            $getProduct = $db->get("product", null, "id, name, cost, sale_price");
+            
+            foreach ($getProduct as $key => $value) {
+                $getProductDetail[$key] = $value;
+            }
+            $data['getProductDetail'] = $getProductDetail;
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'last_query' => $db->getLastQuery(), 'data' => $data);
         }
     }
 ?>

@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `vendor` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `vendor_code` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `country_id` bigint(20),
+            `mobile` varchar(255) COLLATE utf8_unicode_ci,
+            `email` varchar(255) COLLATE utf8_unicode_ci,
+            `deleted` tinyint(1) NOT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+    <query>
+        CREATE TABLE `vendor_address` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `address` varchar(255) COLLATE utf8_unicode_ci,
+            `vendor_id` bigint(20) NOT NULL,
+            `deleted` tinyint(1) NOT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+</document> 

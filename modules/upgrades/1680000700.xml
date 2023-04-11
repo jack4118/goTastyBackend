@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE uploads ADD reference_id varchar(255);
+    </query>
+    <query>
+        ALTER TABLE uploads ADD file_type varchar(255);
+    </query>
+    <query>
+        ALTER TABLE uploads ADD file_name varchar(255);
+    </query>
+    <query>
+        ALTER TABLE uploads ADD deleted integer;
+    </query>
+</document> 

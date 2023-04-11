@@ -57,7 +57,8 @@
                                             array("name" => "enrollmentBV","value" => "200000", "type" => "Bonus Setting", "reference" => "", "description" => "Enrollment BV."),
                                             ),
                         "paymentMethod" => array(
-                                                array("percentage" => "100","credit_type" => "bonusDef", "description" => "Enrollment Bonus Payout"),
+                                                // array("percentage" => "100","credit_type" => "bonusDef", "description" => "Enrollment Bonus Payout"),
+                                                array("percentage" => "100","credit_type" => "gotastyDef", "description" => "Enrollment Bonus Payout"),
                                             ),
     );
 

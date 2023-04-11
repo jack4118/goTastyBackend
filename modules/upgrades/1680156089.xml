@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `client` ADD `encryption_method` VARCHAR(255) AFTER `register_method`;
+    </query>
+    <query>
+        UPDATE `client` SET `encryption_method` = 'bcrypt' where type = 'Client';
+    </query>
+</document> 

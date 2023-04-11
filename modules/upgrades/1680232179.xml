@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('deliveryFee', '35', '', '', 'Delivery Fee', 'Standard Platform');
+    </query>
+</document> 

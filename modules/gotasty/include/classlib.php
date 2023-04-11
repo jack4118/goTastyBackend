@@ -43,6 +43,9 @@
     include_once('class.P2P.php');
     include_once('class.trading.php');
     include_once('class.game.php');
+    include_once('class.flutter.php');
+    include_once('doSpaces/aws/autoloader.php');
+    include_once('class.provider.aws.php');
     $db = new MysqliDb($config['dBHost'], $config['dBUser'], $config['dBPassword'], $config['dB']);
     
     Setting::setupSysSetting($config);

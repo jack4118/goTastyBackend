@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('Company Address', '{"address": "C-01-05, Southgate Commercial Centre, Jalan Dua","registrationNo": "1429649-H","city": "Chan Sow Lin","name": "Go Tasty Sdn Bhd","postCode": "55200","state": "Kuala Lumpur"}', 'companyAddressActual', '', 'Company Address', 'Standard Platform');
+    </query>
+</document> 

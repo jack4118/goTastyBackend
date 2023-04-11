@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `provider` (`company`, `name`, `username`, `password`, `api_key`, `type`, `priority`, `disabled`, `deleted`, `default_sender`, `url1`, `url2`, `remark`, `currency`, `balance`, `created_at`, `updated_at`) VALUES
+        ('FPX', 'FPX', '', '', '', 'topup', 0, 0, 0, '', 'https://www.mepsfpx.com.my/FPXMain/sellerNVPTxnStatus.jsp', '', 'https://uatmerchantweb.myclear.com.my/default/login Merchant View Account SE00011444_AdminChecker Abcd1234$ SE00011444_AdminMaker Abcd1234$', 'MYR', '0.00000000', '0000-00-00 00:00:00', '0000-00-00 00:00:00');
+        
+    </query>
+</document>

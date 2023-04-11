@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `package_item` (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+        `package_id` bigint(20) NOT NULL,
+        `product_id` bigint(20) NOT NULL,
+        `deleted` tinyint(1) NOT NULL,
+        `created_at` datetime NOT NULL,
+        `updated_at` datetime NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1
+    </query>
+
+    <query>
+        ALTER TABLE `product` CHANGE `margin_percen` `sale_price` DECIMAL(20,2) NOT NULL;
+    </query>
+</document>

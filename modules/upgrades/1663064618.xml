@@ -1,17 +1,25 @@
 <?xml version="1.0" ?>
 <document type="TABLE">
     <query>
-        UPDATE `credit_setting` SET `value` = '1', `admin` = '1' WHERE `credit_setting`.`name` = 'isAdjustable' AND `credit_setting`.`credit_id` IN (SELECT id FROM credit WHERE type = 'bonusCredit');
+        <!-- UPDATE `credit_setting` SET `value` = '1', `admin` = '1' WHERE `credit_setting`.`name` = 'isAdjustable' AND `credit_setting`.`credit_id` IN (SELECT id FROM credit WHERE type = 'bonusCredit'); -->
+        UPDATE `credit_setting` SET `value` = '1', `admin` = '1' WHERE `credit_setting`.`name` = 'isAdjustable' AND `credit_setting`.`credit_id` IN (SELECT id FROM credit WHERE type = 'gotastyCredit');
     </query>
     <query>
         INSERT INTO permissions(name, description, type, parent_id, file_path, level, priority, disabled, site, translation_code, created_at, reference_table, reference_id) VALUES
 
         ('bonusDef Adjustment', 'Credit Adjustment Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'bonusDef' and description = 'Credit Type Page'), 
         'memberAdjustment.php?type=bonusDef', (SELECT level+1 FROM permissions c WHERE name = 'bonusDef' and description = 'Credit Type Page'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'bonusDef' and description = 'Credit Type Page')), 0, 'Admin', 'C00004', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'bonusDef'));
+
+        <!-- ('gotastyDef Adjustment', 'Credit Adjustment Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'gotastyDef' and description = 'Credit Type Page'), 
+        'memberAdjustment.php?type=gotastyDef', (SELECT level+1 FROM permissions c WHERE name = 'gotastyDef' and description = 'Credit Type Page'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'gotastyDef' and description = 'Credit Type Page')), 0, 'Admin', 'C00004', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'gotastyDef')); -->
+
     </query>
     <query>
         INSERT INTO roles_permission(role_id, permission_id, disabled, created_at) VALUES
         ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'bonusDef Adjustment' AND description = 'Credit Adjustment Page'), 0, NOW()),
         ((SELECT id FROM roles WHERE name = 'Admin'), (SELECT id FROM permissions WHERE name = 'bonusDef Adjustment' AND description = 'Credit Adjustment Page'), 0, NOW());
+
+        <!-- ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'gotastyDef Adjustment' AND description = 'Credit Adjustment Page'), 0, NOW()),
+        ((SELECT id FROM roles WHERE name = 'Admin'), (SELECT id FROM permissions WHERE name = 'gotastyDef Adjustment' AND description = 'Credit Adjustment Page'), 0, NOW()); -->
     </query>
 </document> 

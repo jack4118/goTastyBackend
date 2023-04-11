@@ -89,22 +89,42 @@
         function sendSMS($recipient, $text, $providerInfo)
         {   
 
+            // $post_data = array (
+            //                                 'email' => $providerInfo['username'],
+            //                                 'key' => $providerInfo['api_key'],
+            //                                 'recipient' => $recipient,
+            //                                 'message' => $text,
+            //                             );
             $post_data = array (
-                                            'email' => $providerInfo['username'],
-                                            'key' => $providerInfo['api_key'],
-                                            'recipient' => $recipient,
-                                            'message' => $text,
+                                        'apiKey' => $providerInfo['api_key'],
+                                        'recipients' => $recipient,
+                                        'messageContent' => $text,
                                         );
-            $URL = $providerInfo['url1']."email=".$providerInfo['username']."&key=".$providerInfo['api_key']."&recipient=".$recipient."&message=".urlencode($text);
+            $post_data = json_encode($post_data, true);
+            echo "Currently trying to send sms : ";
+            echo "\n";
+            echo $providerInfo['username'];
+            echo "\n";
+            echo $text;
+            echo "\n";
+            echo $recipient;
+            echo "\n";
+            $URL = $providerInfo['url1'];
+            echo $URL;
+            echo "\n";
+            //$URL = $providerInfo['url1']."email=".$providerInfo['username']."&key=".$providerInfo['api_key']."&recipient=".$recipient."&message=".urlencode($text);
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $URL);
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 0);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
+            //curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: text/xml'));
             
             $response = curl_exec($ch);
+            echo "response";
+            echo $response;
+            echo '\n';
             curl_close($ch);
             
             return $response;

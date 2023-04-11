@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        RENAME TABLE sale TO sale_order;
+    </query>
+    <query>
+        RENAME TABLE `saleDetail` TO `sale_order_detail`;
+    </query>
+    <query>
+        ALTER TABLE sale_order ADD delivery_method varchar(255);
+    </query>
+</document> 

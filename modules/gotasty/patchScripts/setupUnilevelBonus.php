@@ -62,6 +62,7 @@
                                             ),
                         "paymentMethod" => array(
                                                 array("percentage" => "100","credit_type" => "bonusDef", "description" => "Unilevel Bonus Payout"),
+                                                // array("percentage" => "100","credit_type" => "gotastyDef", "description" => "Unilevel Bonus Payout"),
                                             ),
                         "rank_setting" => array(
                                                 array("name" => "unilevelBonusPercentage","type" => "percentage", "description" => "Unilevel Bonus Percentage"),

@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `saleDetail` (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+        `client_id` bigint(20) NOT NULL,
+        `item_name` varchar(255) NOT NULL,
+        `item_price` decimal(20,4) NOT NULL,
+        `quantity` int(11) NOT NULL,
+        `subtotal` decimal(20,4) NOT NULL,
+        `sale_id` bigint(20) NOT NULL,
+        `created_at` datetime NOT NULL,
+        `updated_at` datetime NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+    </query>
+        
+    <query>
+        CREATE TABLE `sale` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `client_id` bigint(20) NOT NULL,
+            `paypal_details_id` bigint(20) NOT NULL,
+            `package_id` bigint(20) NOT NULL,
+            `payment_amount` decimal(20,4) NOT NULL,
+            `discount_amount` decimal(20,4) NOT NULL,
+            `redeem_amount` decimal(20,4) NOT NULL,
+            `payment_fee` decimal(20,4) NOT NULL,
+            `payment_tax` decimal(20,4) NOT NULL,
+            `release_amount` decimal(20,4) NOT NULL,
+            `payment_method` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `payment_expired_date` date NOT NULL,
+            `status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `promotion` tinyint(1) NOT NULL,
+            `promotion_code` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
+            `quotation_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `quotation_date` datetime NOT NULL,
+            `quotation_expired_date` date NOT NULL,
+            `quotation` bigint(20) NOT NULL,
+            `proforma_invoice_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `proforma_invoice_date` datetime NOT NULL,
+            `proforma_invoice` bigint(20) NOT NULL,
+            `invoice_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `invoice_date` datetime NOT NULL,
+            `invoice` bigint(20) NOT NULL,
+            `credit_release_at` datetime NOT NULL,
+            `released` tinyint(1) NOT NULL,
+            `request_verify_at` datetime NOT NULL,
+            `verified` tinyint(4) NOT NULL,
+            `payment_verified_at` datetime NOT NULL,
+            `seen` tinyint(4) NOT NULL,
+            `refund` tinyint(1) NOT NULL,
+            `remark` text COLLATE utf8_unicode_ci NOT NULL,
+            `payslip` bigint(20) NOT NULL,
+            `receipt` bigint(20) NOT NULL,
+            `receipt_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `updated_at` datetime NOT NULL,
+            `created_at` datetime NOT NULL,
+                PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
+    </query>
+
+    <query>
+        CREATE TABLE `payment_gateway_details` (
+        `id` bigint(20) NOT NULL AUTO_INCREMENT,
+        `purchase_id` bigint(20) NOT NULL,
+        `type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `buyer_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `buyer_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `seller_email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `currency` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `purchase_amount` decimal(20,4) NOT NULL,
+        `cryptocurrency` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `cryptocurrency_amount` decimal(20,8) NOT NULL,
+        `tax` decimal(20,4) NOT NULL,
+        `transaction_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `payment_fee` decimal(20,4) NOT NULL,
+        `payment_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `payment_date` datetime NOT NULL,
+        `payment_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `paypal_verify_status` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+        `reason` text COLLATE utf8_unicode_ci NOT NULL,
+        `call_back` text COLLATE utf8_unicode_ci NOT NULL,
+        `updated_at` datetime NOT NULL,
+        `created_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+</document> 

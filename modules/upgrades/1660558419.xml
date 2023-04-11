@@ -4,46 +4,47 @@
         INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'english', 'System', 'Dynamic', 'Bonus Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'chineseSimplified', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'chineseSimplified', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'chineseTraditional', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'chineseTraditional', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'vietnam', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'vietnam', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'malay', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'malay', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'japanese', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'japanese', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'korean', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00003', 'Credit Display', 'korean', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'english', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'english', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'chineseSimplified', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'chineseSimplified', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'chineseTraditional', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'chineseTraditional', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'vietnam', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'vietnam', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'malay', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'malay', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'japanese', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'japanese', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'korean', 'System', 'Dynamic', 'Bonus Wallet', NOW());
+        INSERT INTO language_translation(code, module, language, site, type, content, created_at) VALUES('C00004', 'Credit Display', 'korean', 'System', 'Dynamic', 'Gotasty Wallet', NOW());
     </query>
     <query>
-        INSERT INTO credit(name, type, code, description, dcm, rate, image_name, translation_code, admin_translation_code, priority, created_at, updated_at) VALUES('bonusDef', 'bonusCredit', 'BC', 'bonusCredit','2','1', 'BC.jpg', 'C00003', 'C00004', (SELECT MAX(priority) + 1 FROM credit AS b), NOW(), NOW());
+        <!-- INSERT INTO credit(name, type, code, description, dcm, rate, image_name, translation_code, admin_translation_code, priority, created_at, updated_at) VALUES('bonusDef', 'bonusCredit', 'BC', 'bonusCredit','2','1', 'BC.jpg', 'C00003', 'C00004', (SELECT MAX(priority) + 1 FROM credit AS b), NOW(), NOW()); -->
+        INSERT INTO credit(name, type, code, description, dcm, rate, image_name, translation_code, admin_translation_code, priority, created_at, updated_at) VALUES('bonusDef', 'gotastyCredit', 'BC', 'gotastyCredit','2','1', 'BC.jpg', 'C00003', 'C00004', (SELECT MAX(priority) + 1 FROM credit AS b), NOW(), NOW());
     </query>
     <query>
         INSERT INTO credit_setting(credit_id, name, value, admin, member, type, reference, description) VALUES
@@ -55,16 +56,35 @@
         ((SELECT id FROM credit WHERE name = 'bonusDef'), 'showTransactionHistory', 1, 1, 1, '', '',''),
         ((SELECT id FROM credit WHERE name = 'bonusDef'), 'withdrawalAdminFee', 0, 0, 0, '', '5','value = fee amount, reference = percentage'),
         ((SELECT id FROM credit WHERE name = 'bonusDef'), 'isPurchasable', 0, 0, 0, '', '','');
+
+        <!-- ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isTransferable', 0, 0, 0, '', '',''),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isWithdrawable', 2, 0, 1, '', '','bank=1,crypto=2,both=3'),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isWallet', 1, 1, 1, '', '',''),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isAdjustable', 0, 0, 0, '', '',''),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isDisplayOnTransaction', 0, 0, 0, '', '',''),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'showTransactionHistory', 1, 1, 1, '', '',''),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'withdrawalAdminFee', 0, 0, 0, '', '5','value = fee amount, reference = percentage'),
+        ((SELECT id FROM credit WHERE name = 'gotastyDef'), 'isPurchasable', 0, 0, 0, '', '',''); -->
+
     </query>
     <query>
         INSERT INTO permissions(name, description, type, parent_id, file_path, level, priority, disabled, site, translation_code, created_at, reference_table, reference_id) VALUES
         ('bonusDef', 'Credit Type Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'Accounts'), 'memberDetailsList.php?type=bonusDef', (SELECT level+1 FROM permissions c WHERE name = 'Accounts'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'Accounts')), 0, 'Admin', 'C00004', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'bonusDef')),
         ('bonusDef Withdrawal', 'Credit Withdrawal Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'bonusDef'), 'memberWithdrawal.php?type=bonusDef', (SELECT level+2 FROM permissions c WHERE name = 'Accounts'), 1, 0, 'Admin', 'C00024', NOW(), '', ''),
         ('bonusDef', 'bonusDef Transaction Listing Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'Credit Transaction'), 'creditTransactionList.php?type=bonusDef', (SELECT level+1 FROM permissions c WHERE name = 'Credit Transaction'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'Credit Transaction')), 0, 'Admin', 'C00024', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'bonusDef'))
+
+        <!-- ('gotastyDef', 'Credit Type Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'Accounts'), 'memberDetailsList.php?type=gotastyDef', (SELECT level+1 FROM permissions c WHERE name = 'Accounts'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'Accounts')), 0, 'Admin', 'C00004', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'gotastyDef')),
+        ('gotastyDef Withdrawal', 'Credit Withdrawal Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'gotastyDef'), 'memberWithdrawal.php?type=gotastyDef', (SELECT level+2 FROM permissions c WHERE name = 'Accounts'), 1, 0, 'Admin', 'C00024', NOW(), '', ''),
+        ('gotastyDef', 'gotastyDef Transaction Listing Page', 'Sub Menu', (SELECT id FROM permissions b WHERE name = 'Credit Transaction'), 'creditTransactionList.php?type=gotastyDef', (SELECT level+1 FROM permissions c WHERE name = 'Credit Transaction'), (SELECT MAX(priority)+1 FROM permissions d WHERE parent_id = (SELECT id FROM permissions e WHERE name = 'Credit Transaction')), 0, 'Admin', 'C00024', NOW(), 'credit', (SELECT id FROM credit WHERE name = 'gotastyDef')) -->
+
     </query>
     <query>
         INSERT INTO roles_permission(role_id, permission_id, disabled, created_at) VALUES
         ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'bonusDef' AND description = 'Credit Type Page'), 0, NOW()),
         ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'bonusDef' AND description = 'bonusDef Transaction Listing Page'), 0, NOW())
+
+        <!-- ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'gotastyDef' AND description = 'Credit Type Page'), 0, NOW()),
+        ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'gotastyDef' AND description = 'gotastyDef Transaction Listing Page'), 0, NOW()) -->
+
     </query>
 </document>

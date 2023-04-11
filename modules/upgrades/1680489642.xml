@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `address` CHANGE `city_id` `city` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL;
+    </query>
+    <query>
+        ALTER TABLE `address` CHANGE `post_code_id` `post_code` bigint(20);
+    </query>
+</document> 

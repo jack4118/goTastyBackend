@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `purchase_request` (
+        `id` int(255) NOT NULL AUTO_INCREMENT,
+        `product_name` varchar(100) NOT NULL,
+        `vendor_name` varchar(100) NOT NULL,
+        `product_id` varchar(25) DEFAULT NULL,
+        `quantity` int(255) NOT NULL,
+        `product_cost` decimal(20,2) NOT NULL,
+        `total_quantity` int(255) DEFAULT NULL,
+        `total_cost` decimal(20,2) DEFAULT NULL,
+        `approved_by` varchar(25) DEFAULT NULL,
+        `approved_date` datetime DEFAULT NULL,
+        `status` varchar(25) DEFAULT NULL,
+        `created_at` datetime NOT NULL,
+        `updated_at` datetime NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=1010427 DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT    
+    </query>
+    <query>
+        CREATE TABLE `purchase_order` (
+        `id` int(255) NOT NULL AUTO_INCREMENT,
+        `product_name` varchar(255) NOT NULL,
+        `pr_id` varchar(25) NOT NULL,
+        `quantity` int(255) NOT NULL,
+        `product_cost` decimal(20,2) NOT NULL,
+        `total_quantity` int(255) NOT NULL,
+        `total_cost` decimal(20,2) NOT NULL,
+        `created_at` datetime NOT NULL,
+        `updated_at` datetime NOT NULL,
+        PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1
+    </query>
+</document>

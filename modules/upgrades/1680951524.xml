@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE sale_order_detail ADD deleted tinyint(1) NOT NULL AFTER sale_id;
+    </query>
+</document> 

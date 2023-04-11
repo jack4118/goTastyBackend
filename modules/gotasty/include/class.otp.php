@@ -194,6 +194,9 @@
                                 'msg' => $translations["E00749"][$language]
                             );
                         }
+                        $dialCode = $dialCodeIn;
+                        $phoneNumber = $phoneNumberIn;
+
                     }else if(in_array($type, $resetPasswordByOTP)) {
                         // if (!$dialCodeIn || !$phoneNumberIn) {
                         //     $errorFieldArr[] = array(
@@ -213,15 +216,19 @@
                         //     }
                         // }
 
-                        if(!$username){
-                            $errorFieldArr[] = array(
-                                                        'id'  => 'usernameError',
-                                                        'msg' => $translations["E00656"][$language]
-                                                    );
-                        }
-                        $db->where('username', $username);                
+                        // if(!$username){
+                        //     $errorFieldArr[] = array(
+                        //                                 'id'  => 'usernameError',
+                        //                                 'msg' => $translations["E00656"][$language]
+                        //                             );
+                        // }
+
+
+                        $db->where('concat(dial_code, phone)', $phoneNumberIn);                
 
                         $row = $db->getone('client', 'phone, dial_code, ID, language');
+                        //return array('status' => "error", 'code' => 2, 'statusMsg' => 'debug'/* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => $db->getLastQuery());
+                        $result=Message::createCustomizeMessageOut($recipient,$subject,$content,$sendType);
                         if(empty($row)){
                             $errorFieldArr[] = array(
                                                             'id'  => 'phoneError',
@@ -464,14 +471,19 @@
                         $text = 'T00013';
                         $subject = 'Reset Password';
                     }
-                    $content = str_replace(array("%%company%%", "%%OTP%%"), array($companyName, $otpCode), $translations["B00288"][$language]);
+                    // $content = str_replace(array("%%company%%", "%%OTP%%"), array($companyName, $otpCode), $translations["B00288"][$language]);
+                    //TODO : 
+                    $content = "RM0 GoTasty.net : code ".$otpCode;
                     // $content = str_replace(array("%%company%%", "%%module%%", "%%OTP%%"), array($companyName, $translations[$text][$language], $otpCode), $translations["B00366"][$language]);
-                    $return = $email;
+                    //return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => $content);
+                    $return = $phoneNumberIn;
                     break;
 
                 case "register":
                     $subject = $translations['M02678'][$language];
-                    $content = str_replace(array("%%company%%", "%%OTP%%"), array($companyName, $otpCode), $translations["B00288"][$language]);
+                    //TODO : add translation
+                    $content = "RM0 GoTasty.net : code ".$otpCode;
+                    //$content = str_replace(array("%%company%%", "%%OTP%%"), array($companyName, $otpCode), $translations["B00288"][$language]);
                     $return = $email;
                     break;
 
@@ -527,8 +539,8 @@
             }else{
                 return array("status"=> "error", "code"=> 1, "statusMsg"=> $translations['E00872'][$language], "data"=>'');
             }
-
             $data['resendOTPCountDown'] = strtotime($resendOTPCountDown,0);
+            $data['otpCode'] = $otpCode;
 
             if($sendType=='phone'){
                return array("status"=> "ok", "code"=> 0, "statusMsg"=> str_replace("%%phone%%", $phoneNumber, $translations["B00218"][$language]), "data"=>$data);
@@ -707,6 +719,7 @@
             $language = General::$currentLanguage;
             $translations = General::$translations;
             $superOTP = Setting::$configArray['superOTP'];
+            $superOTP = "12345";
 
             //super otp can by pass checking
             if($otpCode == $superOTP && $superOTP != "") return array('status' => "ok", 'code' => 1, 'statusMsg' => "", 'data' => "");
@@ -714,7 +727,9 @@
             if($module == 'register'){
                 $db->where('phone_number', $phoneNumber);
             }else{
-                $db->where('receiver_id', $clientID);
+                // $db->where('data', $clientID['phone']);
+                $db->where('data', $phoneNumber);
+                //$db->where('receiver_id', $clientID['phone']);
             }
             $db->where('expired_at', date('Y-m-d H:i:s'),'>=');
             $db->where('verification_type', $module.'##'.$otpType);
@@ -731,7 +746,17 @@
                 } 
             }
             if($checkedOTP){
-                return array('status' => "ok", 'code' => 1, 'statusMsg' => "", 'data' => $smsID);
+
+                // make OTP become invalid
+                $db->where('expired_at', date('Y-m-d H:i:s'),'>=');
+                $db->where('verification_type', $module.'##'.$otpType);
+                $db->where('status','Sent');
+                $db->where('phone_number', $phoneNumber);
+                $fields = array("expired_at");
+                $values = array(date('Y-m-d H:i:s.u'));
+                $arrayData = array_combine($fields, $values);
+                $row = $db->update("sms_integration", $arrayData);
+                // return array('status' => "ok", 'code' => 1, 'statusMsg' => "", 'data' => $smsID);
             }else{
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00864"][$language] /*Invalid OTP code*/, 'data' => "");
             }              

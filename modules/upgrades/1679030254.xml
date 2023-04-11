@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `product` (
+            `id` bigint NOT NULL AUTO_INCREMENT,
+            `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `product_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `description` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `barcode` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `expired_date` datetime NOT NULL,
+            `cost` decimal(20,8) NOT NULL,
+            `sale_price` decimal(20,8) NOT NULL,
+            `out_of_stock` tinyint(1) NOT NULL,
+            `vendor_id` bigint(20) NOT NULL,
+            `categ_id` bigint(20) NOT NULL,
+            `cooking_time` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `cooking_suggestion` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `full_instruction` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `full_instruction2` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+            `deleted` tinyint(1) NOT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+    <query>
+        ALTER TABLE `vendor` ADD `pic` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL AFTER `email`;
+    </query>
+</document> 

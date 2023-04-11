@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES
+        (342, 'invoice_format', 'INV-%%invoice_id%%', '', '', '', ''),
+        (343, 'invoice_id', '21', '', '', '', '');
+    </query>
+</document> 

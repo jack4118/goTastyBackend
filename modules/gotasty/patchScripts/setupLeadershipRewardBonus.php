@@ -61,6 +61,7 @@
                                             ),
                         "paymentMethod" => array(
                                                 array("percentage" => "100","credit_type" => "bonusDef", "description" => "Leadership Award Bonus Payout"),
+                                                // array("percentage" => "100","credit_type" => "gotastyDef", "description" => "Leadership Award Bonus Payout"),
                                             ),
     );
 

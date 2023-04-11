@@ -7,7 +7,7 @@
     class Inventory {
 
     	function __construct(){
-           
+
         }
 
         function generateUniqueChar(){
@@ -57,9 +57,9 @@
                     switch($dataName) {
                         case 'countryID':
                             $db->where("country_id", $dataValue);
-                                
+
                             break;
-                            
+
                         case 'date':
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
@@ -74,10 +74,10 @@
 
                                 $db->where("Date(created_at)", date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
-                                
+
                             break;
                     }
                     unset($dataName);
@@ -224,7 +224,7 @@
                             "weight"        => 1,
                             "charges"       => 0,
                         );
-                        $countryDeliveryAry[$countryID][$details['id']][] = $row;   
+                        $countryDeliveryAry[$countryID][$details['id']][] = $row;
                     }
                 }
             }
@@ -339,7 +339,7 @@
                         if($newDetail){
                             if ($newWeight != $oriWeight || $newCharges != $oriCharges) {
                                 $inactiveColumn = array(
-                                    "disabled"   => "1", 
+                                    "disabled"   => "1",
                                     "created_at" => $dateTime,
                                 );
                                 $db->where("id", $oriDetail["id"]);
@@ -362,7 +362,7 @@
                         } else {
                             if ($oriWeight != $newWeight || $oriCharges != $newCharges) {
                                 $disableColumn = array(
-                                    "disabled"   => "1", 
+                                    "disabled"   => "1",
                                     "created_at" => $dateTime,
                                 );
                                 $db->where("id", $oriDetail["id"]);
@@ -411,7 +411,7 @@
             $db->orderBy('priority', 'ASC');
             $deliveryChargesRes = $db->map('priority')->get('inv_delivery', null, 'priority, weight, charges');
 
-            $i = 1; 
+            $i = 1;
             $chargeAmount = 0;
             $lastPriority = count($deliveryChargesRes);
             foreach ($deliveryChargesRes as $priority => $deliveryCharges) {
@@ -423,7 +423,7 @@
                     $chargesAmount += ($multiplier * $charges);
                 }else{
                     $productWeight = $productWeight - $weight;
-                    $chargesAmount += $charges;   
+                    $chargesAmount += $charges;
                 }
 
                 if($productWeight <= 0) break;
@@ -439,7 +439,7 @@
             $language = General::$currentLanguage;
             $translations = General::$translations;
 
-            // JNE 
+            // JNE
             $jneUsername = Setting::$configArray["jneUsername"];
             $jneAPIKey = Setting::$configArray["jneAPIKey"];
             $jneURL = Setting::$configArray["jneURL"];
@@ -479,7 +479,7 @@
             $jneResult = json_decode($jneJsonResponse, 1);
 
             if(!$jneResult['price']){
-                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Failed to get Delivery Fee', 'data'=> $jneResult);    
+                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Failed to get Delivery Fee', 'data'=> $jneResult);
             }
 
             $acceptedCourrier = array('JTR', 'REG', 'CTC');
@@ -490,7 +490,7 @@
                     if($jneRow['service_display'] == 'CTC'){
                         $jne['courier'] = 'REG';
                     }
-                    
+
                     $jne['price'] = $jneRow['price'];
 
                     $jneList[] = $jne;
@@ -507,7 +507,7 @@
             //     $onParams = array(
 	        //         "origin_id" => $onDeliveryOriginId,
             //         "destination_id" => $destID,
-            //         'weight' => ($weight >= 1) ? $weight : 1, 
+            //         'weight' => ($weight >= 1) ? $weight : 1,
             //     );
 
             //     $ch = curl_init();
@@ -523,7 +523,7 @@
             //     $onDeliveryResult = json_decode($onDeliveryJsonResponse, 1);
 
             //     if(!$onDeliveryResult){
-            //         return array('status' => "error", 'code' => 1, 'statusMsg' => 'Failed to get Delivery Fee', 'data'=> $onDeliveryResult);    
+            //         return array('status' => "error", 'code' => 1, 'statusMsg' => 'Failed to get Delivery Fee', 'data'=> $onDeliveryResult);
             //     }
 
             //     foreach ($onDeliveryResult as $onDeliveryRow) {
@@ -772,31 +772,31 @@
                     $dataName = trim($v['dataName']);
                     $dataValue = trim($v['dataValue']);
                     $dataType  = trim($v['dataType']);
-                        
+
                     switch($dataName) {
-                        case "type":
-                            $db->where("type", $dataValue);
-                            break;
+                        // case "type":
+                        //     $db->where("type", $dataValue);
+                        //     break;
 
                         case "status":
                             if($dataValue == "Active") {
-                                $db->where("disabled", 0);
+                                $db->where("deleted", 0);
                             } else if($dataValue == "Inactive") {
-                                $db->where("disabled", 1);
+                                $db->where("deleted", 1);
                             }
                             break;
 
-                        case 'updatedAt':
+                        case 'createdAt':
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
                             if(strlen($dateFrom) > 0) {
-                                $db->where('DATE(updated_at)', date('Y-m-d', $dateFrom), '>=');
+                                $db->where('DATE(created_at)', date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language], 'data'=>$data);
 
-                                $db->where('DATE(updated_at)', date('Y-m-d', $dateTo), '<=');
+                                $db->where('DATE(created_at)', date('Y-m-d', $dateTo), '<=');
                             }
 
                             unset($dateFrom);
@@ -805,7 +805,7 @@
                             break;
 
                         case 'name':
-                            $db->where('name', $dataValue);
+                            $db->where('name', "%". $dataValue . "%", "LIKE");
                             break;
                     }
                     unset($dataName);
@@ -815,8 +815,8 @@
             }
 
             $copyDB = $db->copy();
-            $db->orderBy("updated_at", "DESC");
-            $categoryRes = $db->get("inv_category", null, "id, name, type, disabled, updated_at");
+            $db->orderBy("created_at", "DESC");
+            $categoryRes = $db->get("product_category", null, "id, name, deleted, created_at");
 
             if(!$categoryRes) {
                 return array("status" => "ok", "code" => 0, "statusMsg" => $translations["B00101"][$language] /* No results found */, "data" => "");
@@ -828,7 +828,7 @@
 
             if($categoryID){
                 $db->where('module_id', $categoryID, 'IN');
-                $db->where('module', 'inv_category');
+                $db->where('module', 'category');
                 $db->where('type', 'name');
                 $langRes = $db->get('inv_language', null, 'module_id, language, content');
 
@@ -841,9 +841,9 @@
                 $category["id"] = $categoryRow["id"];
                 $category["name"] = $categoryRow["name"];
                 $category["display"] = $lang[$categoryRow['id']][$language];
-                $category["type"] = General::getTranslationByName($categoryRow["type"]);
+                // $category["type"] = General::getTranslationByName($categoryRow["type"]);
 
-                switch($categoryRow["disabled"]) {
+                switch($categoryRow["deleted"]) {
                     case "0":
                         $category["status"] = "Active";
                         $category["statusDisplay"] = General::getTranslationByName($category["status"]);
@@ -853,12 +853,12 @@
                         $category["status"] = "Inactive";
                         $category["statusDisplay"] = General::getTranslationByName($category["status"]);
                         break;
-                    
-                    default:        
+
+                    default:
                         break;
                 }
 
-                $category["updatedAt"] = date($dateTimeFormat, strtotime($categoryRow['updated_at']));
+                $category["createdAt"] = date($dateTimeFormat, strtotime($categoryRow['created_at']));
 
                 $categoryList[] = $category;
             }
@@ -869,7 +869,7 @@
                 return array('status' => "ok", 'code' => 0, 'statusMsg' =>$translations["E00716"][$language], 'data' => $data);
             }
 
-            $totalRecord = $copyDB->getValue('inv_category', "count(*)");
+            $totalRecord = $copyDB->getValue('product_category', "count(*)");
             $data["categoryList"] = $categoryList;
             $data["pageNumber"] = $pageNumber;
             $data["totalRecord"] = $totalRecord;
@@ -909,22 +909,22 @@
 
             if($categoryInvId) {
                 $db->where("id", $categoryInvId);
-                $categoryRes = $db->getOne("inv_category", "id, name, type, disabled");
+                $categoryRes = $db->getOne("product_category", "id, name, deleted");
 
                 if(!$categoryRes) {
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations['E01043'][$language] /* Invalid ID */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations['E01043'][$language] /* Invalid ID */, 'data' => $categoryRes);
                 } else {
                     $db->where("module_id", $categoryRes["id"]);
-                    $db->where('module', 'inv_category');
+                    $db->where('module', 'category');
                     $db->where('type', 'name');
                     $nameTranslationList = $db->get("inv_language", NULL, "id, language, content");
 
-                    if($categoryRes["disabled"] == 0) {
+                    if($categoryRes["deleted"] == 0) {
                         $categoryRes["status"] = "Active";
                     } else {
                         $categoryRes["status"] = "Inactive";
                     }
-                    $categoryRes['type'] = General::getTranslationByName($categoryRes['type']);
+                    // $categoryRes['type'] = General::getTranslationByName($categoryRes['type']);
 
                     $data["categoryRes"] = $categoryRes;
                     $data["nameTranslationList"] = $nameTranslationList;
@@ -938,10 +938,7 @@
             $db             = MysqliDb::getInstance();
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
-            $adminRole      = Setting::$systemSetting['InvEditableRoles'];
-            $adminRolesAry  = explode("#", $adminRole);
             $category       = $params['category'];
-            $type           = trim($params['type']);
             $status         = trim($params['status']);
 
             $userID = $db->userID;
@@ -956,9 +953,6 @@
                     return array('status'=>'error','code'=>2,'statusMsg'=> $translations["E00118"][$language] /* Invalid Admin */,'data'=>'');
                 }
             }
-
-            $db->where('role_id', $adminRolesAry, 'IN');
-            $adminRoleRes = $db->getValue('admin', 'id', null);
 
             if($insertType == "add"){
                 foreach ($category as $v) {
@@ -985,57 +979,35 @@
                             'id'  => "langTypeError",
                             'msg' => $translations['E01045'][$language] /* Please Select Language Type. */
                         );
-                    } 
-                }
-
-                $typeAry = array('package', 'product');
-                if(!$type || !in_array($type, $typeAry)){
-                    $errorFieldArr[] = array(
-                        'id'  => "typeError",
-                        'msg' => $translations['E01052'][$language] /* Please Select Type. */
-                    );
+                    }
                 }
             }else{
-                if(!in_array($userID, $adminRoleRes)){
-                    if($category || $type){     
-                        return array('status'=>'error', 'code'=>2, 'statusMsg'=> $translations['E01124'][$language], 'data'=>'');
-                    }
-                }else{
-                    foreach ($category as $v) {
-                        $categoryName = trim($v['name']);
-                        $languageType = $v['language'];
+                foreach ($category as $v) {
+                    $categoryName = trim($v['name']);
+                    $languageType = $v['language'];
 
-                        if(!$categoryName && $languageType == "english"){
-                            $errorFieldArr[] = array(
-                                'id' => "name".$languageType."Error",
-                                'msg'=> $translations['E01043'][$language] /* Please Choose English as default. */
-                            );
-
-                        // ($categoryName && !preg_match("/^[a-zA-Z]+[a-zA-Z0-9]+$/",$categoryName))
-                        }elseif($categoryName == "-"){
-                            $errorFieldArr[] = array(
-                                'id' => "name".$languageType."Error",
-                                'msg'=> $translations['E01012'][$language] /* Invalid Category. */
-                            );
-                        }
-
-                        // Check Language Type Field
-                        if(!$languageType) {
-                            $errorFieldArr[] = array(
-                                'id'  => "langTypeError",
-                                'msg' => $translations['E01045'][$language] /* Please Select Language Type. */
-                            );
-                        } 
-                    }
-
-                    $typeAry = array('package', 'product');
-                    if(!$type || !in_array($type, $typeAry)){
+                    if(!$categoryName && $languageType == "english"){
                         $errorFieldArr[] = array(
-                            'id'  => "typeError",
-                            'msg' => $translations['E01052'][$language] /* Please Select Type. */
+                            'id' => "name".$languageType."Error",
+                            'msg'=> $translations['E01043'][$language] /* Please Choose English as default. */
+                        );
+
+                    // ($categoryName && !preg_match("/^[a-zA-Z]+[a-zA-Z0-9]+$/",$categoryName))
+                    }elseif($categoryName == "-"){
+                        $errorFieldArr[] = array(
+                            'id' => "name".$languageType."Error",
+                            'msg'=> $translations['E01012'][$language] /* Invalid Category. */
                         );
                     }
-                }                
+
+                    // Check Language Type Field
+                    if(!$languageType) {
+                        $errorFieldArr[] = array(
+                            'id'  => "langTypeError",
+                            'msg' => $translations['E01045'][$language] /* Please Select Language Type. */
+                        );
+                    }
+                }
             }
 
             // Check Status Field
@@ -1053,15 +1025,15 @@
             }
 
             return array('status'=>"ok", 'code'=>0, 'statusMsg'=>"", 'data'=>"");
-        } 
+        }
 
         public function addCategoryInventory($params){
             $db             = MysqliDb::getInstance();
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
-            $dateTime       = date("Y-m-d H:i:s");            
+            $dateTime       = date("Y-m-d H:i:s");
             $category       = $params['category'];
-            $type           = trim($params['type']);
+            // $type           = trim($params['type']);
             $status         = trim($params['status']);
 
             $userID = $db->userID;
@@ -1075,7 +1047,7 @@
                 $languageType = $v['language'];
                 if($languageType == "english"){
                     $defaultName = $categoryName;
-                }    
+                }
                 $languageTypeList[$languageType] = $v;
             }
 
@@ -1087,14 +1059,13 @@
             }
 
             $insertCategory = array(
-                                'name'          => $defaultName,
-                                'type'          => $type,  
-                                'disabled'      => $status,
-                                'updated_at'    => $dateTime,
-                                'updater_id'    => $userID,   
-                                );
-
-            $categoryInvId = $db->insert('inv_category', $insertCategory);
+                'name'          => $defaultName,
+                // 'type'          => $type,
+                'deleted'       => $status,
+                'created_at'    => $dateTime,
+                // 'updater_id'    => $userID,
+            );
+            $categoryInvId = $db->insert('product_category', $insertCategory);
 
             // Get System Languages
             $db->where("disabled", 0);
@@ -1103,22 +1074,22 @@
             foreach($languages  as  $row){
                 if($languageTypeList[$row]['language'] == $row && $languageTypeList[$row]['name']){
                     $insertCategoryNameTrans = array(
-                                                "module" => "inv_category",
-                                                "module_id" => $categoryInvId,
-                                                "type" => "name",
-                                                "language" => $row,
-                                                "content" => $languageTypeList[$row]['name'],
-                                                "updated_at" => $dateTime,  
-                                                );
+                        "module" => "category",
+                        "module_id" => $categoryInvId,
+                        "type" => "name",
+                        "language" => $row,
+                        "content" => $languageTypeList[$row]['name'],
+                        "updated_at" => $dateTime,
+                    );
                 } else {
                     $insertCategoryNameTrans = array(
-                                                "module" => "inv_category",
-                                                "module_id" => $categoryInvId,
-                                                "type" => "name",
-                                                "language" => $row,
-                                                "content" => $defaultName,
-                                                "updated_at" => $dateTime,  
-                                                );
+                        "module" => "category",
+                        "module_id" => $categoryInvId,
+                        "type" => "name",
+                        "language" => $row,
+                        "content" => $defaultName,
+                        "updated_at" => $dateTime,
+                    );
                 }
                 $db->insert("inv_language", $insertCategoryNameTrans);
             }
@@ -1139,11 +1110,8 @@
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
             $dateTime       = date("Y-m-d H:i:s");
-            $adminRole      = Setting::$systemSetting['InvEditableRoles'];
-            $adminRolesList = explode("#", $adminRole);
             $categoryInvId  = trim($params['categoryInvId']);
             $category       = $params['category'];
-            $type           = trim($params['type']);
             $status         = trim($params['status']);         
             
             $userID = $db->userID;
@@ -1164,9 +1132,9 @@
             if(!$categoryInvId) {
                 return array('status' => 'error', 'code' => 2, 'statusMsg' => $translations['E01047'][$language] /* Category not found */, 'data' => '');
             }
-    
+
             $db->where("id", $categoryInvId);
-            $categoryInvRecord = $db->getOne("inv_category", "*");
+            $categoryInvRecord = $db->getOne("product_category", "*");
 
             if(!$categoryInvRecord) {
                 return array('status' => 'error', 'code' => 2, 'statusMsg' => $translations['E01048'][$language] /* Record not found */, 'data' => '');
@@ -1179,35 +1147,21 @@
                 $status=1;
             }
 
-            $db->where('role_id', $adminRolesList, 'IN');
-            $checkAdminRole = $db->getValue('admin','id', null);
-
-            if(in_array($userID, $checkAdminRole)){
-                $editCategory = array(
-                    'name'          => $defaultName,
-                    'type'          => $type,
-                    'disabled'      => $status,
-                    'updated_at'    => $dateTime,
-                    'updater_id'    => $userID,   
-                );
-            }else{
-                $editCategory = array(
-                    'disabled'      => $status,
-                    'updated_at'    => $dateTime,
-                    'updater_id'    => $userID,   
-                );
-            }
+            $editCategory = array(
+                'name'          => $defaultName,
+                'deleted'       => $status,
+                'updated_at'    => $dateTime,
+            );
 
             $db->where("id", $categoryInvId);
-            $editInvRes = $db->update('inv_category', $editCategory);
+            $editInvRes = $db->update('product_category', $editCategory);
 
             if(!$editInvRes) {
                 return array('status' => 'error', 'code' => 2,'statusMsg' => $translations['E01049'][$language] /* Failed to Update Category */ ,'data' => '');
             }
 
-            if(in_array($userID, $checkAdminRole)){
                 $db->where("module_id", $categoryInvRecord['id']);
-                $db->where("module", "inv_category");
+                $db->where("module", "category");
                 $db->where("type", "name");
                 $translationList = $db->get("inv_language", NULL, "id, language, content");
 
@@ -1224,11 +1178,11 @@
                             "language" => $row["language"],
                             "content" => $defaultName,
                             "updated_at" => $dateTime,
-                        );                   
+                        );
                     }
                     $db->where("module_id", $categoryInvRecord['id']);
                     $db->where("language", $row["language"]);
-                    $db->where("module", "inv_category");
+                    $db->where("module", "category");
                     $db->where("type", "name");
                     $db->update("inv_language", $updateTranslation);
                     $updateTranslationList['updateList'][] = $updateTranslation;
@@ -1247,7 +1201,6 @@
                 );
 
                 $db->insert("inv_log", $insertInvLog);
-            }
 
             // Update system setting for process get product
             $db->where('name', 'processGetProduct');
@@ -1265,7 +1218,7 @@
             $searchData      = $params['searchData'];
             $pageNumber      = $params['pageNumber'] ? $params['pageNumber'] : 1;
             $seeAll          = $params['seeAll'];
-            $limit           = General::getLimit($pageNumber);        
+            $limit           = General::getLimit($pageNumber);
             $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];
             if(!$starterKit) $starterKit = $params['starterKitFlag'];
 
@@ -1309,25 +1262,25 @@
 
                         case 'createdAt':
                             $columnName = 'DATE(created_at)';
-                                
+
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
                             if(strlen($dateFrom) > 0) {
                                 if($dateFrom < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 $db->where($columnName, date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
                                 if($dateTo < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
                                 // $dateTo += 86399;
                                 $db->where($columnName, date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             unset($columnName);
@@ -1335,25 +1288,25 @@
 
                         case 'updatedAt':
                             $columnName = 'DATE(updated_at)';
-                                
+
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
                             if(strlen($dateFrom) > 0) {
                                 if($dateFrom < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 $db->where($columnName, date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
                                 if($dateTo < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
                                 // $dateTo += 86399;
                                 $db->where($columnName, date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             unset($columnName);
@@ -1417,7 +1370,7 @@
                 $productAry = $db->map('id')->get('inv_product', null, 'id, weight');
 
                 foreach ($validPackageAry as $validPackageRow) {
-                    $validPackageRow['weight'] = Setting::setDecimal($productAry[$validPackageRow['inv_product_id']] * $validPackageRow['reference']);  
+                    $validPackageRow['weight'] = Setting::setDecimal($productAry[$validPackageRow['inv_product_id']] * $validPackageRow['reference']);
 
                     unset($validPackageRow['reference']);
                     $packageDetailAry[$validPackageRow['value']][$validPackageRow['inv_product_id']] = $validPackageRow;
@@ -1465,7 +1418,7 @@
                 $memberPrice    = $priceDetailRes[$packageRow['id']]['m_price'];
                 $memberUpPrice  = $priceDetailRes[$packageRow['id']]['ms_price'];
                 $package['retailPrice'] = Setting::setDecimal($retailPrice);
-                $package['promoPrice']  = $promoPrice > 0 ? Setting::setDecimal($promoPrice) : '-'; 
+                $package['promoPrice']  = $promoPrice > 0 ? Setting::setDecimal($promoPrice) : '-';
                 $package['memberPrice'] = Setting::setDecimal($memberPrice);
                 $package['memberUpPrice'] = Setting::setDecimal($memberUpPrice);
 
@@ -1480,7 +1433,7 @@
                 $package['createdAt'] = date($dateTimeFormat, strtotime($packageRow['created_at']));
                 $package['updaterName'] = $adminIDAry[$packageRow['updater_id']] ? : '-';
                 $package['updatedAt'] = $packageRow['updated_at'] > 0 ? date($dateTimeFormat, strtotime($packageRow['updated_at'])) : '-';
-                $package['adjustRestricted'] = $packageRow['is_unlimited']; 
+                $package['adjustRestricted'] = $packageRow['is_unlimited'];
                 unset($productWeight);
                 $packageList[] = $package;
             }
@@ -1557,7 +1510,7 @@
                 }
             }
 
-            $data['packageCategoryList'] = $categoryPackageList;  
+            $data['packageCategoryList'] = $categoryPackageList;
             $data['productCategoryList'] = $categoryProductList;
 
             $availableProduct = $db->map('id')->get('inv_product', null, 'id, name, status, weight, status');
@@ -1622,7 +1575,7 @@
                             $imageList[] = $packageDetailsRow;
                         }elseif ($packageDetailsRow['uploadType'] == 'Video') {
                             $videoList[] = $packageDetailsRow;
-                        } 
+                        }
                     }
 
                     $db->where('product_id', $packageID);
@@ -1633,7 +1586,7 @@
                     $data['catalogue'] = 0;
                     if($packageDetailRes){
                         $countryName = $db->map("id")->get("country", null, "id, translation_code");
-                        
+
                         foreach ($packageDetailRes as $packageDetailRow) {
                             if($packageDetailRow['name'] == "packageCategory"){
                                 $packageRes['category'][] = $categoryLang[$packageDetailRow['value']];
@@ -1735,9 +1688,9 @@
                     'id'  => "codeError",
                     'msg' => $translations['E00928'][$language] /* Please Enter Code. */
                 );
-            } else if($type == 'add'){  
+            } else if($type == 'add'){
                 // check code avaibility
-                $db->where('code', $code);                
+                $db->where('code', $code);
                 $result = $db->has("mlm_product");
 
                 if($result) {
@@ -1746,7 +1699,7 @@
                         'msg' => $translations["E00929"][$language] /* Code Existed. */
                     );
                 }
-            }            
+            }
 
             // Check Category Field
             if(!$category) {
@@ -1808,7 +1761,7 @@
 
             // Check Price Field
             //PV price && Price setting
-            if($type == "edit"){  
+            if($type == "edit"){
                 if(!in_array($clientID, $availableAdminRes)){
                     if($isStarterKit == 1){
                         if($pvPrice){
@@ -2045,7 +1998,7 @@
                     }
                 }
             }
-            
+
             $countPriceSetting = count($priceSetting);
             if($countPriceSetting < 0){
                 $errorFieldArr[] = array(
@@ -2327,7 +2280,7 @@
             $createPackage   = $params['createPackage'];
             $productInvID    = $params['productInvID'];
             $productQuantity = $params['productQuantity'];
-            
+
             $catalogue       = $params['catalogue'];
             $bBasic          = $params['bBasic'];
             $weight          = trim($params["weight"]);
@@ -2435,17 +2388,17 @@
                 $db->insert('mlm_product_price', $insertPrice);
 
                $priceAry[] = $price['country'];
-            }   
+            }
 
             $db->where('id', $userID);
-            $adminName = $db->getValue('admin', 'name');    
+            $adminName = $db->getValue('admin', 'name');
             $db->where('id', $priceAry, 'IN');
             $countryNameList = $db->get('country', null, 'translation_code');
             foreach($countryNameList as $translationCodeForCountry){
                 $nameOfCountry[] = $translations[$translationCodeForCountry['translation_code']][$language];
             }
             $logInvData = array_merge(array('admin' => $adminName,'country' => $nameOfCountry, 'package' => $name));
-            
+
             // insert inv_log
             $invLog = array(
                 "module"                    =>  "mlm_product_price",
@@ -2482,7 +2435,7 @@
                     $db->insert('inv_product_detail', $insertValidPackage);
                 }
             }
-            
+
 
             // Get System Languages
             $db->where("disabled", 0);
@@ -2503,10 +2456,10 @@
                         "type" => "name",
                         "language" => $languagesRow,
                         "content" => $nameLanguagesList[$languagesRow]['content'],
-                        "updated_at" => $dateTime,  
+                        "updated_at" => $dateTime,
                     );
                     $insertPackageNameTransList['name'][] = $insertPackageNameTrans;
-                    $db->insert('inv_language',$insertPackageNameTrans);  
+                    $db->insert('inv_language',$insertPackageNameTrans);
                 } /*else {
                     $insertPackageNameTrans = array(
                         "module" => "mlm_product",
@@ -2514,11 +2467,11 @@
                         "type" => "name",
                         "language" => $languagesRow,
                         "content" => $defaultName,
-                        "updated_at" => $dateTime,  
+                        "updated_at" => $dateTime,
                     );
                 }*/
                 // $insertPackageNameTransList['name'][] = $insertPackageNameTrans;
-                // $db->insert('inv_language',$insertPackageNameTrans);                              
+                // $db->insert('inv_language',$insertPackageNameTrans);
             }
 
             foreach($descrLanguages as $descriptionRow) {
@@ -2535,10 +2488,10 @@
                         "type" => "desc",
                         "language" => $languagesRow,
                         "content" => $descLanguagesList[$languagesRow]['content'],
-                        "updated_at" => $dateTime,  
+                        "updated_at" => $dateTime,
                     );
                     $insertProductDescrTranList['desc'][] = $insertProductDescrTrans;
-                    $db->insert('inv_language',$insertProductDescrTrans);  
+                    $db->insert('inv_language',$insertProductDescrTrans);
                 } /*else {
                     $insertProductDescrTrans = array(
                         "module" => "mlm_product",
@@ -2546,11 +2499,11 @@
                         "type" => "desc",
                         "language" => $languagesRow,
                         "content" => $defaultDescription,
-                        "updated_at" => $dateTime,  
+                        "updated_at" => $dateTime,
                     );
                 }*/
                 // $insertProductDescrTranList['desc'][] = $insertProductDescrTrans;
-                // $db->insert('inv_language',$insertProductDescrTrans);                        
+                // $db->insert('inv_language',$insertProductDescrTrans);
             }
 
             foreach($uploadImage as $key => $uploadImageRow) {
@@ -2738,7 +2691,7 @@
                 );
             }
             $db->where("id", $packageID);
-            $editPackageRes = $db->update("mlm_product", $editPackage);          
+            $editPackageRes = $db->update("mlm_product", $editPackage);
 
             if (!$editPackageRes) {
                 return array('status' => 'error', 'code' => 2,'statusMsg' => $translations["E00934"][$language] /* Failed to update product. */, 'data' => '');
@@ -2753,10 +2706,10 @@
             foreach ($category as $categoryRow) {
                 $categoryAry[$categoryRow] = $categoryRow;
             }
-            
+
             foreach ($oriCategory as $oriCategoryKey => $oriCategoryValue) {
                 $newCategory = $categoryAry[$oriCategoryKey];
-                
+
                 if($oriCategoryValue != $newCategory){
                     $editDetail = array(
                         "type" => "invalidCategory",
@@ -2766,7 +2719,7 @@
                     $db->where("type", "packageCategory");
                     $db->update("mlm_product_setting", $editDetail);
                 }
-                
+
                 unset($categoryAry[$oriCategoryKey]);
 
                 $newCategoryAry = $categoryAry;
@@ -2783,7 +2736,7 @@
             }
 
             // temporary close catalogue - 20220114
-            
+
             // $db->where("product_id", $packageID);
             // $db->where("name", "catalogue");
             // $catalogueID = $db->getValue("mlm_product_setting", "id");
@@ -2822,7 +2775,7 @@
                     $db->insert('mlm_product_setting', $insertData);
                 }
             }
-            
+
             // Country checking
             // if(in_array($userID, $availableAdminRes)){
                 foreach($priceSetting as $countryAvailable){
@@ -2837,7 +2790,7 @@
                 $db->where('disabled', '0');
                 $db->where('product_id', $packageID);
                 $priceChecking = $db->map('country_id')->get('mlm_product_price', null, 'country_id, price, promo_price, m_price, ms_price');
-    
+
 
                 foreach($priceChecking as $priceCheckingKey => $priceCheckingValue){
                     $newCountryRetail   = $enabledCountry[$priceCheckingKey]['retailPrice'];
@@ -2894,16 +2847,16 @@
                     $db->insert('mlm_product_price', $insertPrice);
                 }
 
-                if($priceAry){  
+                if($priceAry){
                     $db->where('id', $priceAry, 'IN');
                     $countryNameList = $db->get('country', null, 'translation_code');
                     foreach($countryNameList as $translationCodeForCountry){
                         $nameOfCountry[] = $translations[$translationCodeForCountry['translation_code']][$language] ? : "-";
                     }
                 }
-                
+
                 $logInvData = array_merge(array('admin' => $checkAdmin, 'country' => $nameOfCountry, 'package' => $name, 'pvPrice' => $pvPrice, 'productQuantity' => $productQuantity));
-            
+
                 // insert inv_log
                 $invLog = array(
                     "module"                    =>  "mlm_product, mlm_product_price",
@@ -2919,7 +2872,7 @@
                 $db->insert("inv_log", $invLog);
             // }
 
-            // Get Original Product 
+            // Get Original Product
             $db->where("value", $packageID);
             $db->where("type", "validPackage");
             $oriProductList = $db->map("inv_product_id")->get("inv_product_detail", null, "inv_product_id, value, reference");
@@ -2959,7 +2912,7 @@
                 }
 
                 unset($productAry[$oriProductKey]);
-                
+
                 $newProductAry = $productAry;
             }
 
@@ -2985,7 +2938,7 @@
             $db->where("type", array('Image'), 'IN');
             $trashMediaNameAry = $db->get('mlm_product_setting', null, 'id, value');
             foreach ($trashMediaNameAry as $trashMediaRow) {
-                if(!$checkFileAry[$trashMediaRow['value']]) {                    
+                if(!$checkFileAry[$trashMediaRow['value']]) {
                     // Insert media trash
                     $insertTrash = array(
                         'file_name' => $trashMediaRow["value"],
@@ -3043,7 +2996,7 @@
             $trashMediaNameAry = $db->get('mlm_product_setting', null, 'id, value');
 
             foreach ($trashMediaNameAry as $trashMediaRow) {
-                if(!$checkFileAry[$trashMediaRow['value']]) {                    
+                if(!$checkFileAry[$trashMediaRow['value']]) {
                     // Insert media trash
                     $insertTrash = array(
                         'file_name' => $trashMediaRow["value"],
@@ -3129,10 +3082,10 @@
                             "type" => "name",
                             "language" => $languagesRow,
                             "content" => $nameLanguagesList[$languagesRow]['content'],
-                            "updated_at" => $dateTime,  
+                            "updated_at" => $dateTime,
                         );
                         $insertPackageNameTransList['name'][] = $insertPackageNameTrans;
-                        $db->insert('inv_language',$insertPackageNameTrans);  
+                        $db->insert('inv_language',$insertPackageNameTrans);
                     }
                 }
             }
@@ -3164,7 +3117,7 @@
                         $db->where("language", $languagesRow);
                         $db->update("inv_language", $updateDescrTranslation);
 
-                        $updateDescrTranslationList['updateDescList'][] = $updateDescrTranslation; 
+                        $updateDescrTranslationList['updateDescList'][] = $updateDescrTranslation;
                     }else{
                         unset($insertProductDescrTrans);
                         $insertProductDescrTrans = array(
@@ -3173,10 +3126,10 @@
                             "type" => "desc",
                             "language" => $languagesRow,
                             "content" => $descrLanguagesList[$languagesRow]['content'],
-                            "updated_at" => $dateTime,  
+                            "updated_at" => $dateTime,
                         );
                         $insertProductDescrTranList['desc'][] = $insertProductDescrTrans;
-                        $db->insert('inv_language',$insertProductDescrTrans);  
+                        $db->insert('inv_language',$insertProductDescrTrans);
                     }
                 }
             }
@@ -3238,8 +3191,8 @@
             $searchData      = $params['searchData'];
             $pageNumber      = $params['pageNumber'] ? $params['pageNumber'] : 1;
             $seeAll          = $params['seeAll'];
-            $limit           = General::getLimit($pageNumber);        
-            $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];      
+            $limit           = General::getLimit($pageNumber);
+            $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];
 
             $userID = $db->userID;
             $site = $db->userType;
@@ -3255,64 +3208,72 @@
 
                     switch($dataName) {
                         case 'productName':
-                            $db->where('name', "%" . $dataValue . "%", "LIKE");
+                            $db->where('p.name', "%" . $dataValue . "%", "LIKE");
                             break;
 
                         case 'code':
-                            $db->where("code", $dataValue);
+                            $db->where("p.barcode", "%". $dataValue . "%" , "LIKE");
                             break;
 
                         case 'status':
-                            $db->where("status", $dataValue);
+                            if($dataValue == 'active')
+                            {
+                                $dataValue = 0;
+                            }
+                            else
+                            {
+                                $dataValue = 1;
+                            }
+                            $db->where("p.deleted", $dataValue);
                             break;
 
                         case 'createdAt':
-                            $columnName = 'DATE(created_at)';
-                                
+                            $columnName = 'DATE(p.created_at)';
+
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
                             if(strlen($dateFrom) > 0) {
                                 if($dateFrom < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 $db->where($columnName, date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
                                 if($dateTo < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
                                 // $dateTo += 86399;
                                 $db->where($columnName, date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             unset($columnName);
                             break;
 
                         case 'updatedAt':
-                            $columnName = 'DATE(updated_at)';
-                                
+                            $columnName = 'DATE(p.updated_at)';
+
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
                             if(strlen($dateFrom) > 0) {
                                 if($dateFrom < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 $db->where($columnName, date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
                                 if($dateTo < 0)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
-                                    
+
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
                                 // $dateTo += 86399;
                                 $db->where($columnName, date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             unset($columnName);
@@ -3322,48 +3283,48 @@
                     unset($dataValue);
                 }
             }
-            
-            $db->orderBy('created_at', 'DESC');
+
+            $db->orderBy('p.created_at', 'DESC');
+            $db->join('vendor v', 'v.id = p.vendor_id', 'LEFT');
             $copyDb = $db->copy();
-            $productInv = $db->get("inv_product", $limit, "id, code as skuCode, name, status, total_balance, weight, created_at, updated_at, updater_id");
+            $productInv = $db->get("product p", $limit, "p.id, p.barcode as skuCode, p.name, p.product_type, p.description, p.categ_id, p.cost, p.sale_price, p.cooking_time, p.deleted as status, p.expired_day, p.cooking_suggestion, p.full_instruction, p.full_instruction2, p.created_at, p.updated_at, v.name as vendorName");
 
             if(empty($productInv)){
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
             }
 
-            foreach($productInv as $productInvRow){
-                if($productInvRow['updater_id']) $updaterAry[$productInvRow['updater_id']] = $productInvRow['updater_id'];
-                $productInvID[$productInvRow['id']] = $productInvRow['id'];
-            }
+            // foreach($productInv as $productInvRow){
+            //     if($productInvRow['updater_id']) $updaterAry[$productInvRow['updater_id']] = $productInvRow['updater_id'];
+            //     $productInvID[$productInvRow['id']] = $productInvRow['id'];
+            // }
 
-            if($updaterAry){
-                $db->where("id", $updaterAry, "IN");
-                $adminIDAry = $db->map("id")->get("admin", null, "id, username");
-            }
+            // if($updaterAry){
+            //     $db->where("id", $updaterAry, "IN");
+            //     $adminIDAry = $db->map("id")->get("admin", null, "id, username");
+            // }
 
-            if($productInvID){
-                $db->where('inv_product_id', $productInvID, 'IN');
-                $db->where('type', 'productCategory');
-                $categoryRes = $db->get('inv_product_detail', null, 'inv_product_id, value');
+            // if($productInvID){
+            //     $db->where('inv_product_id', $productInvID, 'IN');
+            //     $db->where('type', 'productCategory');
+            //     $categoryRes = $db->get('inv_product_detail', null, 'inv_product_id, value');
 
-                foreach ($categoryRes as $categoryRow) {
-                    $categoryIDAry[$categoryRow['inv_product_id']][] = $categoryRow['value'];
-                }
+            //     foreach ($categoryRes as $categoryRow) {
+            //         $categoryIDAry[$categoryRow['inv_product_id']][] = $categoryRow['value'];
+            //     }
 
-                $db->where('inv_product_id', $productInvID, 'IN');
-                $db->groupBy('inv_product_id');
-                $stockQuantity = $db->map('inv_product_id')->get('inv_stock',null,'inv_product_id, SUM(stock_in) as stock_in, SUM(stock_out) as stock_out');
+            //     $db->where('inv_product_id', $productInvID, 'IN');
+            //     $db->groupBy('inv_product_id');
+            //     $stockQuantity = $db->map('inv_product_id')->get('inv_stock',null,'inv_product_id, SUM(stock_in) as stock_in, SUM(stock_out) as stock_out');
 
-            }
+            // }
 
-            $db->where('disabled', 0);
-            $db->where('type', 'product');
-            $categoryAry = $db->map('id')->get('inv_category', null, 'id');
+            $db->where('deleted', 0);
+            $categoryAry = $db->map('id')->get('product_category', null, 'id');
 
             if($categoryAry) {
                 $db->where('module_id', $categoryAry, 'IN');
                 $db->where('language', $language);
-                $db->where('module', 'inv_category');
+                $db->where('module', 'category');
                 $categoryLang = $db->map('module_id')->get('inv_language', null, 'module_id, content');
             }
 
@@ -3371,34 +3332,57 @@
                 $productDetail['id'] = $productInvRow['id'];
                 $productDetail['skuCode'] = $productInvRow['skuCode'];
                 $productDetail['name'] = $productInvRow['name'];
-                $productDetail['status'] = $productInvRow['status'];
-                $productDetail['statusDisplay'] = General::getTranslationByName($productInvRow['status']);
 
-                unset($categoryDisplay);
-                $categoryID = $categoryIDAry[$productInvRow['id']];
-                foreach ($categoryID as $category) {
-                    $categoryDisplay[$category] = $categoryLang[$category];
+                if($productInvRow['status'] == 1) {
+                    $productDetail['status'] = 'Inactive';
+                    $productDetail['statusDisplay'] = General::getTranslationByName($productDetail['status']);
+                } else {
+                    $productDetail['status'] = 'Active';
+                    $productDetail['statusDisplay'] = General::getTranslationByName($productDetail['status']);
                 }
-                $productDetail['categoryDisplay'] = implode(', ', $categoryDisplay);
 
-                $productDetail['weight'] = Setting::setDecimal($productInvRow['weight'], 3) ? : '-';
-                $productDetail['totalStock'] = $stockQuantity[$productInvRow['id']]['stock_in'];
-                $productDetail['totalStockOut'] = $stockQuantity[$productInvRow['id']]['stock_out'];
-                $productDetail['quantity'] = $stockQuantity[$productInvRow['id']]['stock_in'] - $stockQuantity[$productInvRow['id']]['stock_out'];
-                $productDetail['isAdjustable'] = $productInvRow['status'] == "Active" ? 1 : 0;
+                $productDetail['productType'] = $productInvRow['product_type'];
+                $productDetail['description'] = $productInvRow['description'];
+                $productDetail['cost'] = $productInvRow['cost'];
+                $productDetail['salePrice'] = $productInvRow['sale_price'];
+                $productDetail['expiredDay'] = $productInvRow['expired_day'];
+                $productDetail['cookingTime'] = $productInvRow['cooking_time'];
+                $productDetail['cookingSuggestion'] = $productInvRow['cooking_suggestion'];
+                $productDetail['fullInstruction'] = $productInvRow['full_instruction'];
+                $productDetail['fullInstruction2'] = $productInvRow['full_instruction2'];
+                $productDetail['vendorName'] = $productInvRow['vendorName'];
+
+                $productInvRow['categ_id'] = json_decode($productInvRow['categ_id'], true);
+                
+                unset($categoryDisplay);
+                unset($productDetail['categoryDisplay']);
+                foreach($productInvRow['categ_id'] as $val) {
+                    $categoryDisplay[$category] = $categoryLang[$val];
+                    $productDetail['categoryDisplay'][] = implode(', ', $categoryDisplay);
+                }
+
+                if(empty($productDetail['categoryDisplay'])) {
+                    $productDetail['categoryDisplay'] = '';
+                }
+
+                // $productDetail['weight'] = Setting::setDecimal($productInvRow['weight'], 3) ? : '-';
+                // $productDetail['totalStock'] = $stockQuantity[$productInvRow['id']]['stock_in'];
+                // $productDetail['totalStockOut'] = $stockQuantity[$productInvRow['id']]['stock_out'];
+                // $productDetail['quantity'] = $stockQuantity[$productInvRow['id']]['stock_in'] - $stockQuantity[$productInvRow['id']]['stock_out'];
+                // $productDetail['isAdjustable'] = $productInvRow['status'] == "Active" ? 1 : 0;
                 $productDetail['created_at'] = date($dateTimeFormat, strtotime($productInvRow['created_at']));
-                $productDetail['updater_id'] = $adminIDAry[$productInvRow['updater_id']] ? : '-';
+                // $productDetail['updater_id'] = $adminIDAry[$productInvRow['updater_id']] ? : '-';
                 $productDetail['updated_at'] = $productInvRow['updated_at'] > 0 ? date($dateTimeFormat, strtotime($productInvRow['updated_at'])) : '-';
                 $productInvList[] = $productDetail;
             }
 
-            if($params['type'] == "export"){
-                $params['command'] = __FUNCTION__;
-                $data = Excel::insertExportData($params);
-                return array('status' => "ok", 'code' => 0, 'statusMsg' =>$translations["E00716"][$language], 'data' => $data);
-            }
+            // if($params['type'] == "export"){
+            //     $params['command'] = __FUNCTION__;
+            //     $data = Excel::insertExportData($params);
+            //     return array('status' => "ok", 'code' => 0, 'statusMsg' =>$translations["E00716"][$language], 'data' => $data);
+            // }
 
-            $totalRecord              = $copyDb->getValue("inv_product", "count(*)");
+            $totalRecord              = $copyDb->getValue("product p", "count(p.id)");
             $data['productInventory'] = $productInvList;
             $data['pageNumber']       = $pageNumber;
             $data['totalRecord']      = $totalRecord;
@@ -3416,6 +3400,7 @@
             $db              = MysqliDb::getInstance();
             $language        = General::$currentLanguage;
             $translations    = General::$translations;
+            include('config.php');
 
             $productInvId = $params['productInvId'];
 
@@ -3436,38 +3421,30 @@
 
             $data['languageList'] = $languageList;
 
-            $db->where("disabled",0);
-            $availableCategory = $db->map("id")->get("inv_category",null,"id,name,type");
+            $db->where("deleted",0);
+            $availableCategory = $db->get("product_category",null,"id, name");
 
             foreach($availableCategory as $value){
-                $categoryIDAry[$value["id"]] = $value["id"];
+                $categoryIDAry[] = $value["id"];
             }
 
             if($categoryIDAry) {
                 $db->where("module_id",$categoryIDAry,"IN");
-                $db->where("module","inv_category");
+                $db->where("module","category");
                 $db->where("language",$language);
                 $db->where("type","name");
-                $categoryLang = $db->map("module_id")->get("inv_language",null,"module_id,content");
+                $categoryLang = $db->map('module_id')->get("inv_language",null,"module_id,content");
             }
 
             foreach($availableCategory as $value){
                 $value["categoryDisplay"] = $categoryLang[$value["id"]];
-
-                if($value["type"] == "package") {
-                    unset($value["type"]);
-                    $categoryPackageList[] = $value;
-                }else if($value["type"] == "product"){
-                    unset($value["type"]);
-                    $categoryProductList[] = $value;
-                }
+                $categoryProductList[] = $value;
             }
 
             $data["categoryList"] = $categoryProductList;
-            $data["packageCategoryList"] = $categoryPackageList;  
 
-            $db->where("status","Active");
-            $supplierRes = $db->get("inv_supplier",null,"id,name,code");
+            $db->where("deleted","0");
+            $supplierRes = $db->get("vendor",null,"id,name,vendor_code");
 
             unset($supplierList);
 
@@ -3476,7 +3453,7 @@
 
                 $tempSupplier["supplierID"] = $supplierRow["id"];
                 $tempSupplier["name"] = $supplierRow["name"];
-                $tempSupplier["code"] = $supplierRow["code"];
+                $tempSupplier["code"] = $supplierRow["vendor_code"];
 
                 $supplierList[] = $tempSupplier;
             }
@@ -3489,31 +3466,139 @@
             );
             $countryReturn = Country::getCountriesList($countryParams);
             $data["countryList"] = $countryReturn["data"]["countriesList"];
-            $data['discountPercentage'] = 25;
-            $data['discountUpPercentage'] = 30;
+
+            $db->where('type', 'productType');
+            $productType = $db->get('enumerators', null, 'name');
+
+            $data['productType'] = $productType;
+
+            $db->where("name","percentage");
+            $marginPercen  = $db->getValue("system_settings","value");
+            $data['discountPercentage'] = (int)$marginPercen;
 
             if($productInvId) {
                 $db->where('id', $productInvId);
-                $productInv = $db->getOne("inv_product", "id, code as skuCode, name, status, weight");
+                $productInv = $db->getOne("product", "id, barcode as skuCode, name, product_type, description, cost, sale_price, cooking_time, expired_day, vendor_id, categ_id, deleted as status, cooking_suggestion, full_instruction, full_instruction2, created_at, updated_at");
 
                 if(!$productInv) {
                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01051"][$language], 'data' => "");
                 } else {
-                    $db->where("type", "productCategory");
-                    $db->where("inv_product_id", $productInv['id']);
-                    $category = $db->get("inv_product_detail", null, 'value');
-
-                    foreach ($category as $categoryRow) {
-                        $productInv['category'][] = $categoryLang[$categoryRow['value']];
+                    if($productInv['status'] == 0) {
+                        $productInv['status'] = 'Active';
+                    } else {
+                        $productInv['status'] = 'Inactive';
                     }
 
+                    if(!empty($productInv['categ_id'])) {
+                        $cateAry = json_decode($productInv['categ_id'], true);
+                        $db->where('deleted', '0');
+                        $db->where('id', $cateAry, 'IN');
+                        $productCategory = $db->get('product_category', null, 'id, name');
+                    } else {
+                        $productCategory = '';
+                    }
+
+                    $db->where('deleted', 0);
+                    $db->where('product_id', $productInvId);
+                    $productVar = $db->get('product_template', null, 'product_attribute_value_id');
+
+                    if(!empty($productVar)) {
+                        // get all attribute value id in product template
+                        $attrIdList = [];
+                        foreach($productVar as $attr) {
+                            foreach($attr as $val) {
+                                foreach(json_decode($val, true) as $v) {
+                                    if(empty($attrIdList)) {
+                                        $attrIdList[] = $v;
+                                    } else {
+                                        if(!in_array($v, $attrIdList)) {
+                                            $attrIdList[] = $v;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if(!empty($attrIdList)) {
+                            // use the id in $attrIdList to find the product attribute and product attribute value
+                            $db->where('pav.deleted', 0);
+                            $db->where('pav.id', $attrIdList, 'IN');
+                            $db->join('product_attribute pa', 'pa.id = pav.product_attribute_id', 'LEFT');
+                            $productAttr = $db->get('product_attribute_value pav', null, 'pav.id, pav.name, pav.product_attribute_id as pa_id');
+
+                            foreach($productAttr as $val) {
+                                $attr[] = $val['pa_id'];
+
+                                $attrVal[$val['pa_id']]['pa_id'] = $val['pa_id'];
+                                $attrVal[$val['pa_id']]['id'][] = $val['id'];
+                                $attrVal[$val['pa_id']]['name'][] = $val['name'];
+                            }
+
+                            $db->where('product_attribute_id', $attr, 'IN');
+                            $attribute = $db->get('product_attribute_value', null, 'id, name, product_attribute_id');
+                        }
+                        $data['attrIdList'] = $attrVal;
+                        $data['attribute'] = $attribute;
+                        $data['productVar'] = $productVar;
+                    } else {
+                        $data['attrIdList'] = '';
+                        $data['attribute'] = '';
+                        $data['productVar'] = '';
+                    }
+
+                    if($productInv['product_type'] == 'Package') {
+                        $db->where('deleted', 0);
+                        $productList = $db->get('product', null, 'id, name');
+
+                        $db->where('pi.deleted', 0);
+                        $db->where('pi.package_id', $productInv['id']);
+                        $db->join('product p', 'p.id = pi.product_id', 'LEFT');
+                        $packageProduct = $db->get('package_item pi', null, 'pi.id, pi.package_id, pi.product_id, p.name');
+                        
+                        $data['packageProduct'] = $packageProduct;
+                        $data['productList'] = $productList;
+                    } else {
+                        $data['packageProduct'] = '';
+                    }
+
+                    $db->where('deleted', 0);
+                    $db->where('reference_id', $productInv['id']);
+                    $productMedia = $db->get('product_media', null, 'id, type, url, reference_id');
+
+                    if($productMedia) {
+                        foreach($productMedia as $val) {
+                            if($val['type'] == 'video') {
+                                $media['id'] = $val['id'];
+                                $media['url'] = $val['url'];
+                                $media['type'] = $val['type'];
+                                $media['reference_id'] = $val['reference_id'];
+                            } else {
+                                $media['id']   = $val['id'];
+                                $media['url']  = $val['url'];
+                                $media['name'] = str_replace($config['tempMediaUrl'], '', $val['url']);
+                                $media['type'] = $val['type'];
+                                $media['reference_id'] = $val['reference_id'];
+                            }
+                            $mediaList[] = $media;
+                        }
+                    } else {
+                        $mediaList = '';
+                    }
+                    $productInv['media'] = $mediaList;
+
                     $data['productDetails'] = $productInv;
+                    $data['productCategory'] = $productCategory;
                     $data['nameTranslationList'] = array();
                     $data['descTranslationList'] = array();
                 }
             }
 
-            return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data);
+            $db->where('deleted', '0');
+            $productAttr = $db->get('product_attribute', null, 'id, name');
+
+            $data['productAttrList'] = $productAttr;
+
+            return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data, $productVar);
         }
 
         public function verifyProductInventory($params, $type = "", $verify = false) {
@@ -3525,8 +3610,18 @@
             $skuCode        = trim($params['skuCode']);
             $status         = trim($params['status']);
             $category       = $params['category'];
-            $weight         = trim($params['weight']);
+            // $weight         = trim($params['weight']);
             $statusAry      = array('Active', 'Inactive');
+            $productType    = trim($params['productType']);
+            $description    = trim($params['description']);
+            $expired_day    = trim($params['expired_day']);
+            $cost           = trim($params['cost']);
+            $salePrice      = trim($params['salePrice']);
+            $vendorId       = trim($params['vendorId']);
+            $category       = $params['category'];
+            $cookingTime    = trim($params['cookingTime']);
+            $cookingSuggest = trim($params['cookingSuggest']);
+            $fullInstruc    = $params['fullInstruc'];
             
             $isPackage      = trim($params['isPackage']) ? : 0;
             $priceSetting   = $params["priceSetting"];
@@ -3565,9 +3660,9 @@
                     'id'  => "skuCodeError",
                     'msg' => $translations['E00928'][$language] /* Please Enter Code. */
                 );
-            } else if($type === 'add'){  
+            } else if($type === 'add'){
                 // check code avaibility
-                $db->where('code', $skuCode);                
+                $db->where('code', $skuCode);
                 $result = $db->getOne("inv_product", 'id');
 
                 if($result) {
@@ -3576,7 +3671,7 @@
                         'msg' => $translations["E00929"][$language] /* Code Existed. */
                     );
                 }
-            }            
+            }
 
             // Check Category Field
             if(!$category) {
@@ -3585,25 +3680,114 @@
                     'msg' => $translations['E00930'][$language] /* Please Enter Category. */
                 );
             } else {
-                $db->where('disabled', 0);
-                // $db->where('type', 'product');
-                $availableCategory = $db->getValue('inv_category', 'id', null);
+                $db->where('deleted', 0);
+                $availableCategory = $db->getValue('product_category', 'id', null);
 
-                if(!in_array($category, $availableCategory)) {
+                foreach($category as $val) {
+                    if(!in_array($val, $availableCategory)) {
+                        $errorFieldArr[] = array(
+                            'id'  => "categoryError",
+                            'msg' => $translations['E01012'][$language]
+                        );
+                    }
+                }
+            }
+
+            if(!$productType) {
+                $errorFieldArr[] = array(
+                    'id'  => "productTypeError",
+                    'msg' => $translations['E01172'][$language]
+                );
+            }
+
+            if(!$description) {
+                $errorFieldArr[] = array(
+                    'id'  => "descriptionError",
+                    'msg' => $translations['E00637'][$language]
+                );
+            }
+
+            if(!$expired_day && $type != 'edit') {
+                $errorFieldArr[] = array(
+                    'id'  => "expiredDayError",
+                    'msg' => $translations['E01165'][$language]
+                );
+            }
+
+            if(!$cost) {
+                $errorFieldArr[] = array(
+                    'id'  => "costError",
+                    'msg' => $translations['E01166'][$language]
+                );
+            }
+
+            if(!$salePrice) {
+                $errorFieldArr[] = array(
+                    'id'  => "salePriceError",
+                    'msg' => $translations['E01167'][$language]
+                );
+            }
+
+            if(!$vendorId) {
+                $errorFieldArr[] = array(
+                    'id'  => "vendorNameError",
+                    'msg' => $translations['E01168'][$language]
+                );
+            } else {
+                $db->where('deleted', 0);
+                $availableVendor = $db->getValue('vendor', 'id', null);
+
+                if(!in_array($vendorId, $availableVendor)) {
                     $errorFieldArr[] = array(
-                        'id'  => "categoryError",
-                        'msg' => $translations['E01012'][$language]
+                        'id'  => "vendorNameError",
+                        'msg' => $translations['E01168'][$language]
                     );
                 }
             }
 
-            // Check Weight Field
-            if(!is_numeric($weight) || !$weight || $weight <= 0 ){
+            if(!$cookingTime) {
                 $errorFieldArr[] = array(
-                    'id'  => "weightError",
-                    'msg' => $translations['E01010'][$language] /* Weight must be greater than 0 */
+                    'id'  => "cookingTimeError",
+                    'msg' => $translations['E01169'][$language]
                 );
             }
+
+            if(!$cookingSuggest) {
+                $errorFieldArr[] = array(
+                    'id'  => "cookingSuggestionError",
+                    'msg' => $translations['E01170'][$language]
+                );
+            }
+
+            if(!$fullInstruc) {
+                if($fullInstruc[0]) {
+                    $errorFieldArr[] = array(
+                        'id'  => "fullInstructionError",
+                        'msg' => $translations['E01171'][$language]
+                    );
+
+                } else if ($fullInstruc[1]) {
+                    $errorFieldArr[] = array(
+                        'id'  => "fullInstruction2Error",
+                        'msg' => $translations['E01171'][$language]
+                    );
+                }
+            }
+
+            if(!$uploadImage) {
+                $errorFieldArr[] = array(
+                    'id'  => "imgError",
+                    'msg' => $translations['E01069'][$language]
+                );
+            }
+
+            // Check Weight Field
+            // if(!is_numeric($weight) || !$weight || $weight <= 0 ){
+            //     $errorFieldArr[] = array(
+            //         'id'  => "weightError",
+            //         'msg' => $translations['E01010'][$language] /* Weight must be greater than 0 */
+            //     );
+            // }
 
             // Check Status Field
             if(!$status || !in_array($status, $statusAry)) {
@@ -3625,7 +3809,7 @@
                 $params['descrLanguages'] = $packageDescrLanguages;
                 $package = self::verifyPackageDetail($params, "add");
                 if($package["status"] != "ok") return $package;
-            }   
+            }
 
             // Stock
             if($isStock == 1 && $type == "add"){
@@ -3709,6 +3893,8 @@
         }
 
         public function addProductInventory($params) {
+            include('config.php');
+
             $db                     = MysqliDb::getInstance();
             $language               = General::$currentLanguage;
             $translations           = General::$translations;
@@ -3716,34 +3902,52 @@
             $dateTime               = date("Y-m-d H:i:s");
 
 			$name           = trim($params['invProductName']);
+            $productType    = trim($params['productType']);
+            $description    = trim($params['description']);
+            $expired_day    = $params['expired_day'];
             $skuCode        = trim($params['skuCode']);
-            $status         = trim($params['status']);
+            $cost           = trim($params['cost']);
+            $salePrice      = trim($params['salePrice']);
+            $vendorId       = trim($params['vendorId']);
             $category       = $params['category'];
-            $weight         = trim($params['weight']);
-            $statusAry      = array('Active', 'Inactive');
-            
-            $isPackage      = trim($params['isPackage']) ? : 0;
-            $priceSetting   = $params["priceSetting"];
-            $pvPrice        = $params["pvPrice"];
-            $catalogue      = $params["catalogue"];
-            $bBasic         = $params["bBasic"];
-            $activeDate     = $params['activeDate'];
+            $cookingTime    = trim($params['cookingTime']);
+            $cookingSuggest = trim($params['cookingSuggest']);
+            $fullInstruc    = $params['fullInstruc'];
+            $videoList      = $params['videoList'];
             $uploadImage    = $params['uploadImage'];
-            $uploadVideo    = $params['uploadVideo'];
-            $packageQuantity= $params['packageQuantity'];
-            $productQuantity= $params['productQuantity'];
-            $packageCategory= $params["packageCategory"];
-            $packageNameLanguages  = $params['packageNameLanguages'];
-            $packageDescrLanguages = $params['packageDescrLanguages'];
+
+            // Variant
+            $isVariant      = trim($params["isVariant"]) ? 1 : 0;
+            $variant        = $params["variants"];
+
+            //Package
+            $packageList    = $params['packageProduct'];
+            // $status         = trim($params['status']);
+            // $weight         = trim($params['weight']);
+            // $statusAry      = array('Active', 'Inactive');
+
+            // $isPackage      = trim($params['isPackage']) ? : 0;
+            // $priceSetting   = $params["priceSetting"];
+            // $pvPrice        = $params["pvPrice"];
+            // $catalogue      = $params["catalogue"];
+            // $bBasic         = $params["bBasic"];
+            // $activeDate     = $params['activeDate'];
+            // $uploadImage    = $params['uploadImage'];
+            // $uploadVideo    = $params['uploadVideo'];
+            // $packageQuantity= $params['packageQuantity'];
+            // $productQuantity= $params['productQuantity'];
+            // $packageCategory= $params["packageCategory"];
+            // $packageNameLanguages  = $params['packageNameLanguages'];
+            // $packageDescrLanguages = $params['packageDescrLanguages'];
 
             // Stock
-            $isStock = trim($params["isStock"]) ? 1 : 0;
-            $stockDate = trim($params["stockDate"]);
-            $stockSupplierID = trim($params["stockSupplierID"]);
-            $stockSupplierDO = trim($params["stockSupplierDO"]); // Optional field
-            $stockQty = trim($params["stockQty"]);
-            $stockCost = trim($params["stockCost"]);
-            $stockFee = trim($params["stockFee"]);
+            // $isStock = trim($params["isStock"]) ? 1 : 0;
+            // $stockDate = trim($params["stockDate"]);
+            // $stockSupplierID = trim($params["stockSupplierID"]);
+            // $stockSupplierDO = trim($params["stockSupplierDO"]); // Optional field
+            // $stockQty = trim($params["stockQty"]);
+            // $stockCost = trim($params["stockCost"]);
+            // $stockFee = trim($params["stockFee"]);
 
             $userID = $db->userID;
             $site = $db->userType;
@@ -3759,83 +3963,206 @@
                 }
             }
 
+            $db->where('id', $vendorId);
+            $checkVendor = $db->getValue('vendor','id');
+
+            if(!$checkVendor) {
+                return array('status'=>'error','code'=>2,'statusMsg'=> "Invalid Vendor", 'data'=>'');
+            }
             $verify = self::verifyProductInventory($params, 'add');
             if($verify["status"] != "ok") return $verify;
 
-            $db->startTransaction();
+            // $db->startTransaction();
 
-            try{
+            // try{
                 // Insert inv_product
                 $insertInv = array(
-                    "code"          => $skuCode,
-                    "name"          => $name,
-                    "status"        => $status,
-                    "weight"        => $weight,
-                    "created_at"    => $dateTime,
+                    "name"               => $name,
+                    "product_type"       => $productType,
+                    "description"        => $description,
+                    "expired_day"        => $expired_day,
+                    "barcode"            => $skuCode,
+                    "cost"               => $cost,
+                    "sale_price"         => $salePrice,
+                    "vendor_id"          => $vendorId,
+                    "categ_id"           => json_encode($category),
+                    "cooking_time"       => $cookingTime,
+                    "cooking_suggestion" => $cookingSuggest,
+                    "full_instruction"   => $fullInstruc[0],
+                    "full_instruction2"  => $fullInstruc[1],
+                    "created_at"         => $dateTime
                 );
-
-                $productInvId = $db->insert('inv_product', $insertInv);
+                $productInvId = $db->insert('product', $insertInv);
 
                 if (!$productInvId) {
                     return array('status'=>'error','code'=>2,'statusMsg'=> $translations["E00932"][$language] /* Failed to add product. */,'data'=>'');
                 }
 
-                // Insert inv_product_detail
-                $insertInvDetails = array(
-                    "inv_product_id" => $productInvId,
-                    "name"  => "productCategory",
-                    "value" => $category,
-                    "type"  => "productCategory"
-                );
-                $insertInvDetailsRes = $db->insert('inv_product_detail', $insertInvDetails);
+                if(!empty($videoList)) {
+                    $db->where('deleted', 0);
+                    $db->where('reference_id', $productInvId);
+                    $proVideo = $db->get('product_media', null, 'url');
 
-                if($isPackage == 1){
-                    $params['createPackage'] = $isPackage;
-                    $params['productInvID']  = $productInvId;
-                    $params["name"]          = $name;
-                    $params['category']      = $packageCategory;
-                    $params['code']          = $skuCode;
-                    $params['nameLanguages'] = $packageNameLanguages;
-                    $params['descrLanguages']= $packageDescrLanguages;
-
-                    $package = self::addPackageDetail($params);
-                    if($package["status"] != "ok") {
-                        $db->rollback();
-                        $db->commit();
-                        return $package;
+                    if(empty($proVideo)) {
+                        $proVideo = array();
                     }
-                    $dataOut["packageData"] = $package["data"];
-                }   
 
-                // Stock
-                if($isStock == 1){
-                    unset($stockParams);
-                    $stockParams = array(
-                        "stockInDate" => $stockDate,
-                        "invProductID" => $productInvId,
-                        "supplierID" => $stockSupplierID,
-                        "supplierDO" => $stockSupplierDO,
-                        "quantity" => $stockQty,
-                        "cost" => $stockCost,
-                        "feeNCharges" => $stockFee,
-                        "type" => "in",
-                    );
-                    $verifyStock = Self::adjustInvProduct($stockParams);
-                    if($verifyStock["status"] != "ok"){
-                        $db->rollback();
-                        $db->commit();
-                        return $verifyStock;  
+                    foreach($videoList as $key => $val) {
+                        if($val != '') {
+                            if(!in_array($val, $proVideo)) {
+                                $insertProMedia[] = array(
+                                    "type"         => 'video',
+                                    "url"          => $val, 
+                                    "reference_id" => $productInvId,
+                                    "created_at"   => $dateTime
+                                );
+                            }
+                        }
+                    }
+
+                    if($insertProMedia) {
+                        $proMedia = $db->insertMulti('product_media', $insertProMedia);
                     }
                 }
-            }catch(Exception $e){
-                $db->rollback();
-                $db->commit();
-                return array("status" => "error", "code" => 2, "statusMsg" => "System Error", "data" => "");
-            }
 
-            $db->commit();
+                if(!empty($uploadImage)) {
+                    foreach($uploadImage as $key => $val) {
+                        $imgSrc = json_decode($val['imgData'], true);
+                        $uploadParams['imgSrc'] = $imgSrc;
+                        $uploadRes = aws::awsUploadImage($uploadParams);
 
-            $activityData = array_merge(array('admin' => $checkAdmin), $insertInv, $insertInvDetails, $insertProductNameTransList, $insertProductDescrTranList);
+                        if($uploadRes['status'] == 'ok') {
+                            $imageUrl = $uploadRes['imageUrl'];
+
+                            // insert product_media
+                            $insertImage = array(
+                                "type" => "Image",
+                                "url" => $imageUrl,
+                                "reference_id" => $productInvId,
+                            );
+                            $insertInvImage = $db->insert('product_media', $insertImage);
+
+                            if(!$insertInvImage) {
+                                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00007"][$language], 'data' => ''); //Failed to upload profile image.
+                            }
+                        } else {
+                            return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00007"][$language], 'data' => ''); //Failed to upload profile image.
+                        }
+                    }
+                }
+
+                if($isVariant == 1) {
+                    foreach($variant[0] as $attr1) {
+                        if(!empty($variant[1])) {
+                            foreach($variant[1] as $val) {
+                                $variantList = array($attr1, $val);
+    
+                                $insertProVar[] = array(
+                                    "product_id"                 => $productInvId,
+                                    "product_attribute_value_id" => json_encode($variantList),
+                                    "deleted"                    => 0,
+                                    "created_at"                 => $dateTime
+                                );
+                            }
+                        } else {
+                            $variantList = array($attr1);
+
+                            $insertProVar[] = array(
+                                "product_id"                 => $productInvId,
+                                "product_attribute_value_id" => json_encode($variantList),
+                                "deleted"                    => 0,
+                                "created_at"                 => $dateTime
+                            );
+                        }
+                    }
+                    $proVar = $db->insertMulti('product_template', $insertProVar);
+                } else {
+                    $db->where('deleted', 0);
+                    $db->where('product_id', $productInvId);
+                    $db->where('product_attribute_value_id', '');
+                    $checkEmptyTemplate = $db->getOne('product_template', 'id');
+
+                    if(!$checkEmptyTemplate) {
+                        $insertProVar = array(
+                            "product_id"                 => $productInvId,
+                            "product_attribute_value_id" => '',
+                            "deleted"                    => 0,
+                            "created_at"                 => $dateTime
+                        );
+                        $proVar = $db->insert('product_template', $insertProVar);
+                    }
+                }
+
+                if(!empty($packageList)) {
+                    foreach($packageList as $val) {
+                        $insertPackageItemData[] = array(
+                            'package_id' => $productInvId,
+                            'product_id' => $val,
+                            'deleted'    => 0,
+                            'created_at' => $dateTime
+                        );
+                    }
+
+                    if($insertPackageItemData) {
+                        $insertPackageItem = $db->insertMulti('package_item', $insertPackageItemData);
+                    }
+                }
+                // Insert inv_product_detail
+                // $insertInvDetails = array(
+                //     "inv_product_id" => $productInvId,
+                //     "name"  => "productCategory",
+                //     "value" => $category,
+                //     "type"  => "productCategory"
+                // );
+                // $insertInvDetailsRes = $db->insert('inv_product_detail', $insertInvDetails);
+
+                // if($isPackage == 1){
+                //     $params['createPackage'] = $isPackage;
+                //     $params['productInvID']  = $productInvId;
+                //     $params["name"]          = $name;
+                //     $params['category']      = $packageCategory;
+                //     $params['code']          = $skuCode;
+                //     $params['nameLanguages'] = $packageNameLanguages;
+                //     $params['descrLanguages']= $packageDescrLanguages;
+
+                //     $package = self::addPackageDetail($params);
+                //     if($package["status"] != "ok") {
+                //         $db->rollback();
+                //         $db->commit();
+                //         return $package;
+                //     }
+                //     $dataOut["packageData"] = $package["data"];
+                // }
+
+                // Stock
+            //     if($isStock == 1){
+            //         unset($stockParams);
+            //         $stockParams = array(
+            //             "stockInDate" => $stockDate,
+            //             "invProductID" => $productInvId,
+            //             "supplierID" => $stockSupplierID,
+            //             "supplierDO" => $stockSupplierDO,
+            //             "quantity" => $stockQty,
+            //             "cost" => $stockCost,
+            //             "feeNCharges" => $stockFee,
+            //             "type" => "in",
+            //         );
+            //         $verifyStock = Self::adjustInvProduct($stockParams);
+            //         if($verifyStock["status"] != "ok"){
+            //             $db->rollback();
+            //             $db->commit();
+            //             return $verifyStock;
+            //         }
+            //     }
+            // }catch(Exception $e){
+            //     $db->rollback();
+            //     $db->commit();
+            //     return array("status" => "error", "code" => 2, "statusMsg" => "System Error", "data" => "");
+            // }
+
+            // $db->commit();
+
+            // $activityData = array_merge(array('admin' => $checkAdmin), $insertInv, $insertInvDetails, $insertProductNameTransList, $insertProductDescrTranList);
 
             // Insert Activity Log
             $activityRes = Activity::insertActivity('Add Product', 'T00032', 'L00052', $activityData, $userID, $userID, $site);
@@ -3844,7 +4171,7 @@
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00144"][$language] /* Failed to insert activity. */, 'data' => "");
             }
 
-            return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00102"][$language] /* Successfully Added */ , 'data'=> $dataOut);
+            return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00102"][$language] /* Successfully Added */ , 'data'=> '');
         }
 
         public function editProductInventory($params) {
@@ -3859,6 +4186,28 @@
             $category       = $params['category'];
             $weight         = trim($params['weight']);
             $statusAry      = array('Active', 'Inactive');
+
+            $productType    = trim($params['productType']);
+            $description    = trim($params['description']);
+            $expired_day    = trim($params['expired_day']);
+            $skuCode        = trim($params['code']);
+            $cost           = trim($params['cost']);
+            $salePrice      = trim($params['salePrice']);
+            $vendorId       = trim($params['vendorId']);
+            $cookingTime    = trim($params['cookingTime']);
+            $cookingSuggest = trim($params['cookingSuggest']);
+            $fullInstruc    = $params['fullInstruc'];
+            $videoList      = $params['videoList'];
+            $videoId        = $params['videoId'];
+            $uploadImage    = $params['uploadImage'];
+            $imageId        = $params['imageId'];
+
+            // Variant
+            $isVariant      = trim($params["isVariant"]) ? 1 : 0;
+            $variant        = $params["variants"];
+
+            //Package
+            $packageProduct = $params['packageProduct'];
 
             $imageGroupUniqueChar = self::generateUniqueChar();
 
@@ -3876,6 +4225,20 @@
                 }
             }
 
+            $db->where('id', $vendorId);
+            $checkVendor = $db->getValue('vendor','id');
+
+            if(!$checkVendor) {
+                return array('status'=>'error','code'=>2,'statusMsg'=> "Invalid Vendor", 'data'=>'');
+            }
+
+            $db->where('id', $category);
+            $checkCategory = $db->getValue('product_category','id');
+
+            if(!$checkCategory) {
+                return array('status'=>'error','code'=>2,'statusMsg'=> "Invalid Category", 'data'=>'');
+            }
+
             $verify = self::verifyProductInventory($params, "edit");
             if($verify["status"] != "ok") return $verify;
 
@@ -3884,38 +4247,286 @@
             }
 
             $db->where("id", $productInvId);
-            $productInvRecord = $db->getOne("inv_product", "id");
+            $productInvRecord = $db->getOne("product", "id");
 
-            $db->where("inv_product_id", $productInvId);
-            $db->where("name", "productCategory");
-            $validCategory = $db->getValue("inv_product_detail", "value");
-
-            if(!$productInvRecord) {
-                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E00933"][$language] /* Product not found */, 'data' => '');
+            if($status == "Inactive"){
+                $delete = '1';
+            } else {
+                $delete = '0';
             }
 
-            // Edit inv_product
+            // Edit product
             $editInv = array(
-                "name"          => $name,
-                "status"        => $status,
-                "weight"        => $weight,
-                "updater_id"    => $userID,
-                "updated_at"    => $dateTime,
+                "name"               => $name,
+                "product_type"       => $productType,
+                "description"        => $description,
+                "expired_day"        => $expired_day,
+                "barcode"            => $skuCode,
+                "cost"               => $cost,
+                "sale_price"         => $salePrice,
+                "vendor_id"          => $vendorId,
+                "categ_id"           => json_encode($category),
+                "cooking_time"       => $cookingTime,
+                "cooking_suggestion" => $cookingSuggest,
+                "full_instruction"   => $fullInstruc[0],
+                "full_instruction2"  => $fullInstruc[1],
+                "deleted"            => $delete,
+                "updated_at"         => $dateTime,
             );
+
             $db->where("id", $productInvId);
-            $editInvRes = $db->update("inv_product", $editInv);          
+            $editInvRes = $db->update("product", $editInv);
 
             if (!$editInvRes) {
                 return array('status' => 'error', 'code' => 2,'statusMsg' => $translations["E00934"][$language] /* Failed to update product. */, 'data' => '');
-            }            
+            }
 
-            // Update Product Category
-            $editInvDetail = array(
-                "value" => $category
-            );
-            $db->where("inv_product_id", $productInvId);
-            $db->where("type", "productCategory");
-            $editInvDetailRes = $db->update("inv_product_detail", $editInvDetail);
+            if(!empty($videoList)) {
+                $db->where('deleted', 0);
+                $db->where('reference_id', $productInvId);
+                $proVideo = $db->get('product_media', null, 'url');
+
+                if(empty($proVideo)) {
+                    $proVideo = array();
+                }
+
+                foreach($videoList as $key => $val) {
+                    if($videoId[$key] != '') {
+                        if($val != '') {
+                            $updateVideo = array(
+                                "url"          => $val, 
+                                "updated_at"   => $dateTime
+                            );
+                        } else {
+                            $updateVideo = array(
+                                "url"          => $val,
+                                "reference_id" => 0,
+                                "updated_at"   => $dateTime
+                            );
+                        }
+                        $db->where("id", $videoId[$key]);
+                        $editVideo = $db->update("product_media", $updateVideo);
+                    } else {
+                        if(!in_array($val, $proVideo)) {
+                            if($val != '') {
+                                $insertProMedia[] = array(
+                                    "type"         => 'video',
+                                    "url"          => $val, 
+                                    "reference_id" => $productInvId,
+                                    "created_at"   => $dateTime
+                                );
+                            }
+                        }
+                    }
+                }
+
+                if($insertProMedia) {
+                    $proMedia = $db->insertMulti('product_media', $insertProMedia);
+                }
+            }
+
+            if(!empty($uploadImage)) {
+                foreach($uploadImage as $key => $val) {
+                    if($val['imgID'] == '') {
+                        $imgSrc = json_decode($val['imgData'], true);
+                        $uploadParams['imgSrc'] = $imgSrc;
+                        $uploadRes = aws::awsUploadImage($uploadParams);
+
+                        if($uploadRes['status'] == 'ok') {
+                            $imageUrl = $uploadRes['imageUrl'];
+                            // insert product_media
+                            $insertImage[] = array(
+                                "type" => "Image",
+                                "url" => $imageUrl,
+                                "reference_id" => $productInvId,
+                            );
+                        } else {
+                            return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00007"][$language], 'data' => ''); //Failed to upload profile image.
+                        }
+                    } else {
+                        $imgSrc = json_decode($val['imgData'], true);
+
+                        if (strpos($imgSrc, "data:") !== false) {
+                            $db->where('id', $val['imgID']);
+                            $db->where('type', 'Image');
+                            $editImage = $db->update('product_media', array('deleted' => 1));
+
+                            $uploadParams['imgSrc'] = $imgSrc;
+                            $uploadRes = aws::awsUploadImage($uploadParams);
+
+                            if($uploadRes['status'] == 'ok') {
+                                $imageUrl = $uploadRes['imageUrl'];
+                                // insert product_media
+                                $insertImage[] = array(
+                                    "type" => "Image",
+                                    "url" => $imageUrl,
+                                    "reference_id" => $productInvId,
+                                );
+                            } else {
+                                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00007"][$language], 'data' => ''); //Failed to upload profile image.
+                            }
+                        }
+                    }
+                }
+
+                if($imageId) {
+                    $db->where('id', $imageId, 'IN');
+                    $db->where('type', 'Image');
+                    $db->where('reference_id', $productInvId);
+                    $editImageList = $db->update('product_media', array('deleted' => 1));
+                }
+
+                if(!empty($insertImage)) {
+                    $insertInvImage = $db->insertMulti('product_media', $insertImage);
+
+                    if(!$insertInvImage) {
+                        return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00007"][$language], 'data' => ''); //Failed to upload profile image.
+                    }
+                }
+
+            }
+
+            if($isVariant == 1) {
+                if(!empty($variant)) {
+                    foreach($variant[0] as $attr1) {
+                        if(!empty($variant[1])) {
+                            foreach($variant[1] as $val) {
+                                $variantList = array($attr1, $val);
+
+                                $db->where('product_id', $productInvId);
+                                $db->where('product_attribute_value_id', '%'.json_encode($variantList).'%', 'LIKE');
+                                $getVariantId = $db->getOne('product_template', 'id, deleted');
+
+                                if(empty($getVariantId)) {
+                                    $insertProVar[] = array(
+                                        "product_id"                 => $productInvId,
+                                        "product_attribute_value_id" => json_encode($variantList),
+                                        "deleted"                    => 0,
+                                        "created_at"                 => $dateTime
+                                    );
+                                } else {
+                                    if($getVariantId['deleted'] == 0) {
+                                        $varList[] = $getVariantId['id'];
+                                    } else {
+                                        $varList2[] = $getVariantId['id'];
+                                    }
+                                }
+                            }
+                        } else {
+                            $variantList = array($attr1);
+
+                            $db->where('product_id', $productInvId);
+                            $db->where('product_attribute_value_id', '%'.json_encode($variantList).'%', 'LIKE');
+                            $getVariantId = $db->getOne('product_template', 'id, deleted');
+
+                            if(empty($getVariantId)) {
+                                $insertProVar[] = array(
+                                    "product_id"                 => $productInvId,
+                                    "product_attribute_value_id" => json_encode($variantList),
+                                    "deleted"                    => 0,
+                                    "created_at"                 => $dateTime
+                                );
+                            } else {
+                                if($getVariantId['deleted'] == 1) {
+                                    $varList[] = $getVariantId['id'];
+                                } else {
+                                    $varList2[] = $getVariantId['id'];
+                                }
+                            }
+                        }
+                    }
+
+                    $updateProVarData = array(
+                        "deleted"    => 1,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('product_attribute_value_id', '');
+                    $db->where('product_id', $productInvId);
+                    $updateProVar = $db->update('product_template', $updateProVarData);
+                } else {
+                    $updateProVarData = array(
+                        "deleted"    => 0,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('product_attribute_value_id', '');
+                    $db->where('product_id', $productInvId);
+                    $updateProVar = $db->update('product_template', $updateProVarData);
+
+                    $updateEmptyVarData = array(
+                        "deleted"    => 1,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('product_attribute_value_id', '', '!=');
+                    $db->where('product_id', $productInvId);
+                    $updateEmptyVar = $db->update('product_template', $updateEmptyVarData);
+                }
+
+                if(!empty($varList)) {
+                    $updateProVarData = array(
+                        "deleted"    => 1,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('id', $varList, 'NOT IN');
+                    $db->where('product_attribute_value_id', '', '!=');
+                    $db->where('product_id', $productInvId);
+                    $updateProVar = $db->update('product_template', $updateProVarData);
+                }
+
+                if(!empty($varList2)) {
+                    $updateProVarData = array(
+                        "deleted"    => 0,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('id', $varList2, 'IN');
+                    $db->where('product_attribute_value_id', '', '!=');
+                    $db->where('product_id', $productInvId);
+                    $updateProVar = $db->update('product_template', $updateProVarData);
+                }
+
+                if($insertProVar) {
+                    $proVar = $db->insertMulti('product_template', $insertProVar);
+                }
+            }
+
+            if($productType == 'Package') {
+                if(!empty($packageProduct)) {
+                    $updatePackageData = array(
+                        "deleted"    => 1,
+                        "updated_at" => $dateTime
+                    );
+                    $db->where('product_id', $packageProduct, 'NOT IN');
+                    $db->where('deleted', 0);
+                    $db->where('package_id', $productInvId);
+                    $updatePackage = $db->update('package_item', $updatePackageData);
+
+                    foreach($packageProduct as $val) {
+                        $db->where('product_id', $val);
+                        $checkPackage = $db->getOne('package_item', 'id');
+
+                        if(!$checkPackage) {
+                            $insertPackageItemData[] = array(
+                                'package_id' => $productInvId,
+                                'product_id' => $val,
+                                'deleted'    => 0,
+                                'created_at' => $dateTime
+                            );
+                        } else {
+                            $updatePackageData = array(
+                                "deleted"    => 0,
+                                "updated_at" => $dateTime
+                            );
+                            $db->where('product_id', $val);
+                            $db->where('deleted', 1);
+                            $db->where('package_id', $productInvId);
+                            $updatePackage = $db->update('package_item', $updatePackageData);
+                        }
+                    }
+
+                    if($insertPackageItemData) {
+                        $insertPackageItem = $db->insertMulti('package_item', $insertPackageItemData);
+                    }
+                }
+            }
 
             $activityData = array_merge(array('admin' => $checkAdmin), $editInv, $updateTranslationList, $updateDescrTranslationList);
 
@@ -3925,8 +4536,8 @@
             if(!$activityRes) {
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00144"][$language] /* Failed to insert activity. */, 'data' => "");
             }
-            
-            return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00370"][$language] /* Successfully Updated */ , 'data'=>"");
+
+            return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00370"][$language] /* Successfully Updated */ , 'data'=>$updatePackage);
         }
 
         // -------- Stock Adjustment --------//
@@ -3944,7 +4555,7 @@
 
             $userID = $db->userID;
             $site = $db->userType;
-            
+
             if(!$packageID){
                 return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00841"][$language] /* Please Select Product */, 'data' => "");
             }else{
@@ -4259,7 +4870,7 @@
 
             $userID = $db->userID;
             $site = $db->userType;
-            
+
             if(!$stockID){
                 return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00841"][$language] /* Please Select Product */, 'data' => "");
             }else{
@@ -4330,7 +4941,7 @@
                 );
             } else if($type == 'out') {
                 $amountOut = $quantity;
-                
+
                 $updateStock = array(
                         'stock_out' => $db->inc($quantity),
                 );
@@ -4341,9 +4952,9 @@
             $db->update('inv_stock', $updateStock);
 
             $invStockID = $copyDB->getValue("inv_stock", "id");
-            
+
             $batchID    = $db->getNewID();
-            
+
             // insert inv product transactions
             $insertProductTransaction = array(
                     "inv_product_id"    => $invProductID,
@@ -4690,7 +5301,7 @@
             if($site == "Member"){
                 $creatorType = "System";
             }
-            
+
             if(!$invProduct || !in_array($subject, $acceptedSubject)){
                 return false;
             }
@@ -4731,7 +5342,7 @@
                     "creator_type"      => $site,
                     "remark"            => $remark,
                 );
-                $db->insert("inv_product_transaction",$insertData); 
+                $db->insert("inv_product_transaction",$insertData);
             }
 
             return true;
@@ -4751,14 +5362,14 @@
             if($site == "Member"){
                 $creatorType = "System";
             }
-            
+
             if(!$invProduct || !in_array($subject, $acceptedSubject)){
                 return false;
             }
 
             // Special handle for cancel DO
             if(in_array($type,array("cancelDelivery"))){
-                foreach ($invProduct as $packageID => $packageDetail) {   
+                foreach ($invProduct as $packageID => $packageDetail) {
                     foreach ($packageDetail as $invProductID => $stockDetail) {
                         foreach($stockDetail as $stockID => $invProductQuantity){
                             $invStockRes[$packageID][$invProductID]["quantity"] = $invProductQuantity;
@@ -4771,7 +5382,7 @@
                     }
                 }
             }else{
-                foreach ($invProduct as $packageID => $packageDetail) {   
+                foreach ($invProduct as $packageID => $packageDetail) {
                     foreach ($packageDetail as $invProductID => $invProductQuantity) {
                         $invStockRes[$packageID][$invProductID]['quantity'] = $invProductQuantity;
 
@@ -4795,7 +5406,7 @@
                     }else{
                         $quantity = $invStockRow['quantity'];
                     }
-                    
+
                     foreach ($invStockRow['invStock'] as $invStockID => $invStock) {
                         if(in_array($subject, $incProductSubject)){
                             $amountIn = $quantity;
@@ -4842,7 +5453,7 @@
                             "creator_type"      => $site,
                             "remark"            => $remark,
                         );
-                        $stockTransaction = $db->insert("inv_stock_transaction",$insertData); 
+                        $stockTransaction = $db->insert("inv_stock_transaction",$insertData);
 
                         // Update inv product total balance
                         switch ($type) {
@@ -4854,7 +5465,7 @@
                                     );
                                 }
                                 break;
-                            
+
                             case 'pickup':
                                 if(in_array($subject, $decProductSubject)){
                                     $updateData = array(
@@ -4872,7 +5483,7 @@
                                     );
                                 }
                                 break;
-                            
+
                             case 'cancelPickup':
                                 if(in_array($subject, $incProductSubject)){
                                     $updateData = array(
@@ -4920,7 +5531,7 @@
             if(!$productID) {
                 return array('status' => 'ok', 'code' => 0, 'statusMsg' => $translations['B00101'][$language] /* No Results Found */, 'data' => '');
             }
-                
+
             $data['productID'] = $productID;
             return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
@@ -4935,7 +5546,7 @@
             $sortByData = $params['sortByData'];
             $pageNumber = $params['pageNumber'] ? $params['pageNumber'] : 1;
             $limit = General::getLimit($pageNumber, 30);
-            
+
             $userID = $db->userID;
             $site = $db->userType;
 
@@ -4955,7 +5566,7 @@
                             break;
 
                         case 'category':
-                            
+
                             $subProductIDAry = $db->subQuery();
                             $subProductIDAry->where('value', '%'.$dataValue.'%', 'LIKE');
                             $subProductIDAry->where('name', 'packageCategory');
@@ -5068,7 +5679,7 @@
             $data['totalRecord'] = $totalRecord;
             $data['totalPage']    = ceil($totalRecord/$limit[1]);
             $data['numRecord']    = $limit[1];
- 
+
             return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
 
@@ -5077,7 +5688,7 @@
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
             $dateTime       = date("Y-m-d H:i:s");
-            
+
             $clientID = $db->userID;
             $site = $db->userType;
 
@@ -5155,7 +5766,7 @@
 
                 if($pSetRow['type'] == "packageCategory"){
                     $packageCategory[$pSetRow['name']][] = $pSetRow['value'];
-                }                
+                }
             }
 
             $db->where('module_id', $productDetailID);
@@ -5220,12 +5831,12 @@
             $db = MysqliDb::getInstance();
             $language = General::$currentLanguage;
             $translations = General::$translations;
-            
+
             $isDefault          = trim($params["isDefault"]); // 1 or 0, pass into address table, column type
             $addressType        = trim($params["addressType"]); //  delivery or billing
             $fullname           = trim($params["fullname"]);
             $dialingArea        = trim($params['dialingArea']);
-            $phone              = trim($params['phone']); 
+            $phone              = trim($params['phone']);
             $email              = trim($params['email']);
             $address            = trim($params["address"]);
             $district           = trim($params['districtID']);
@@ -5271,7 +5882,7 @@
                         'msg' => $translations["E00858"][$language] /* Only number is allowed */
                     );
                 }
-            }     
+            }
 
             if(empty($email)) {
                 $errorFieldArr[] = array(
@@ -5284,7 +5895,7 @@
                         $errorFieldArr[] = array(
                             'id' => 'emailError',
                             'msg' => $translations["E00319"][$language] /* Invalid email format. */
-                            );                        
+                            );
                     }
                 }
             }
@@ -5311,98 +5922,100 @@
             // }
 
              // Validate district
-            if(!is_numeric($district) || empty($district)) {
-                $errorFieldArr[] = array(
-                    'id'  => "districtErrror",
-                    'msg' => $translations['E01113'][$language]
-                );
-            }else {
-                $db->where("id",$district);
-                $db->where("country_id",$countryID);
-                $db->where("disabled",0);
-                $districtRes = $db->getOne("county","name,translation_code");
-                if(!$districtRes){
-                    $errorFieldArr[] = array(
-                        "id"  => "districtErrror",
-                        "msg" => $translations["E01113"][$language]   
-                    );
-                }
-            }
+            // if(!is_numeric($district) || empty($district)) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "districtErrror",
+            //         'msg' => $translations['E01113'][$language]
+            //     );
+            // }else {
+            //     $db->where("id",$district);
+            //     $db->where("country_id",$countryID);
+            //     $db->where("disabled",0);
+            //     $districtRes = $db->getOne("county","name,translation_code");
+            //     if(!$districtRes){
+            //         $errorFieldArr[] = array(
+            //             "id"  => "districtErrror",
+            //             "msg" => $translations["E01113"][$language]
+            //         );
+            //     }
+            // }
 
             // Validate sub district
-            if(!is_numeric($subDistrict) || empty($subDistrict)) {
-                $errorFieldArr[] = array(
-                    'id'  => "subDistrictError",
-                    'msg' => $translations['E01028'][$language]
-                    );
-            }else{
-                $db->where("id",$subDistrict);
-                $db->where("country_id",$countryID);
-                $db->where("disabled",0);
-                $subDistrictRes = $db->getOne("sub_county","name,translation_code");
-                if(!$subDistrictRes){
-                    $errorFieldArr[] = array(
-                        "id"  => "subDistrictError",
-                        "msg" => $translations["E01028"][$language]
-                    );
-                }
-            }
+            // if(!is_numeric($subDistrict) || empty($subDistrict)) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "subDistrictError",
+            //         'msg' => $translations['E01028'][$language]
+            //         );
+            // }else{
+            //     $db->where("id",$subDistrict);
+            //     $db->where("country_id",$countryID);
+            //     $db->where("disabled",0);
+            //     $subDistrictRes = $db->getOne("sub_county","name,translation_code");
+            //     if(!$subDistrictRes){
+            //         $errorFieldArr[] = array(
+            //             "id"  => "subDistrictError",
+            //             "msg" => $translations["E01028"][$language]
+            //         );
+            //     }
+            // }
 
             // Validate postalCode
-            if(!is_numeric($postalCode) || empty($postalCode)) {
-                $errorFieldArr[] = array(
-                    'id'  => "postalCodeError",
-                    'msg' => $translations['E01030'][$language]
-                );
-            }else{
-                $db->where("id",$postalCode);
-                $db->where("country_id",$countryID);
-                $db->where("disabled",0);
-                $postalCodeRes = $db->getOne("zip_code","name,translation_code");
-                if(!$postalCodeRes){
-                    $errorFieldArr[] = array(
-                        "id"  => "postalCodeError",
-                        "msg" => $translations["E01029"][$language]
-                    );
-                }
-            }
+            // if(!is_numeric($postalCode) || empty($postalCode)) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "postalCodeError",
+            //         'msg' => $translations['E01030'][$language]
+            //     );
+            // }else{
+            //     $db->where("id",$postalCode);
+            //     $db->where("country_id",$countryID);
+            //     $db->where("disabled",0);
+            //     $postalCodeRes = $db->getOne("zip_code","name,translation_code");
+            //     if(!$postalCodeRes){
+            //         $errorFieldArr[] = array(
+            //             "id"  => "postalCodeError",
+            //             "msg" => $translations["E01029"][$language]
+            //         );
+            //     }
+            // }
 
             // Validate city
-            if(!is_numeric($city) || empty($city)) {
-                $errorFieldArr[] = array(
-                    'id'  => "cityError",
-                    'msg' => $translations['E01029'][$language]
-                );
-            }else{
-                $db->where("id",$city);
-                $db->where("country_id",$countryID);
-                $db->where("disabled",0);
-                $cityRes = $db->getOne("city","name,translation_code");
-                if(!$cityRes){
-                    $errorFieldArr[] = array(
-                        "id"  => "cityError",
-                        "msg" => $translations["E01029"][$language]
-                    );
-                }
-            }
+            // if(!is_numeric($city) || empty($city)) {
+            // if($city != '' || $city != null) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "cityError",
+            //         'msg' => $translations['E01029'][$language]
+            //     );
+            // }else{
+            //     $db->where("id",$city);
+            //     $db->where("country_id",$countryID);
+            //     $db->where("disabled",0);
+            //     $cityRes = $db->getOne("city","name,translation_code");
+            //     if(!$cityRes){
+            //         $errorFieldArr[] = array(
+            //             "id"  => "cityError",
+            //             "msg" => $translations["E01029"][$language]
+            //         );
+            //     }
+            // }
 
-            if(!is_numeric($state) || empty($state)) {
-                $errorFieldArr[] = array(
-                    'id'  => "stateError",
-                    'msg' => $translations['E00667'][$language]
-                  );
-            }else{
-                $db->where("id",$state);
-                $db->where("country_id",$countryID);
-                $db->where("disabled",0);
-                $stateRes = $db->getOne("state","name,translation_code");
-                if(!$stateRes){
-                    $errorFieldArr[] = array(
-                        "id"  => "stateError",
-                        "msg" => $translations["E01029"][$language]
-                    );
-                }
-            }
+            // if(!is_numeric($state) || empty($state)) {
+            // if($state != '' || $state != null) {
+            //     $errorFieldArr[] = array(
+            //         'id'  => "stateError",
+            //         'msg' => $translations['E00667'][$language]
+            //       );
+            // }else{
+            //     $db->where("id",$state);
+            //     $db->where("country_id",$countryID);
+            //     $db->where("disabled",0);
+            //     $stateRes = $db->getOne("state","name,translation_code");
+            //     if(!$stateRes){
+            //         $errorFieldArr[] = array(
+            //             "id"  => "stateError",
+            //             "msg" => $translations["E01029"][$language]
+            //         );
+            //     }
+            // }
 
             if(!is_numeric($countryID) || empty($countryID)) {
                 $errorFieldArr[] = array(
@@ -5436,83 +6049,213 @@
             $language = General::$currentLanguage;
             $translations = General::$translations;
             $todayDate = date("Y-m-d H:i:s");
-
+            $db2 = $db->copy();
             $clientID = $db->userID;
             $site = $db->userType;
-
+        
             if($site == 'Admin') $clientID = trim($params["clientID"]);
-
+        
             $isDefault          = trim($params["isDefault"]); // 1 or 0, pass into address table, column type
             $addressType        = trim($params["addressType"]); //  delivery or billing
-            $fullname           = trim($params["fullname"]);
-            $dialingArea        = trim($params['dialingArea']);
-            $phone              = trim($params['phone']); 
-            $email              = trim($params['email']);
+            $fullname           = trim($params["fullName"]);
+            // $dialingArea        = trim($params['dialingArea']);
+            // $phone              = trim($params['phone']);
+            // $email              = trim($params['email']);
             $address            = trim($params["address"]);
-            $district           = trim($params['districtID']);
-            $subDistrict        = trim($params['subDistrictID']);
+            $address2           = trim($params['address2']);
+            // $subDistrict        = trim($params['subDistrictID']);
             $city               = trim($params['cityID']);
             $postalCode         = trim($params['postalCodeID']);
             $state              = trim($params['stateID']);
-            $countryID          = trim($params["countryID"]);
+            // $countryID          = trim($params["countryID"]);
+            $addressId          = trim($params["id"]);
+            $countryID          = '129';
             $disabled           = trim($params["disabled"]); // 1 or 0
-            
+            if($clientID == null || $clientID == '')
+            {
+                $clientID              = trim($params['clientID']);
+            }
+        
             if($type == "edit" || $type == "delete"){
-                $id = $params["id"];
-                $db->where("id",$id);
-                $id = $db->getValue("address","id");
-                if(!$id) return array('status' => "error", 'code' => 2, 'statusMsg' => "Please add Address", 'data' => "");
+                $id = $params["clientID"];
+                $db->where("client_id",$id);
+                $db->where('address_type', $addressType);
+                $db->where('id', $addressId);
+                $id = $db->get("address",null,"id");
+                foreach($id as $row)
+                {
+                    $addressId['id'] = $row['id'];
+        
+                    $addressIdList[] = $addressId['id'];
+                }
+                if(!$addressIdList) return array('status' => "error", 'code' => 2, 'statusMsg' => "Please add Address", 'data' => "");
             }
-
+            // return array("code" => 110, "status" => "ok", "addressId" => $addressId, "addressIdList" => $addressIdList);
             if($type != "delete"){
-                $errorFieldArr = self::verifyAddress($params);
+                // $errorFieldArr = self::verifyAddress($params);
+                if(empty($fullname)) {
+                    $errorFieldArr[] = array(
+                        'id'  => "fullNameError",
+                        'msg' => $translations['E00296'][$language]/* Please insert full name */
+                    );
+                }
+                if(empty($address)) {
+                    $errorFieldArr[] = array(
+                        'id'  => "addressError",
+                        'msg' => $translations['E00943'][$language]
+                    );
+                }
+                if(empty($city)) {
+                    $errorFieldArr[] = array(
+                        'id'  => "cityError",
+                        'msg' => $translations['E01029'][$language] /* Please insert City */
+                    );
+                }
+                if(empty($postalCode)) {
+                    $errorFieldArr[] = array(
+                        'id'  => "postalError",
+                        'msg' => $translations['E00946'][$language]/* Please insert Post Code */
+                    );
+                }
+                // $db->where('name',$state);
+                // $state_id = $db->getOne('state','id');
+                // if($state_id == '' || $state_id == null)
+                // {
+                //     // $state_id = 0;
+                //     return array('status' => "error", 'code' => 1, 'statusMsg' => 'Cannot find the State', 'data' => $data);
+                // }
+                // else
+                // {
+                    // $state_id = intval($state_id);
+                // }
             }
-
             if($errorFieldArr){
                  $data['field'] = $errorFieldArr;
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
             }
-
-            $dialingArea = str_replace("+", "", $dialingArea);
-
+        
+            // $dialingArea = str_replace("+", "", $dialingArea);
+            if ($address2 != '' || $address2 != null)
+            {
+                $address = $address.', '.$address2;
+            }
+        
+            // get client details
+            $db->where('id',$clientID);
+            $clientDetail = $db->getOne('client','member_id, name, email, dial_code, phone');
+            // foreach($clientDetail as $detail)
+            // {
+            // $fullName = $clientDetail['name'];
+            $email = $clientDetail['email'];
+            $clientPhone = $clientDetail['phone'];
+            // }
+        
+            // check got existing address or not
+            $db->where('client_id',$clientID);
+            $db->where('name',$fullname);
+            $existAddress = $db->get('address');            
+            // if($type == "add")
+            // {
+            //     if($existAddress)
+            //     {
+            //         return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00740"][$language] /* Address Already Used. */, 'data' => $data);
+            //     }
+            // }
+        
             $data = array(
                 "type" => $isDefault,
                 "client_id" => $clientID,
                 "name" => $fullname,
                 "email" => $email,
-                "phone" => $phone,
+                "phone" => $clientPhone,
                 "address" => $address,
                 "state_id" => $state,
-                "district_id" => $district,
-                "sub_district_id" => $subDistrict,
-                "city_id" => $city,
-                "post_code_id" => $postalCode,
+                // "district_id" => $district,
+                // "sub_district_id" => $subDistrict,
+                "city" => $city,
+                "post_code" => $postalCode,
                 "country_id" => $countryID,
                 "address_type" => $addressType,
                 "disabled" =>$disabled,
+                "updated_at" => $todayDate,
             );
-
+        
+            $data2 = array(
+                "type" => $isDefault,
+                "name" => $fullname,
+                "address" => $address,
+                "city" => $city,
+                "state_id" => $state,
+                "country_id" => $countryID,
+                "updated_at" => $todayDate,
+            );
+        
             // check for default
             // only update all address to 0 if current address is set default
             if($isDefault){
                 $db->where("client_id",$clientID);
+                // $db->where("address_type",'billing','!=');
                 $db->update("address",array("type"=>"0"));
-            }           
+            }
             if($type == "add"){
                 $data["created_at"] = $todayDate;
-                $db->insert("address",$data);
+                // check got existing billing address or not, if not , insert
+                if($addressType == 'billing')
+                {
+                    $db->where("client_id",$clientID);
+                    $db->where('address_type',$addressType);
+                    // $db->where("id",$id);
+                    $result = $db->get("address");
+                    if($result)
+                    {
+                        return array('status' => "error", 'code' => 1, 'statusMsg' => 'You Cannot add more than one billing address!', 'data' => $data);
+                    }
+                    else
+                    {
+                        $db->insert("address",$data);
+                    }
+                }
+                else
+                {
+                    $db->insert("address",$data);
+                    // $db2->where("id",$clientID);
+                    // $db2->update("client",$data2);
+                }
                 $msg = $translations["B00422"][$language]; // Add Successfully
             }else {
                 // delete or edit
-                $db->where("id",$id);
+                // $db->where("id",$id);
                 // disable previous address with id $id
-                $db->update("address",array("disabled"=>"1", "updated_at"=>$todayDate));
+                // $db->update("address",array("disabled"=>"1", "updated_at"=>$todayDate));
                 if($type == "edit"){
-                     // add new address 
+                    // return array("code" => 110, "status" => "ok", "clientID" => $clientID, "addressId" => $addressId);
+                    //  return array("code" => 110, "status" => "ok", "clientID" => $clientID, "addressType" => $addressType, "fullname" => $fullname, "address" => $address);
                     $data["created_at"] = $todayDate;
-                    $db->insert("address",$data);
+                    $db->where("client_id",$clientID);
+                    $db->where('id',$addressId);
+                    // $db->where('address_type',$addressType);
+                    // $db->where('name', $fullname);
+                    // $db->where('address',$address);
+                    // $db->where("id",$id);
+                    $db->update("address",$data);
+                    // $db2->where("id",$clientID);
+                    // $db2->update("client",$data2);
                 }
-                $msg = $translations["B00373"][$language]; // Update Successfully
+                else if($type == "delete")
+                {
+                    $db->where('id',$addressId);
+                    $db->where('client_id',$clientID);
+                    $deleteStatus = $db->delete('address');
+                    if($deleteStatus)
+                    {
+                        $msg = $translations["B00373"][$language]; // Update Successfully
+                    }
+                    else
+                    {
+                        $msg = $translations["E00743"][$language]; // Failed to Update
+                    }
+        
+                }
             }
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $msg, 'data' => "");
         }
@@ -5530,13 +6273,13 @@
             $db->where("id", $addressID);
             $db->where("client_id",$clientID);
 
-            $address = $db->getOne("address","id,name,email,phone,address,state_id AS stateID,district_id AS districtID ,sub_district_id AS subDistrictID,remarks,city_id AS cityID,post_code_id AS postCodeID,type,country_id AS countryID,address_type AS addressType");
+            $address = $db->getOne("address","id,name,email,phone,address,state_id AS stateID,district_id AS districtID ,sub_district_id AS subDistrictID,remarks,city AS cityID,post_code AS postCodeID,type,country_id AS countryID,address_type AS addressType");
 
             $resultStateList = Country::getState();
             foreach($resultStateList as $stateValue) {
                 $stateList[$stateValue['country_id']][] = $stateValue;
             }
-                
+
             $data["addressDetails"] = $address;
             $countryParams = array("pagination" => "No");
             $resultCountryList = Country::getCountriesList($countryParams);
@@ -5569,7 +6312,7 @@
                         case "mainLeaderUsername":
                             $db->where('username', $dataValue);
                             $mainLeaderID  = $db->getValue('client', 'id');
-                            $mainDownlines = Leader::getLeaderDownlines($mainLeaderID); 
+                            $mainDownlines = Leader::getLeaderDownlines($mainLeaderID);
 
                             if(empty($mainDownlines)) return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00112"][$language] /* No Results Found. */, 'data' => "");
                             $db->where('client_id', $mainDownlines, "IN");
@@ -5598,7 +6341,7 @@
                                 $sq = $db->subQuery();
                                 $sq->where("username", $dataValue . "%", "LIKE");
                                 $sq->get("client", NULL, "id");
-                                $db->where("client_id", $sq, "IN"); 
+                                $db->where("client_id", $sq, "IN");
                             } else{
                                 $sq = $db->subQuery();
                                 $sq->where("username", $dataValue);
@@ -5634,9 +6377,9 @@
 
             if($seeAll == "1"){
                 $limit = array(0, $totalRecord);
-            } 
+            }
 
-            $result = $db->get("address",$limit,"id,type,client_id,name,email,phone,address,district_id,sub_district_id,post_code_id,city_id,state_id,country_id,address_type,remarks,created_at,updated_at");
+            $result = $db->get("address",$limit,"id,type,client_id,name,email,phone,address,district_id,sub_district_id,post_code,city,state_id,country_id,address_type,remarks,created_at,updated_at");
 
             if (empty($result))return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["E00714"][$language], 'data' => "");
 
@@ -5646,8 +6389,8 @@
                 $clientIDAry[$value["client_id"]] = $value["client_id"];
                 $districtIDAry[$value["district_id"]] = $value["district_id"];
                 $subDistrictIDAry[$value["sub_district_id"]] = $value["sub_district_id"];
-                $postCodeIDAry[$value["post_code_id"]] = $value["post_code_id"];
-                $cityIDAry[$value["city_id"]] = $value["city_id"];
+                $postCodeIDAry[$value["post_code"]] = $value["post_code"];
+                $cityIDAry[$value["city"]] = $value["city"];
                 $stateIDAry[$value["state_id"]] = $value["state_id"];
                 $countryIDAry[$value["country_id"]] = $value["country_id"];
             }
@@ -5673,7 +6416,7 @@
             }
 
             if($cityIDAry){
-                $db->where("id",$cityIDAry,"IN");
+                $db->where("name",$cityIDAry,"IN");
                 $cityRes = $db->map("id")->get("city",null,"id,name,translation_code");
             }
 
@@ -5701,12 +6444,14 @@
 
                 $district = $translations[$districtRes[$value["district_id"]]["translation_code"]][$language] ? $translations[$districtRes[$value["district_id"]]["translation_code"]][$language] : $districtRes[$value["district_id"]]["name"];
                 $subDistrict = $translations[$subDistrictRes[$value["sub_district_id"]]["translation_code"]][$language] ? $translations[$subDistrictRes[$value["sub_district_id"]]["translation_code"]][$language] : $subDistrictRes[$value["sub_district_id"]]["name"];
-                $postCode = $translations[$postCodeRes[$value["post_code_id"]]["translation_code"]][$language] ? $translations[$postCodeRes[$value["post_code_id"]]["translation_code"]][$language] : $postCodeRes[$value["post_code_id"]]["name"];
-                $city = $translations[$cityRes[$value["city_id"]]["translation_code"]][$language] ? $translations[$cityRes[$value["city_id"]]["translation_code"]][$language] : $cityRes[$value["city_id"]]["name"];
+                // $postCode = $translations[$postCodeRes[$value["post_code_id"]]["translation_code"]][$language] ? $translations[$postCodeRes[$value["post_code_id"]]["translation_code"]][$language] : $postCodeRes[$value["post_code_id"]]["name"];
+                $postCode = $postCodeIDAry[$value['post_code']];
+                // $city = $translations[$cityRes[$value["city_id"]]["translation_code"]][$language] ? $translations[$cityRes[$value["city_id"]]["translation_code"]][$language] : $cityRes[$value["city_id"]]["name"];
+                $city = $cityIDAry[$value['city']];
                 $state = $translations[$stateRes[$value["state_id"]]["translation_code"]][$language] ? $translations[$stateRes[$value["state_id"]]["translation_code"]][$language] : $stateRes[$value["state_id"]]["name"];
                 $country = $translations[$countryRes[$value["country_id"]]["translation_code"]][$language] ? $translations[$countryRes[$value["country_id"]]["translation_code"]][$language] : $countryRes[$value["country_id"]]["name"];
-
-                $tempValue["address"] = $value["address"].", ".$district.", ".$subDistrict.", ".$postCode.", ".$city.", ".$state.", ".$country;
+                // $tempValue["address"] = $value["address"].", ".$district.", ".$subDistrict.", ".$postCode.", ".$city.", ".$state.", ".$country;
+                $tempValue["address"] = $value["address"].", ".$postCode.", ".$city.", ".$state.", ".$country;
                 $tempValue["phone"] = "+".$countryRes[$value["country_id"]]["country_code"]." ".$value["phone"];
 
                 if($site == "Member"){
@@ -5814,6 +6559,8 @@
             $language = General::$currentLanguage;
             $translations = General::$translations;
             $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+            $deliveryFee = Setting::$systemSetting['deliveryFee'];
+            $amountDeliveryFee = 0;
 
             $todayDate  = date('Y-m-d H:i:s');
 
@@ -5831,120 +6578,114 @@
                 }
             }
 
+            $db->where('disabled', 0);
             $db->where('client_id', $clientID);
-            $copyDB = $db->copy();
-            $shoppingCart = $db->map('mlm_product_id')->get('shopping_cart', null, 'mlm_product_id, quantity, disabled');
+            $db->orderBy('disabled', 'ASC');
+            $db->join('product_template b', 'b.id = a.product_template_id', 'LEFT');
+            $db->join('product p', 'p.id = a.product_id', 'LEFT');
+            $shoppingCart = $db->get('shopping_cart a', null, 'a.product_id, a.product_template_id, 
+                                    b.product_attribute_value_id, a.quantity, a.disabled, p.cost, 
+                                    p.sale_price, p.description, p.name');
 
-            if($shoppingCart){
-                $db->where('product_id', array_keys($shoppingCart), 'IN');
-                $priceListRes = $db->get('mlm_product_price', null, 'product_id, country_id');
+            $totalSalePrice = 0;
 
-                foreach ($priceListRes as $priceListRow) {
-                    $packageCountryList[$priceListRow['product_id']][] = $priceListRow['country_id'];
-                }
+            $product_attribute_value = $db->get('product_attribute_value a', null, 'id,name');
+            
+            foreach ($shoppingCart as &$cartRow) {
+                $packageIDAry[$cartRow['product_id']] = $cartRow['product_id'];
 
+                if (!empty($cartRow['product_attribute_value_id'])){
+                    $string = $cartRow['product_attribute_value_id'];  
+                    $array = json_decode($string);
+                    $string = implode(",", $array);
+                    $cartRow['product_attribute_value_id'] = $string;
+                    // print_r("array:".json_encode($array)."\n");
 
-                foreach ($shoppingCart as $cartPackageID => $cartDetail) {
-                    $countryList = $packageCountryList[$cartPackageID];
-                    
-                    if(!in_array($clientInfo['country_id'], $countryList) && $cartDetail['disabled'] == 0){
-                        $db->where('client_id', $clientID);
-                        $db->where('mlm_product_id', $cartPackageID);
-                        $db->update('shopping_cart', array('disabled' => 1));
-                    }
-                }
-                unset($cartPackageID);
-                unset($cartDetail);
-
-                $db->where('id', array_keys($shoppingCart), 'IN');
-                $packageAry = $db->get('mlm_product', null, 'id, (total_balance - total_sold) AS quantity, status, is_unlimited');
-
-                foreach ($packageAry as $packageRow) {
-                    foreach ($shoppingCart as $cartPackageID => $cartDetail) {
-                        if($cartPackageID == $packageRow['id'] && $packageRow['quantity'] < $cartDetail['quantity'] && $cartDetail['disabled'] == 0 && $packageRow['is_unlimited'] == 0){
-                            $db->where('client_id', $clientID);
-                            $db->where('mlm_product_id', $packageRow['id']);
-                            $db->update('shopping_cart', array('disabled' => 1));
-
-                        }elseif($cartPackageID == $packageRow['id'] && $packageRow['quantity'] >= $cartDetail['quantity'] && $cartDetail['disabled'] == 1 && $packageRow["status"] == "Active" && $packageRow['is_unlimited'] == 0){
-                            $db->where('client_id', $clientID);
-                            $db->where('mlm_product_id', $packageRow['id']);
-                            $db->update('shopping_cart', array('disabled' => 0));
-
-                        }elseif($cartPackageID == $packageRow['id'] && $packageRow['status'] == 'Inactive' && $cartDetail["disabled"] == 0){
-                            $db->where('client_id', $clientID);
-                            $db->where('mlm_product_id', $packageRow['id']);
-                            $db->update('shopping_cart', array('disabled' => 1));
-                            
+                    $name_array = array();
+                    foreach ($array as $id) {
+                        foreach ($product_attribute_value as $value) {
+                          if ($value['id'] == $id) {
+                            $name_array[] = $value['name']; // Store name in array
+                          }
                         }
                     }
+                    $name_string = implode(", ", $name_array);
+                    $cartRow['product_attribute_name'] = $name_string;
                 }
-            }
-
-            unset($shoppingCart);
-            $copyDB->orderBy('disabled', 'ASC');
-            $shoppingCart = $copyDB->map('mlm_product_id')->get('shopping_cart', null, 'mlm_product_id, quantity, disabled');
-
-            foreach ($shoppingCart as $cartRow) {
-                $packageIDAry[$cartRow['mlm_product_id']] = $cartRow['mlm_product_id'];
+                else{
+                    $cartRow['product_attribute_value_id'] = '';
+                    $cartRow['product_attribute_name'] = '';
+                }
             }
 
             if($packageIDAry){
-                $db->where('module_id', $packageIDAry, 'IN');
-                $db->where('module', 'mlm_product');
-                $db->where('language', $language);
-                $db->where('type', 'name');
-                $packageName = $db->map('module_id')->get('inv_language', null, 'module_id, content');
-
-                $db->where("product_id",$packageIDAry,"IN");
+                $db->where("reference_id", array_keys($packageIDAry),"IN");
                 $db->where("type",array("Image"),"IN");
-                $imageData = $db->get("mlm_product_setting",null,"product_id,value");
+                $imageData = $db->get("product_media",null,"reference_id,url");
 
                 unset($imageDataAry);
 
                 foreach($imageData as $imageRow){
-                    $imageDataAry[$imageRow["product_id"]][] = $imageRow["value"];
+                    $imageDataAry[$imageRow["reference_id"]][] = $imageRow["url"];
                 }
-
-                $db->where("product_id",$packageIDAry,"IN");
-                $db->where("country_id", $clientInfo['country_id']);
-                $productPrice = $db->map('product_id')->get('mlm_product_price', null, 'product_id, price, promo_price, m_price, ms_price');
-
-                $clientRank = Bonus::getClientRank('Bonus Tier', array($clientID), '', 'discount');
-                $discountPercentage = $clientRank[$clientID]['percentage'];
-
+                
+                if ($totalSalePrice > 280){
+                    $deliveryFee = 'Free';
+                    $amountDeliveryFee = 0;
+                }else{
+                    $amountDeliveryFee = $deliveryFee;
+                }
+                
                 $db->where("id", $packageIDAry,"IN");
-                $pvPriceAry = $db->map("id")->get("mlm_product", null, "id, pv_price");
+                $pvPriceAry = $db->map("id")->get("product", null, "id, sale_price");
             }
 
-            $db->where('id', $clientInfo['country_id']);
-            $currencyCode = $db->getValue('country', 'currency_code');
+            $redeemAmount = 0;
+            $params['userID']  = $clientID;
+            $clientDetail = Admin::getMemberDetails($params);
+            $Point = $clientDetail['data']['userPointBalance'] ?: 0;
 
-            foreach ($shoppingCart as $cartRow) {
-                $cart['packageID']   = $cartRow['mlm_product_id'];
-                $cart['packageName'] = $packageName[$cartRow['mlm_product_id']];
-                $cart['quantity']    = $cartRow['quantity'];
-                $cart['disabled']    = $cartRow['disabled'];
-                $cart["img"]         = $imageDataAry[$cartRow["mlm_product_id"]][0];
-                
-                $retailPrice = Setting::setDecimal($productPrice[$cartRow['mlm_product_id']]['price']);
-                $promoPrice = Setting::setDecimal($productPrice[$cartRow['mlm_product_id']]['promo_price']);
-                $cart["retailPrice"] = $retailPrice;
-                if($discountPercentage == '25'){
-                    $cart["promoPrice"]  = Setting::setDecimal($productPrice[$cartRow['mlm_product_id']]['m_price']);
-                }elseif($discountPercentage == '30'){
-                    $cart["promoPrice"]  = Setting::setDecimal($productPrice[$cartRow['mlm_product_id']]['ms_price']);
-                }else{
-                    $cart["promoPrice"]  = ($promoPrice > 0) ? $promoPrice : $retailPrice;
-                }
-                $cart["pv"] = $pvPriceAry[$cartRow['mlm_product_id']];
-                $cart["currDisplay"] = $currencyCode;
-                
+            foreach ($shoppingCart as &$cartRow) {
+                unset($cart);
 
+                // $retailPrice = Setting::setDecimal($productPrice[$cartRow['product_id']]['sale_price']);
+                $Total = bcmul(number_format($pvPriceAry[$cartRow['product_id']],2),$cartRow['quantity'],2);
+
+                $cart['productID']                     = $cartRow['product_id'];
+                $cart['productName']                   = $cartRow['name'];
+                $cart['product_template_id']           = $cartRow['product_template_id'];
+                $cart['product_attribute_value_id']    = $cartRow['product_attribute_value_id'];
+                $cart['product_attribute_name']        = $cartRow['product_attribute_name'];
+                $cart['quantity']                      = $cartRow['quantity'];
+                $cart['total']                         = $Total;
+                $cart['disabled']                      = $cartRow['disabled'];
+                $cart["img"]                           = $imageDataAry[$cartRow["product_id"]][0];
+                $cart["stockCount"]                    = 100;
+                $cart["price"]                         = number_format($pvPriceAry[$cartRow['product_id']],2);
+                
+                $totalSalePrice += $Total;
+                // $promoPrice = Setting::setDecimal($productPrice[$cartRow['product_id']]['promo_price']);
+                // $cart["retailPrice"] = $retailPrice;
+                // if($discountPercentage == '25'){
+                //     $cart["promoPrice"]  = Setting::setDecimal($productPrice[$cartRow['product_id']]['m_price']);
+                // }elseif($discountPercentage == '30'){
+                //     $cart["promoPrice"]  = Setting::setDecimal($productPrice[$cartRow['product_id']]['ms_price']);
+                // }else{
+                //     $cart["promoPrice"]  = ($promoPrice > 0) ? $promoPrice : $retailPrice;
+                // }
                 $cartList[] = $cart;
             }
 
+            $subTotal = $totalSalePrice;
+            $totalSalePrice = $totalSalePrice + $amountDeliveryFee;
+
             $data['cartList'] = $cartList;
+            $data['redeemAmount'] = $redeemAmount;
+            $data['subTotal'] = $subTotal;
+            $data['totalSalePrice'] = $totalSalePrice;
+            $data['Taxes'] = 0;
+            $data['deliveryFee'] = $deliveryFee;
+            $data['Point'] = $Point;
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
@@ -5955,51 +6696,108 @@
             $translations = General::$translations;
             $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
 
-            $packageID      = $params['packageID'];
-            $quantity       = $params['quantity'];
-            $type           = $params['type'];
-            $acceptedType   = array('add', 'inc', 'dec', 'num');
-            $excludeType    = array('inc', 'dec');
-            $todayDate      = date('Y-m-d H:i:s');
+            $packageID                = $params['packageID'];
+            $quantity                 = $params['quantity'];
+            $type                     = $params['type'];
+            $product_template         = $params['product_template'];
+            $acceptedType             = array('add', 'inc', 'dec', 'num');
+            $excludeType              = array('inc', 'dec');
+            $todayDate                = date('Y-m-d H:i:s');
 
             $clientID = $db->userID;
+            if($clientID == null)
+            {
+                $clientID = $params['clientID'];
+            }
             $site = $db->userType;
 
+            if(!empty($product_template)){
+                $product_template = explode(',', $product_template);
+                $product_template = array_map('trim', $product_template);
+
+                $db->where('product_id', $packageID);
+                $db->where('product_attribute_value_id',json_encode($product_template));
+                $product_template_id = $db->getOne('product_template a');
+                $product_template_id = $product_template_id['id'];
+            }
+            else{
+                $db->where('product_id', $packageID);
+                $db->where('product_attribute_value_id',$product_template);
+                $product_template_id = $db->getOne('product_template a');
+                $product_template_id = $product_template_id['id'];
+            }
+            
             if(!$clientID) {
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
             }else{
                 $db->where('id', $clientID);
                 $clientInfo = $db->has('client');
 
                 if(!$clientInfo){
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
                 }
             }
 
             if(!$packageID) {
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01078"][$language] /* Invalid Package. */, 'data' => "");
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00518"][$language] /* Invalid Stock. */, 'data' => "");
             }else{
                 $db->where('id', $packageID);
-                $packageInfo = $db->has('mlm_product');
+                $packageInfo = $db->has('product');
 
                 if(!$packageInfo){
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01078"][$language] /* Invalid Package. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00518"][$language] /* Invalid Stock. */, 'data' => "");
+                }
+            }
+            
+            if(!$product_template_id) {
+                return array('status' => "error", 'code' => 22, 'statusMsg' => 'Invalid product template id', 'data' => "");
+            }else{
+                $db->where('id', $product_template_id);
+                $packageInfo = $db->has('product_template');
+
+                if(!$packageInfo){
+                    return array('status' => "error", 'code' => 22, 'statusMsg' => 'Invalid product template id', 'data' => "");
                 }
             }
 
             if(!$type || !in_array($type, $acceptedType)){
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00741"][$language] /* Invalid Type. */, 'data'=>"");
+                return array('status' => "error", 'code' => 21, 'statusMsg' => $translations["B00519"][$language] /* Invalid Type. */, 'data'=>"");
 
             }elseif(!in_array($type, $excludeType)){
                 if(!$quantity || !is_numeric($quantity) || $quantity <= 0) {
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00941"][$language] /* Quantity must be greater than 0. */, 'data'=>"");
+                    return array('status' => "error", 'code' => 21, 'statusMsg' => $translations["B00520"][$language] /* Quantity must be greater than 0. */, 'data'=>"");
                 }
             }
 
+            $saleParams['clientID'] = $clientID;
+            $CheckSaleOrderDraftStatus = self::CheckSaleOrderDraftStatus($saleParams);
+
+            // if (!$CheckSaleOrderDraftStatus['saleID'] == 0){
+            //     unset($params);
+            //     $params['quantityOfReward'] = '0';
+            //     $params['isRedeemReward'] = '0';
+            //     $params['redeemAmount'] = '0';
+            //     $params['memberPointDeduct'] = '0';
+            //     $params['billing_address'] = $BillingId;
+            //     $params['shipping_address'] = $ShippingId;
+            //     $params['purchase_amount'] = $purchaseAmount;
+            //     $params['shipping_fee'] = $shippingFee;
+            //     $params['clientID'] = $clientID;
+            //     $addNewPayment = Cash::addNewPayment($params, $clientID); // addNewPayment
+            //     if($addNewPayment['status'] == 'error')
+            //     {
+            //         return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01184"][$language] /* Failed to add new payment. */, 'data' => $addNewPayment);
+            //     }
+            // }else{
+            //     $sale_id = $CheckSaleOrderDraftStatus['saleID'];
+            // }
+
             switch ($type) {
                 case 'add':
+                    $db->where('disabled', 0);
                     $db->where('client_id', $clientID);
-                    $db->where('mlm_product_id', $packageID);
+                    $db->where('product_id', $packageID);
+                    $db->where('product_template_id', $product_template_id);
                     $copyDB = $db->copy();
                     $shoppingCart = $db->getOne('shopping_cart', 'id, quantity');
 
@@ -6011,24 +6809,28 @@
 
                     }else{
                         $insertData = array(
-                            'client_id'         => $clientID,
-                            'mlm_product_id'    => $packageID,
-                            'quantity'          => $quantity,
-                            'disabled'          => 0,
-                            'updated_at'        => $todayDate,
+                            'client_id'                  => $clientID,
+                            'sale_id'                    => $sale_id,
+                            'product_id'                 => $packageID,
+                            'product_template_id'        => $product_template_id,
+                            'quantity'                   => $quantity,
+                            'disabled'                   => 0,
+                            'updated_at'                 => $todayDate,
                         );
                         $db->insert('shopping_cart', $insertData);
                     }
                     break;
-                
+
                 case 'inc':
                     $quantity = 1;
 
                     $updateData = array(
                         'quantity' => $db->inc($quantity),
                     );
+                    $db->where('disabled', 0);
                     $db->where('client_id', $clientID);
-                    $db->where('mlm_product_id', $packageID);
+                    $db->where('product_id', $packageID);
+                    $db->where('product_template_id', $product_template_id);
                     $db->update('shopping_cart', $updateData);
                     break;
 
@@ -6038,8 +6840,10 @@
                     $updateData = array(
                         'quantity' => $db->dec($quantity),
                     );
+                    $db->where('disabled', 0);
                     $db->where('client_id', $clientID);
-                    $db->where('mlm_product_id', $packageID);
+                    $db->where('product_id', $packageID);
+                    $db->where('product_template_id', $product_template_id);
                     $db->update('shopping_cart', $updateData);
                     break;
 
@@ -6047,13 +6851,15 @@
                     $updateData = array(
                         'quantity' => $quantity,
                     );
+                    $db->where('disabled', 0);
                     $db->where('client_id', $clientID);
-                    $db->where('mlm_product_id', $packageID);
+                    $db->where('product_id', $packageID);
+                    $db->where('product_template_id', $product_template_id);
                     $db->update('shopping_cart', $updateData);
                     break;
             }
 
-            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00453"][$language] /* Added To Cart */, 'data' => '');
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00516"][$language] /* Added To Cart */, 'data' => '');
         }
 
         public function updateShoppingCart($params){
@@ -6065,33 +6871,55 @@
             $package    = $params['package'];
             $todayDate  = date('Y-m-d H:i:s');
 
-            $clientID = $db->userID;
+            $clientID = $params['clientID'];
             $site = $db->userType;
 
             if(!$clientID) {
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
             }else{
                 $db->where('id', $clientID);
                 $clientInfo = $db->has('client');
 
                 if(!$clientInfo){
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
                 }
             }
-
+               
             foreach ($package as $packageRow) {
                 if(!$packageRow['packageID']) {
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01078"][$language] /* Invalid Package. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00518"][$language] /* Invalid Stock. */, 'data' => "");
                 }
 
                 if(!$packageRow['quantity'] || !is_numeric($packageRow['quantity']) || $packageRow['quantity'] <= 0) {
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00941"][$language] /* Quantity must be greater than 0. */, 'data'=>"");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00520"][$language] /* Quantity must be greater than 0. */, 'data'=>"");
                 }
+
+                // if(!$packageRow['product_template']) {
+                //     return array('status' => "error", 'code' => 2, 'statusMsg' => 'Invalid Product Template ID.' /* Invalid Product Template ID. */, 'data'=>"");
+                // }
             }
 
             foreach ($package as $packageRow) {
+                if(!empty($packageRow['product_template'])){
+                    $product_template = explode(',', $packageRow['product_template']);
+                    $product_template = array_map('trim', $product_template);
+        
+                    $db->where('product_id', $packageRow['packageID']);
+                    $db->where('product_attribute_value_id',json_encode($product_template));
+                    $product_template_id = $db->getOne('product_template a');
+                    $product_template_id = $product_template_id['id'];
+                }
+                else{
+                    $db->where('product_id', $packageRow['packageID']);
+                    $db->where('product_attribute_value_id',$packageRow['product_template']);
+                    $product_template_id = $db->getOne('product_template a');
+                    $product_template_id = $product_template_id['id'];
+                }
+                    
+                $db->where('disabled', 0);
                 $db->where('client_id', $clientID);
-                $db->where('mlm_product_id', $packageRow['packageID']);
+                $db->where('product_id', $packageRow['packageID']);
+                $db->where('product_template_id', $product_template_id);
                 $copyDB = $db->copy();
                 $shoppingCart = $db->getOne('shopping_cart', 'id, quantity');
 
@@ -6100,20 +6928,23 @@
                         'quantity' => $db->inc($packageRow['quantity']),
                     );
                     $copyDB->update('shopping_cart', $updateData);
-
                 }else{
-                    $insertData = array(
-                        'client_id'         => $clientID,
-                        'mlm_product_id'    => $packageRow['packageID'],
-                        'quantity'          => $packageRow['quantity'],
-                        'disabled'          => 0,
-                        'updated_at'        => $todayDate,
-                    );
-                    $db->insert('shopping_cart', $insertData);
+                    if (is_numeric($product_template_id))
+                    {
+                        $insertData = array(
+                            'client_id'         => $clientID,
+                            'product_id'        => $packageRow['packageID'],
+                            'product_template_id'          => $product_template_id,
+                            'quantity'          => $packageRow['quantity'],
+                            'disabled'          => 0,
+                            'updated_at'        => $todayDate,
+                        );
+                        $db->insert('shopping_cart', $insertData);
+                    }
                 }
             }
 
-            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00455"][$language] /* Updated Cart */, 'data' => '');
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00521"][$language] /* Updated Cart */, 'data' => $data);
         }
 
         public function removeShoppingCart($params){
@@ -6123,38 +6954,88 @@
             $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
 
             $packageID  = $params['packageID'];
+            $product_template  = $params['product_template'];
             $todayDate  = date('Y-m-d H:i:s');
 
             $clientID = $db->userID;
             $site = $db->userType;
 
+            if(!empty($product_template)){
+                $product_template = explode(',', $product_template);
+                $product_template = array_map('trim', $product_template);
+                
+                $db->where('product_id', $packageID);
+                $db->where('product_attribute_value_id',json_encode($product_template));
+                $product_template_id = $db->getOne('product_template a');
+                $product_template_id = $product_template_id['id'];
+            }
+            else{
+                $db->where('product_id', $packageID);
+                $db->where('product_attribute_value_id', $product_template);
+                $product_template_id = $db->getOne('product_template a');
+                $product_template_id = $product_template_id['id'];
+            }
+
             if(!$clientID) {
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
             }else{
                 $db->where('id', $clientID);
                 $clientInfo = $db->has('client');
 
                 if(!$clientInfo){
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E00105"][$language] /* Invalid User. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00517"][$language] /* Invalid User. */, 'data' => "");
                 }
             }
 
             if(!$packageID) {
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01078"][$language] /* Invalid Package. */, 'data' => "");
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00518"][$language] /* Invalid Stock. */, 'data' => "");
             }else{
                 $db->where('id', $packageID);
-                $packageInfo = $db->has('mlm_product');
+                $packageInfo = $db->has('product');
 
                 if(!$packageInfo){
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01078"][$language] /* Invalid Package. */, 'data' => "");
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["B00518"][$language] /* Invalid Stock. */, 'data' => "");
                 }
             }
 
+            if(!$product_template_id) {
+                return array('status' => "error", 'code' => 22, 'statusMsg' => 'Invalid product template id', 'data' => "");
+            }else{
+                $db->where('id', $product_template_id);
+                $packageInfo = $db->has('product_template');
+
+                if(!$packageInfo){
+                    return array('status' => "error", 'code' => 22, 'statusMsg' => 'Invalid product template id', 'data' => "");
+                }
+            }
+
+            $db->where('disabled', 0);
             $db->where('client_id', $clientID);
-            $db->where('mlm_product_id', $packageID);
+            $db->where('product_id', $packageID);
+            $db->where('product_template_id', $product_template_id);
             $db->delete('shopping_cart');
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00454"][$language] /* Removed From Cart */, 'data' => '');
+        }
+
+        function CheckSaleOrderDraftStatus($params){
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $clientID = $params['clientID'];
+
+            $db->where("client_id",$clientID);
+            $db->where("status",'pending');
+            $resSaleOrder = $db->getOne("sale_order");
+
+            if($resSaleOrder){
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'saleID' => $resSaleOrder['id']);
+            }
+            else{
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'saleID' => 0);
+            }
         }
 
         function validPackageVerification($countryID,$packageAry){
@@ -6362,7 +7243,7 @@
             $db->where("client_id", $clientID);
             $db->where("disabled", "0");
             $db->orderBy("type", "DESC");
-            $addressData = $db->get("address",null,"id, type, name, email, phone, address, state_id, district_id, sub_district_id, city_id, post_code_id, country_id, address_type");
+            $addressData = $db->get("address",null,"id, type, name, email, phone, address, state_id, district_id, sub_district_id, city, post_code, country_id, address_type");
 
             if(!$addressData){
                 return array("status" => "ok", "code" => 0, "statusMsg" => "", "data" => $dataOut);
@@ -6375,8 +7256,8 @@
                 $stateIDAry[$addressRow["state_id"]] = $addressRow["state_id"];
                 $districtIDAry[$addressRow["district_id"]] = $addressRow["district_id"];
                 $subDistrictIDAry[$addressRow["sub_district_id"]] = $addressRow["sub_district_id"];
-                $cityIDAry[$addressRow["city_id"]] = $addressRow["city_id"];
-                $postCodeIDAry[$addressRow["post_code_id"]] = $addressRow["post_code_id"];
+                $cityIDAry[$addressRow["city"]] = $addressRow["city"];
+                $postCodeIDAry[$addressRow["post_code"]] = $addressRow["post_code"];
             }
 
             if($countryIDAry && $stateIDAry && $districtIDAry && $subDistrictIDAry && $cityIDAry && $postCodeIDAry){
@@ -6418,10 +7299,10 @@
                 $tempAddress["district"] = $districtDisplay[$addressRow["district_id"]];
                 $tempAddress["subDistrictID"] = $addressRow["sub_district_id"];
                 $tempAddress["subDistrict"] = $subDistrictDisplay[$addressRow["sub_district_id"]];
-                $tempAddress["cityID"] = $addressRow["city_id"];
-                $tempAddress["city"] = $cityDisplay[$addressRow["city_id"]];
-                $tempAddress["postalCodeID"] = $addressRow["post_code_id"];
-                $tempAddress["postalCode"] = $postCodeDisplay[$addressRow["post_code_id"]];
+                $tempAddress["cityID"] = $addressRow["city"];
+                $tempAddress["city"] = $cityDisplay[$addressRow["city"]];
+                $tempAddress["postalCodeID"] = $addressRow["post_code"];
+                $tempAddress["postalCode"] = $postCodeDisplay[$addressRow["post_code"]];
                 $tempAddress["countryID"] = $addressRow["country_id"];
                 $tempAddress["countryName"] = $countryDisplay[$addressRow["country_id"]]["name"];
                 $tempAddress["countryDisplay"] = $translations[$countryDisplay[$addressRow["country_id"]]["translation_code"]][$language];
@@ -6669,10 +7550,10 @@
             unset($insertData);
 
             $insertData = array(
-                "inv_order_id" => $invOrderID, 
-                "inv_voucher_id" => $invVoucherID, 
+                "inv_order_id" => $invOrderID,
+                "inv_voucher_id" => $invVoucherID,
                 "type" => $invVoucherType,
-                "discount_type" => $discountType, 
+                "discount_type" => $discountType,
                 "discount_percentage" => Setting::setDecimal($discountPercentage),
                 "discount_amount" => Setting::setDecimal($discountAmount),
                 "real_discount_amount" => Setting::setDecimal($realDiscountAmount),
@@ -6699,7 +7580,7 @@
 
             return true;
         }
-        
+
         public function purchasePackageVerification($params){
             $db = MysqliDb::getInstance();
             $language = General::$currentLanguage;
@@ -6717,7 +7598,7 @@
             $courierCompany = $params['courierCompany'];
             $courierService = $params['courierService'];
             // $pickupID = trim($params["pickupID"]);
-            
+
             $addressID = trim($params["addressID"]);
             $fullName = trim($params["fullName"]);
             $countryID = trim($params["countryID"]);
@@ -6741,7 +7622,7 @@
             $ccHolderName   = trim($params["ccHolderName"]);
 
             //Placement Option
-            $placementPosition    = trim($params["placementPosition"]);          
+            $placementPosition    = trim($params["placementPosition"]);
 
             /*$billingFullName = trim($params["billingFullName"]);
             $billingCountryID = trim($params["billingCountryID"]);
@@ -6754,7 +7635,7 @@
             $billingDialingArea = trim($params["billingDialingArea"]);
             $billingPhoneNumber = trim($params["billingPhoneNumber"]);
             $billingEmailAddress = trim($params["billingEmailAddress"]);*/
-            
+
             $voucherCode = trim($params["voucherCode"]); // Optional
             $spendCredit = $params["spendCredit"];
             $purchaseSpecialNote = trim($params["purchaseSpecialNote"]); // Optional
@@ -6820,7 +7701,7 @@
             $sponsorName        = $sponsorDetails['name'];
 
             if(!$packageAry){
-                return array("status" => "error", "code" => 2, "statusMsg" => $translations['E01078'][$language] /* Invalid Package */ , "data" => "");   
+                return array("status" => "error", "code" => 2, "statusMsg" => $translations['E01078'][$language] /* Invalid Package */ , "data" => "");
             }else{
                 $validPackageReturn = Inventory::validPackageVerification($clientCountryID,$packageAry);
 
@@ -6851,7 +7732,7 @@
                     );
 
                 }/*elseif($deliveryOption == "pickup"){
-                    
+
                     if(!$pickupID){
                         $errorFieldArr[] = array(
                             "id" => "pickupIDError",
@@ -6871,7 +7752,7 @@
                     }
 
                 }*/elseif($deliveryOption == "delivery"){
-                    
+
                     if($addressID){
                         $db->where("id",$addressID);
                         $db->where("disabled",0);
@@ -7038,7 +7919,7 @@
                                     "msg" => $translations["E00858"][$language]
                                 );
                             }
-                        }  
+                        }
 
                         if(!$emailAddress){
                             $errorFieldArr[] = array(
@@ -7051,7 +7932,7 @@
                                     $errorFieldArr[] = array(
                                         "id" => "emailAddressError",
                                         "msg" => $translations["E00319"][$language],
-                                    );                        
+                                    );
                                 }
                             }
                         }
@@ -7206,7 +8087,7 @@
                                     "msg" => $translations["E00858"][$language]
                                 );
                             }
-                        }     
+                        }
 
                         if(!$billingEmailAddress){
                             $errorFieldArr[] = array(
@@ -7219,7 +8100,7 @@
                                     $errorFieldArr[] = array(
                                         "id" => "billingEmailAddressError",
                                         "msg" => $translations["E00319"][$language],
-                                    );                        
+                                    );
                                 }
                             }
                         }
@@ -7303,7 +8184,7 @@
                 $price = $packageData[$packageID]["promoPrice"] > 0 ? $packageData[$packageID]["promoPrice"] : $packageData[$packageID]["price"];
                 $mPrice = $packageData[$packageID]["mPrice"];
                 $msPrice = $packageData[$packageID]["msPrice"];
-                
+
                 if($clientDiscountPercentage){
                     if(($mPrice > 0 && $clientDiscountPercentage == 25)){
                         $packagePrice = Setting::setDecimal(($mPrice * $packageQty));
@@ -7320,7 +8201,7 @@
                     $pricePerUnit = $price;
                 }
                 $packageRow['pricePerUnit'] = $pricePerUnit;
-		$packageRow['packagePrice'] = $packagePrice;
+		        $packageRow['packagePrice'] = $packagePrice;
 
                 $subTotal = Setting::setDecimal(($subTotal + $packagePrice));
 
@@ -7341,7 +8222,7 @@
             }
 
             $totalPrice = Setting::setDecimal(($subTotal));
-            
+
             $db->where("type","SST");
             $db->orderBy("created_at","DESC");
             $taxPercentage = $db->getValue("inv_tax_charges","rate");
@@ -7360,7 +8241,7 @@
                         $db->where('client_id', $clientID);
                         $db->where('type', 'shippingFee');
                         $shippingFeeData = $db->getValue('session_data', 'data');
-                    }   
+                    }
 
                     $addShippingFee = 0;
                     $updateShippingFee = 0;
@@ -7373,7 +8254,7 @@
                             if($countryID && $stateID){
                                 // $shippingFee = Inventory::calculateDeliveryFee($countryID,$stateID,$totalWeight);
                                 $dfParams = array(
-                                    'destID' => $postalCodeRes['destination_id'], 
+                                    'destID' => $postalCodeRes['destination_id'],
                                     'thru'   => $postalCodeRes['tariff_code'],
                                     'weight' => $totalWeight,
                                 );
@@ -7383,7 +8264,7 @@
                                 }
 
                                 $courierListRes = $shippingFeeRes['data'];
-                                
+
                                 $updateShippingFee = 1;
                             }
                         }
@@ -7392,7 +8273,7 @@
                         if($countryID && $stateID){
                             // $shippingFee = Inventory::calculateDeliveryFee($countryID,$stateID,$totalWeight);
                             $dfParams = array(
-                                'destID' => $postalCodeRes['destination_id'], 
+                                'destID' => $postalCodeRes['destination_id'],
                                 'thru'   => $postalCodeRes['tariff_code'],
                                 'weight' => $totalWeight,
                             );
@@ -7409,7 +8290,7 @@
 
                     foreach ($courierListRes as $companyName => $serviceList) {
                         $acceptedCompany[$companyName] = $companyName;
- 
+
                         foreach ($serviceList as $serviceRow) {
                             $acceptedServiceAry[$companyName][] = $serviceRow['courier'];
                             $deliveryFeeRes[$companyName][$serviceRow['courier']] = $serviceRow['price'];
@@ -7557,7 +8438,7 @@
                     }
                 }
 
-                if($makePaymentMethod == 'nicepay'){                    
+                if($makePaymentMethod == 'nicepay'){
                      if(!$nicepayBankCode){
                         $errorFieldArr[] = array(
                             "id" => "bankCodeError",
@@ -7650,7 +8531,7 @@
                     $validateCreditReturn = Cash::paymentVerification($clientID,$paymentType,$spendCredit,$packageAry,$totalPrice);
                     if(strtolower($validateCreditReturn["status"]) != "ok"){
                         return $validateCreditReturn;
-                    } 
+                    }
                 } elseif($makePaymentMethod == 'creditCard' && $submitCreditCard == true){
                     // check Credit card detail
                     if(empty($ccHolderName)) {
@@ -7792,7 +8673,7 @@
             $makePaymentMethod = trim($params["makePaymentMethod"]);
 
             //Placement Option
-            $placementPosition    = trim($params["placementPosition"]);  
+            $placementPosition    = trim($params["placementPosition"]);
 
             /*$billingFullName = trim($params["billingFullName"]);
             $billingCountryID = trim($params["billingCountryID"]);
@@ -7872,13 +8753,13 @@
             if(!in_array($makePaymentMethod, array('nicepay', 'creditCard'))){
                 foreach ($packageRes as $packageBal) {
                     if($packageBal['is_unlimited']) continue;
-                    
+
                     if($packageBal['total_balance'] <= ($packageBal['total_sold'] + $packageBal['total_holding'])){
                         $db->rollback();
                         $db->commit();
                         return array('status' => "error", 'code' => 2, 'statusMsg' => $translations['E01088'][$language] /* Insufficient Package. */, 'data'=>"");
                     }
-                }   
+                }
             } else{
                 if($params['isNicepayCallback'] != true){
                     $db->rollback();
@@ -8007,7 +8888,7 @@
 
                     unset($insertData);
 
-                    $insertData = array(    
+                    $insertData = array(
                         "portfolioID" => $portfolioID,
                         "clientID" => $clientID,
                         "productID" => $packageID,
@@ -8030,7 +8911,7 @@
 
                     unset($insertData);
 
-                    $insertData = array(    
+                    $insertData = array(
                         "clientID" => $clientID,
                         "mainID" => $clientID,
                         "type" => $paymentType,
@@ -8040,7 +8921,7 @@
                         "bonusValue" => ($bonusValue * $packageQty),
                         "dateTime" => $dateTime,
                     );
-                    
+
                     $insertBonusValue = Bonus::insertBonusValue($insertData);
 
                     if(!$insertBonusValue){
@@ -8096,18 +8977,18 @@
                 unset($insertData);
                 switch ($makePaymentMethod) {
                     case 'nicepay':
-                        $invPaymentMethod = 'VirtualAccount';    
+                        $invPaymentMethod = 'VirtualAccount';
                         break;
 
                     case 'creditCard':
-                        $invPaymentMethod = 'CreditCard';    
+                        $invPaymentMethod = 'CreditCard';
                         break;
-                    
+
                     default:
-                        $invPaymentMethod = 'Credit';    
+                        $invPaymentMethod = 'Credit';
                         break;
                 }
-                
+
                 $insertData = array(
                     "client_id" => $clientID,
                     "reference_number" => $getInvoiceNoFormat.$referenceNo,
@@ -8139,7 +9020,7 @@
                 foreach($packageAry as $packageRow){
                     $packageID = $packageRow["packageID"];
                     $packageQty = $packageRow["quantity"];
-                    
+
                     $price = ($packageData[$packageID]["promoPrice"] > 0) ? $packageData[$packageID]["promoPrice"] : $packageData[$packageID]["price"];
                     $mPrice = $packageData[$packageID]["mPrice"];
                     $msPrice = $packageData[$packageID]["msPrice"];
@@ -8250,9 +9131,9 @@
                     $updateShoppingCart = $db->delete('shopping_cart');
 
                     $db->where('client_id', $clientID);
-                    $updateSessionData = $db->delete('session_data');    
+                    $updateSessionData = $db->delete('session_data');
                 }
-                
+
                 //Add to placement
                 if($placementID){
                     $placementTree = Tree::insertPlacementTree($clientID, $placementID,$placementPosition);
@@ -8274,7 +9155,7 @@
                         $isStarterCheck ++;
                     }
                 }
-                
+
                 if($isStarterCheck >= 1){
                     $calClientRank = Bonus::calculateBonusTier($clientID,$dateTime, 'starterKit', 'Bonus Tier');
 
@@ -8326,7 +9207,7 @@
                 "user" => $clientUsername,
             );
 
-            
+
 
             $activityReturn = Activity::insertActivity("Purchase Package","T00034","L00054",$activityData,$clientID);
 
@@ -8347,7 +9228,7 @@
             $companyInfo = Setting::$systemSetting['companyInfo'];
 
             $socialDetail = json_decode($companyInfo, true);
-            
+
             $recipient = $email;//recipient is email destination
             $sendType = 'email';
 
@@ -8449,12 +9330,12 @@
                             .companyTxt4Div {
                                 list-style-type: circle;
                             }
-                            
+
                             .contentImage {
                                 width: 100%;
                                 height: auto;
                             }
-                            
+
                             .socialIcon {
                                 margin: 5px;
                                 width: 30px;
@@ -8475,7 +9356,7 @@
                             a.companyLinkBtn:hover {
                                 text-decoration: underline;
                             }
-                            
+
                             .alignMiddle {
                                 display: -webkit-flex;
                                 display: flex;
@@ -8483,7 +9364,7 @@
                                 align-items: center;
                                 height: auto;
                             }
-                            
+
                             .alignMiddle img {
                                 margin-right: 10px;
                             }
@@ -8496,9 +9377,9 @@
                         <div class="loginBlock">
                             <div class="companyMsgBox">
                                 <img class="companyEmailIcon" src="'.$memberSite.'/images/project/favicon.png" alt="">
-                                <h3 class="companyTxt1">'.$translations['B00460'][$language].'</h3> 
+                                <h3 class="companyTxt1">'.$translations['B00460'][$language].'</h3>
                                 <div class="longLine"></div>
-                                <h3 class="companyTxt2">'.$translations['B00461'][$language].'</h3> 
+                                <h3 class="companyTxt2">'.$translations['B00461'][$language].'</h3>
                                 <p class="companyTxt3">'.$translations['B00462'][$language].'</p>
                                 <p class="companyTxt3">'.$translations['B00463'][$language].'</p>
                                 <p class="companyTxt3">'.$translations['B00464'][$language].'</p>
@@ -8570,50 +9451,74 @@
 
                     switch($dataName) {
                         case 'status':
-                            $db->where("status", $dataValue);
+                            if($dataValue == 'active')
+                            {
+                                $dataValue = 0;
+                            }
+                            else
+                            {
+                                $dataValue = 1;
+                            }
+                            $db->where("v.deleted", $dataValue);
                             break;
 
                         case 'supplierID':
-                            $db->where('code', $dataValue);
+                            $db->where('v.vendor_code', "%".$dataValue."%","LIKE");
                             break;
 
                         case 'name':
-                            $db->where('name', $dataValue);
+                            $db->where('name', "%" .$dataValue. "%" ,"LIKE");
                             break;
-                            
+
                         case 'createdAt':
                             $dateFrom = trim($v['tsFrom']);
                             $dateTo = trim($v['tsTo']);
 
                             if($dateFrom <= 0 || $dateTo <= 0) return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
 
-                            if ($dateFrom) $db->where("Date(created_at)", date('Y-m-d', $dateFrom), '>=');
+                            if ($dateFrom) $db->where("Date(v.created_at)", date('Y-m-d', $dateFrom), '>=');
 
                             if ($dateTo) {
                                 if($dateTo < $dateFrom)
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
 
-                                $db->where("Date(created_at)", date('Y-m-d', $dateTo), '<=');
+                                $db->where("Date(v.created_at)", date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
-                            unset($dateTo);    
+                            unset($dateTo);
                             break;
                     }
                     unset($dataName);
                     unset($dataValue);
                 }
             }
-            $copyDb = $db->copy();    
-            $db->orderBy('created_at', 'DESC');
-            if($type) $db->where('status','Active');
-            $supplier = $db->get('inv_supplier', NULL, 'id, created_at, name, code, address, phone, status');
+            $copyDb = $db->copy();
+            $db->orderBy('v.created_at', 'DESC');
+            // $db->where('v.deleted','0');
+            $db->join('vendor_address va', 'v.id = va.vendor_id', 'LEFT');
+            $supplier = $db->get('vendor v', NULL, 'v.id as id, v.name as name, v.vendor_code as vendor_code, v.pic as pic, v.mobile as mobile, v.email as email, va.address as address, v.created_at as created_at, v.deleted as deleted');
 
             if(!$supplier){
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
             }
             foreach($supplier as $key => $value){
-                $supplier[$key]['createdAt'] = date('Y-m-d',strtotime($value['created_at']));
+                $supplierList[$key]['id'] = $value['id'];
+                $supplierList[$key]['name'] = $value['name'];
+                $supplierList[$key]['code'] = $value['vendor_code'];
+                $supplierList[$key]['phone'] = $value['mobile'];
+                $supplierList[$key]['email'] = $value['email'];
+                $supplierList[$key]['pic'] = $value['pic'];
+                $supplierList[$key]['address'] = $value['address'];
+                if($value['deleted'] == 0)
+                {
+                    $supplierList[$key]['status'] = 'Active';
+                }
+                else
+                {
+                    $supplierList[$key]['status'] = 'Inactive';
+                }
+                $supplierList[$key]['createdAt'] = date('Y-m-d',strtotime($value['created_at']));
             }
 
             if($params['type'] == "export"){
@@ -8622,9 +9527,9 @@
                 return array('status' => "ok", 'code' => 0, 'statusMsg' =>$translations["E00716"][$language], 'data' => $data);
             }
 
-            $data['supplierDetails'] = $supplier;
+            $data['supplierDetails'] = $supplierList;
 
-            $totalRecord = $copyDb->getValue('inv_supplier', 'COUNT(*)');
+            $totalRecord = $copyDb->getValue('vendor v', 'COUNT(*)');
             $data['pageNumber']          = $pageNumber;
             $data['totalRecord']         = $totalRecord;
             if($seeAll == "1"){
@@ -8637,7 +9542,7 @@
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
-        
+
         public function getSupplierDetail($params){
             $db = MysqliDb::getInstance();
             $language = General::$currentLanguage;
@@ -8647,32 +9552,52 @@
             $clientID = $db->userID;
             $site = $db->userType;
             $type = $params['type'];
-            
-            $supplierID = $params['supplierID'];    
+
+            $supplierID = $params['supplierID'];
 
             if($type == 'add'){
-                $data['code'] = General::generateDynamicCode("SP",5,'inv_supplier','code');                
+                $data['code'] = General::generateDynamicCode("GT",3,'vendor','vendor_code');
             }else{
                 if(!$supplierID) {
                     return array('status' => "error", 'code' => 2, 'statusMsg' => $translations['E01051'][$language] /* Invalid ID */, 'data' => "");
                 }
 
                 $db->where('id', $supplierID);
-                $supplier = $db->getOne('inv_supplier','name, code, country_id, phone, address, status');
+                $supplier = $db->getOne('vendor','name, vendor_code, pic, country_id, mobile, email, deleted');
 
                 $db->where('id', $supplier['country_id']);
                 $dialCode = $db->getValue('country','country_code');
 
+                $db->where('vendor_id', $supplierID);
+                $getAddress = $db->get('vendor_address',null, 'id, address');
+
                 if(empty($supplier)){
                     return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => $data);
+                } else {
+                    if($supplier['deleted'] == 0) {
+                        $supplierStatus = "Active";
+                    } else {
+                        $supplierStatus = "Inactive";
+                    }
                 }
 
-                $data['name'] = $supplier['name'];
-                $data['code'] = $supplier['code'];
-                $data['address'] = $supplier['address'];
-                $data['status'] = $supplier['status'];
+                if($getAddress) {
+                    foreach($getAddress as $val) {
+                        $address['addressID'] = $val['id'];
+                        $address['address']   = $val['address'];
+
+                        $addressList[] = $address;
+                    }
+                }
+
+                $data['name']     = $supplier['name'];
+                $data['code']     = $supplier['vendor_code'];
+                $data['address']  = $addressList;
+                $data['status']   = $supplierStatus;
                 $data['dialCode'] = $dialCode;
-                $data['phone'] = $supplier['phone'];
+                $data['phone']    = $supplier['mobile'];
+                $data['email']    = $supplier['email'];
+                $data['pic']      = $supplier['pic'];
             }
 
             $db->where('delivery_country', '1');
@@ -8696,10 +9621,12 @@
             $supplierID = trim($params['supplierID']);
             $name       = trim($params['name']);
             $code       = trim($params['code']);
-            $address    = trim($params['address']);
+            $address    = $params['address'];
             $dialCode   = trim($params['dialCode']);
             $contact    = trim($params['contact']);
-            $status     = trim($params['status']);      
+            $status     = trim($params['status']);
+            $email      = trim($params['email']);
+            $pic        = trim($params['pic']);
 
             $db->where('role_id', $adminRolesListAry, 'IN');
             $availableAdminRes = $db->getValue('admin', 'id', null);
@@ -8713,14 +9640,14 @@
                 }
             }else{
                 $db->where('id',$supplierID);
-                $checkName = $db->getValue('inv_supplier','name');
+                $checkName = $db->getValue('vendor','name');
                 if(!in_array($clientID, $availableAdminRes)){
                     if(empty($name) || $name != $checkName){
                         $errorFieldArr[] = array(
                             'id'  => "nameError",
                             'msg' => $translations['E01081'][$language] /* Name cannot be changed */
                         );
-                    } 
+                    }
                 }else{
                     if(empty($name)){
                         $errorFieldArr[] = array(
@@ -8728,16 +9655,16 @@
                             'msg' => $translations['E00635'][$language] /* Please Enter Name. */
                         );
                     }
-                    
-                    $db->where('id', $supplierID, '!=');
-                    $db->where('code',$code);
-                    $checkDuplicateCodeRes = $db->getValue('inv_supplier','code');
-                    if($checkDuplicateCodeRes){
-                        $errorFieldArr[] = array(
-                            'id'  => "codeError",
-                            'msg' => $translations['E00929'][$language] /* Code Exists. */
-                        );
-                    }
+
+                    // $db->where('id', $supplierID, '!=');
+                    // $db->where('code',$code);
+                    // $checkDuplicateCodeRes = $db->getValue('vendor','code');
+                    // if($checkDuplicateCodeRes){
+                    //     $errorFieldArr[] = array(
+                    //         'id'  => "codeError",
+                    //         'msg' => $translations['E00929'][$language] /* Code Exists. */
+                    //     );
+                    // }
                 }
             }
 
@@ -8762,6 +9689,29 @@
                 );
             }
 
+            if(empty($email)) {
+                $errorFieldArr[] = array(
+                    'id' => 'emailError',
+                    'msg' => $translations["E00318"][$language] /* Please fill in email */
+                );
+            }else {
+                if ($email) {
+                    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        $errorFieldArr[] = array(
+                            'id' => 'emailError',
+                            'msg' => $translations["E00319"][$language] /* Invalid email format. */
+                            );
+                    }
+                }
+            }
+
+            if(empty($pic)) {
+                $errorFieldArr[] = array(
+                    'id' => 'picError',
+                    'msg' => $translations["E01164"][$language] /* Please fill in person in charge name */
+                );
+            }
+
             $statusAry = array('Active', 'Inactive');
             if(!$status || !in_array($status, $statusAry)) {
                 $errorFieldArr[] = array(
@@ -8777,7 +9727,7 @@
 
             return array('status'=>"ok", 'code'=>0, 'statusMsg'=>"", 'data'=>"");
         }
-        
+
         public function addSupplier($params){
             $db         = MysqliDb::getInstance();
             $language   = General::$currentLanguage;
@@ -8789,10 +9739,12 @@
 
             $name       = trim($params['name']);
             $code       = trim($params['code']);
-            $address    = trim($params['address']);
+            $address    = $params['address'];
             $contact    = trim($params['contact']);
-            $status     = trim($params['status']);
+            $email      = trim($params['email']);
             $dialCode   = trim($params['dialCode']);
+            $pic        = trim($params['pic']);
+            $address    = trim($params['address']);
 
             if(!$clientID) {
                 return array('status'=>'error', 'code'=>2, 'statusMsg'=>$translations['A01078'][$language] /* Access denied. */, 'data'=>'');
@@ -8811,18 +9763,40 @@
             $db->where('country_code', $dialCode);
             $countryID = $db->getValue('country','id');
 
-            $insertData = array(
-                                "name"      => $name,
-                                "code"      => $code,
-                                "address"   => $address,
-                                "country_id"=> $countryID,
-                                "phone"     => $contact,
-                                "status"    => $status,
-                                "created_at"=> $dateTime
-                                );
-            $insert = $db->insert('inv_supplier', $insertData);
+            $insertVendorData = array(
+                'name'        => $name,
+                'vendor_code' => $code,
+                'country_id'  => $countryID,
+                'mobile'      => $contact,
+                'email'       => $email,
+                'pic'         => $pic,
+                'deleted'     => '0',
+                'created_at'  => $dateTime
+            );
+            $insertVendor = $db->insert('vendor', $insertVendorData);
 
-            if(!$insert) {
+            if(is_array($address)) {
+                foreach($address as $val) {
+                    $insertAddressData = array(
+                        'address'    => $val,
+                        'vendor_id'  => $insertVendor,
+                        'deleted'    => '0',
+                        'created_at' => $dateTime
+                    );
+                    $insertAddressDataList[] = $insertAddressData;
+                }
+                $insertAddress = $db->insertMulti('vendor_address', $insertAddressDataList);
+            } else {
+                $insertAddressData = array(
+                    'address'    => $address,
+                    'vendor_id'  => $insertVendor,
+                    'deleted'    => '0',
+                    'created_at' => $dateTime
+                );
+                $insertAddress = $db->insert('vendor_address', $insertAddressData);
+            }
+
+            if(!$insertVendor) {
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01082"][$language] /* Failed to add supplier. */, 'data' => "");
             }
 
@@ -8837,7 +9811,7 @@
 
             return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00102"][$language] /* Successfully Added */ , 'data'=> "");
         }
-        
+
         public function editSupplier($params){
             $db = MysqliDb::getInstance();
             $language = General::$currentLanguage;
@@ -8847,15 +9821,17 @@
             $adminRolesListAry = explode("#", $adminRoleList);
 
             $clientID = $db->userID;
-            $site = $db->userType;     
+            $site = $db->userType;
 
             $supplierID = trim($params['supplierID']);
             $name       = trim($params['name']);
             $code       = trim($params['code']);
-            $address    = trim($params['address']);
-            $contact    = trim($params['contact']);
+            $address    = $params['address'];
+            // $contact    = trim($params['contact']);
             $status     = trim($params['status']);
-            $dialCode   = trim($params['dialCode']);
+            // $dialCode   = trim($params['dialCode']);
+            $email      = trim($params['email']);
+            $pic        = trim($params['pic']);
 
             if(!$clientID) {
                 return array('status'=>'error', 'code'=>2, 'statusMsg'=>$translations['A01078'][$language] /* Access denied. */, 'data'=>'');
@@ -8870,34 +9846,40 @@
 
             if(!$supplierID){
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
-            }else{
-                $db->where('id',$supplierID);
-                $checkSupplier = $db->has('inv_supplier');
-                if(!$checkSupplier){
-                    return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
-                }
             }
-
+            // else{
+            //     $db->where('id',$supplierID);
+            //     $checkSupplier = $db->has('inv_supplier');
+            //     if(!$checkSupplier){
+            //         return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
+            //     }
+            // }
             $verify     = self::verifySupplier($params,'edit');
             if($verify['status'] != 'ok') return $verify;
 
+            // if($status == "Inactive"){
+            //     $db->where("supplier_id", $supplierID);
+            //     $db->groupBy("supplier_id");
+            //     $checkStatus = $db->getValue("inv_stock","SUM(stock_in - stock_out)");
+
+            //     if($checkStatus > 0){
+            //         $errorFieldArr[] = array(
+            //             'id'  => "statusError",
+            //             'msg' => $translations['E01105'][$language] /* This supplier cannot be Inactive due to existing stock. */
+            //         );
+            //     }
+            // }
+
+            // if ($errorFieldArr) {
+            //     $data['field'] = $errorFieldArr;
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
+            // }
+
             if($status == "Inactive"){
-                $db->where("supplier_id", $supplierID);
-                $db->groupBy("supplier_id");
-                $checkStatus = $db->getValue("inv_stock","SUM(stock_in - stock_out)");
-
-                if($checkStatus > 0){
-                    $errorFieldArr[] = array(
-                        'id'  => "statusError",
-                        'msg' => $translations['E01105'][$language] /* This supplier cannot be Inactive due to existing stock. */
-                    );
-                }
+                $delete = '1';
+            } else {
+                $delete = '0';
             }
-
-            if ($errorFieldArr) {
-                $data['field'] = $errorFieldArr;
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
-            } 
 
             $db->where('country_code', $dialCode);
             $countryID = $db->getValue('country','id');
@@ -8905,38 +9887,45 @@
             $db->where('role_id', $adminRolesListAry, 'IN');
             $checkAdminRoleRes = $db->getValue('admin','id',null);
 
-            if(in_array($clientID, $checkAdminRoleRes)){
-                $updateData = array(
-                                    "name"      => $name,
-                                    "code"      => $code,
-                                    "country_id"=> $countryID,
-                                    "address"   => $address,
-                                    "phone"     => $contact,
-                                    "status"    => $status,
-                                    );
+            // if(in_array($clientID, $checkAdminRoleRes)){
+            //     $updateData = array(
+            //                         "name"      => $name,
+            //                         "code"      => $code,
+            //                         "country_id"=> $countryID,
+            //                         "address"   => $address,
+            //                         "phone"     => $contact,
+            //                         "status"    => $status,
+            //                         );
 
-                $invLog = array(
-                        "module"                    =>  "inv_supplier",
-                        "module_id"                 =>  $supplierID,
-                        "title_transaction_code"    =>  "T00063",
-                        "title"                     =>  "Edit Supplier",
-                        "transaction_code"          =>  "L00086",
-                        "data"                      =>  json_encode(array("admin"=>$checkAdmin)),
-                        "creator_type"              =>  $site,
-                        "creator_id"                =>  $clientID,
-                        "created_at"                =>  $dateTime,
-                );
-                $db->insert("inv_log", $invLog);
-            }else{
-                $updateData = array(
-                                    "country_id"=> $countryID,
-                                    "address"   => $address,
-                                    "phone"     => $contact,
-                                    "status"    => $status,
-                                    );
-            }
+            //     $invLog = array(
+            //             "module"                    =>  "inv_supplier",
+            //             "module_id"                 =>  $supplierID,
+            //             "title_transaction_code"    =>  "T00063",
+            //             "title"                     =>  "Edit Supplier",
+            //             "transaction_code"          =>  "L00086",
+            //             "data"                      =>  json_encode(array("admin"=>$checkAdmin)),
+            //             "creator_type"              =>  $site,
+            //             "creator_id"                =>  $clientID,
+            //             "created_at"                =>  $dateTime,
+            //     );
+            //     $db->insert("inv_log", $invLog);
+            // }else{
+            $updateData = array(
+                "country_id" => $countryID,
+                "name"       => $name,
+                "email"      => $email,
+                "updated_at" => $dateTime,
+                "pic"        => $pic,
+                "deleted"    => $delete
+            );
+            // }
             $db->where('id', $supplierID);
-            $update = $db->update('inv_supplier', $updateData);
+            $update = $db->update('vendor', $updateData);
+
+            foreach($address as $val) {
+                $db->where('id', $val['id']);
+                $updateAddress = $db->update('vendor_address', array('address' => $val['address']));
+            }
 
             if(!$update) {
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00131"][$language] /* Update failed. */, 'data' => "");
@@ -8949,7 +9938,7 @@
 
             if(!$activityRes) {
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00144"][$language] /* Failed to insert activity. */, 'data' => "");
-            }       
+            }
 
             return array('status' => 'ok', 'code' => 0, 'statusMsg' => $translations["A00684"][$language] /* Update Successful */, 'data' => "");
         }
@@ -8969,14 +9958,14 @@
             $limit          = General::getLimit($pageNumber);
             $decimalPlaces  = Setting::getSystemDecimalPlaces();
             $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
-            $seeAll         = $params['seeAll'];   
+            $seeAll         = $params['seeAll'];
 
             $clientID = $db->userID;
             $site = $db->userType;
 
             if($seeAll == 1){
                 $limit = null;
-            } 
+            }
 
             if($limit) $limitCond = "LIMIT ".implode(",", $limit);
 
@@ -8993,12 +9982,12 @@
                         case "mainLeaderUsername":
                             $db->where('username', $dataValue);
                             $mainLeaderID  = $db->getValue('client', 'id');
-                            $mainDownlines = Leader::getLeaderDownlines($mainLeaderID); 
+                            $mainDownlines = Leader::getLeaderDownlines($mainLeaderID);
 
                             if(empty($mainDownlines)) return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00112"][$language] /* No Results Found. */, 'data' => "");
                             // $db->where('client_id', $mainDownlines, "IN");
                             $orderRules[] = "client_id IN ('".implode("', '", $mainDownlines)."')";
-                            $pendingRules[] = "client_id IN ('".implode("', '", $mainDownlines)."')"; 
+                            $pendingRules[] = "client_id IN ('".implode("', '", $mainDownlines)."')";
 
                             break;
 
@@ -9074,9 +10063,9 @@
 
                     switch($dataName) {
                         case 'invoiceNo':
-                            $orderRules[] = "reference_number = '".$dataValue."'";    
+                            $orderRules[] = "reference_number = '".$dataValue."'";
                             break;
-                            
+
                         case 'transactionDate':
 
                             $dateFrom = trim($v['tsFrom']);
@@ -9092,7 +10081,7 @@
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
                                 }
-                                    
+
                                 if($dateTo < $dateFrom){
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
@@ -9104,7 +10093,7 @@
 
                             $pendingRules[] = "Date(created_at) >= '".date('Y-m-d', $dateFrom)."'";
                             $pendingRules[] = "Date(created_at) <= '".date('Y-m-d', $dateTo)."'";
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             break;
@@ -9118,26 +10107,35 @@
 
                             break;
 
+                        case 'username':
+                            $db->where('username', $dataValue);
+                            $searchClientID = $db->getValue('client', "id");
+
+                            $orderRules[] = "client_id = '".$searchClientID."'";
+                            $pendingRules[] = "client_id = '".$searchClientID."'";
+
+                            break;
+
                         case 'fullname':
                             if ($dataType == "like") {
                                 $db->where('name', '%' . $dataValue . '%', "LIKE");
                                 $fullnames = $db->getValue('client', "id", NULL);
 
                                 $orderRules[] = "client_id IN ('".implode("', '", $fullnames)."')";
-                                $pendingRules[] = "client_id IN ('".implode("', '", $fullnames)."')"; 
+                                $pendingRules[] = "client_id IN ('".implode("', '", $fullnames)."')";
                             }else{
                                 $db->where('name', $dataValue);
                                 $fullname = $db->getOne('client', "id")['id'];
 
                                 $orderRules[] = "client_id = '".$fullname."'";
-                                $pendingRules[] = "client_id = '".$fullname."'";    
+                                $pendingRules[] = "client_id = '".$fullname."'";
                             }
 
                             break;
 
                         // filter for po listing
                         case 'deliveryOption':
-                            $orderRules[] = "delivery_option = '".$dataValue."'";
+                            $orderRules[] = "delivery_method = '".$dataValue."'";
                             break;
 
                         case 'status':
@@ -9146,7 +10144,7 @@
                             break;
 
                         case 'poNumber':
-                            $orderRules[] = "po_number = '".$dataValue."'";
+                            $orderRules[] = "id = '".$dataValue."'";
                             break;
 
                         case 'doNumber':
@@ -9155,6 +10153,11 @@
 
                             $orderRules[] = "id IN ('".implode("', '", $invIDs)."')";
                             break;
+
+                        case 'payment_method':
+                            $orderRules[] = "payment_method = '".$dataValue."'";
+                            break;
+    
                     }
 
                     unset($dataName);
@@ -9176,12 +10179,13 @@
             $sort = "ORDER BY created_at DESC";
             if($orderRules) $orderRule = "WHERE ". implode(" AND ", $orderRules);
 
-            $pendingRules[] = "status IN ('Pending', 'Expired')" ;
+            $pendingRules[] = "status IN ('Draft', 'Pending', 'Expired', 'Waiting for Payment', 'Cancelled', 'Payment Verified')" ;
             if($pendingRules) $pendingRule = "WHERE ". implode(" AND ", $pendingRules);
 
-            $query = "SELECT id, client_id, created_at, 'order' FROM inv_order ".$orderRule." UNION ALL SELECT id, client_id, created_at, 'pending' FROM mlm_pending_payment ".$pendingRule." ".$sort." ".$limitCond;
-      
+            $query = "SELECT id, client_id, created_at, 'order' FROM sale_order ".$orderRule. $sort;
+
             $invoiceList = $db->rawQuery($query);
+
             if(empty($invoiceList)){
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
             }
@@ -9198,150 +10202,156 @@
                 $clientIDAry[$invoiceRow['client_id']] = $invoiceRow['client_id'];
             }
 
+            // print_r(json_encode($invoiceList));
+            // exit;
             if($invoiceOrderIDAry){
                 $db->where('id', $invoiceOrderIDAry, 'IN');
-                $invData = $db->map('id')->get('inv_order', NULL, 'id, reference_number, po_number, delivery_option, status, total_pv, total_price, courier_service, payment_type, paid_amount');
+                $invData = $db->map('id')->get('sale_order', NULL, 'id, payment_amount, delivery_method, status, redeem_amount, payment_method');
 
-                $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
-                $invOrderIDAry = $db->map("inv_order_id")->get("inv_order_payment", NULL, "inv_order_id, credit_type");
-                foreach ($invOrderIDAry as $creditRow) {
-                    $creditNameAry[$creditRow] = $creditRow;
-                }
-                if($creditNameAry){
-                    $db->where("type",$creditNameAry, "IN");
-                    $creditLang = $db->map("type")->get("credit", NULL, "type, translation_code");
-                }
+                // print_r("invData:".json_encode($invClient)."\n\n");
+                // exit;
+                // $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
+                // $invOrderIDAry = $db->map("inv_order_id")->get("inv_order_payment", NULL, "inv_order_id, credit_type");
+                // foreach ($invOrderIDAry as $creditRow) {
+                //     $creditNameAry[$creditRow] = $creditRow;
+                // }
+                // if($creditNameAry){
+                //     $db->where("type",$creditNameAry, "IN");
+                //     $creditLang = $db->map("type")->get("credit", NULL, "type, translation_code");
+                // }
 
-                $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
-                $invOrderDetailRes = $db->get('inv_order_detail', NULL ,'inv_order_id, mlm_product_id, left_stock_quantity');
+                // $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
+                // $invOrderDetailRes = $db->get('inv_order_detail', NULL ,'inv_order_id, mlm_product_id, left_stock_quantity');
 
-                foreach ($invOrderDetailRes as $detailRow) {
-                    $invOrderDetailList[$detailRow['inv_order_id']][$detailRow['mlm_product_id']] += 1;
-                    $productList[$detailRow['mlm_product_id']] = $detailRow['mlm_product_id'];
-                    $leftStockQuantityAry[$detailRow['inv_order_id']] += $detailRow['left_stock_quantity'];
-                }
+                // foreach ($invOrderDetailRes as $detailRow) {
+                //     $invOrderDetailList[$detailRow['inv_order_id']][$detailRow['mlm_product_id']] += 1;
+                //     $productList[$detailRow['mlm_product_id']] = $detailRow['mlm_product_id'];
+                //     $leftStockQuantityAry[$detailRow['inv_order_id']] += $detailRow['left_stock_quantity'];
+                // }
 
-                if($productList){
-                    $db->where('module_id', $productList, 'IN');
-                    $db->where('module', 'mlm_product');
-                    $db->where('language', $language);
-                    $db->where('type', 'name');
-                    $productData = $db->map('module_id')->get('inv_language', null, 'module_id, content');
-                }
+                // if($productList){
+                //     $db->where('module_id', $productList, 'IN');
+                //     $db->where('module', 'mlm_product');
+                //     $db->where('language', $language);
+                //     $db->where('type', 'name');
+                //     $productData = $db->map('module_id')->get('inv_language', null, 'module_id, content');
+                // }
 
-                $db->where("inv_order_id", $invoiceOrderIDAry,'IN');
-                $deliveryOrderRes = $db->get('inv_delivery_order', null, 'id, inv_order_id, tracking_number, reference_number, status');
+                // $db->where("inv_order_id", $invoiceOrderIDAry,'IN');
+                // $deliveryOrderRes = $db->get('inv_delivery_order', null, 'id, inv_order_id, tracking_number, reference_number, status');
 
-                foreach ($deliveryOrderRes as $deliveryOrderRow) {
-                    if($deliveryOrderRow['tracking_number']){
-                        $trackingNoAry[$deliveryOrderRow['inv_order_id']]['tracking_number'] = $deliveryOrderRow['tracking_number'];
-                        $trackingNoAry[$deliveryOrderRow['inv_order_id']]['status'] = $deliveryOrderRow['status'];
-                    }
-                    if($deliveryOrderRow['reference_number']){
-                        $trackingNoAry[$deliveryOrderRow['inv_order_id']]['reference_number'] = $deliveryOrderRow['reference_number'];
-                    }
-                }
+                // foreach ($deliveryOrderRes as $deliveryOrderRow) {
+                //     if($deliveryOrderRow['tracking_number']){
+                //         $trackingNoAry[$deliveryOrderRow['inv_order_id']]['tracking_number'] = $deliveryOrderRow['tracking_number'];
+                //         $trackingNoAry[$deliveryOrderRow['inv_order_id']]['status'] = $deliveryOrderRow['status'];
+                //     }
+                //     if($deliveryOrderRow['reference_number']){
+                //         $trackingNoAry[$deliveryOrderRow['inv_order_id']]['reference_number'] = $deliveryOrderRow['reference_number'];
+                //     }
+                // }
 
-                $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
-                $deliOrderNum = $db->map('inv_order_id')->get('inv_delivery_order', NULL ,'inv_order_id, reference_number');
+                // $db->where("inv_order_id",$invoiceOrderIDAry, "IN");
+                // $deliOrderNum = $db->map('inv_order_id')->get('inv_delivery_order', NULL ,'inv_order_id, reference_number');
 
-                $db->where("inv_order_id",$invoiceOrderIDAry,"IN");
-                $voucherDataAry = $db->map("inv_order_id")->get("inv_order_voucher",null,"inv_order_id,type,discount_type,discount_percentage,discount_amount,real_discount_amount");
+                // $db->where("inv_order_id",$invoiceOrderIDAry,"IN");
+                // $voucherDataAry = $db->map("inv_order_id")->get("inv_order_voucher",null,"inv_order_id,type,discount_type,discount_percentage,discount_amount,real_discount_amount");
             }
-
+           
             if($clientIDAry){
                 $db->where("id",$clientIDAry, "IN");
-                $clientInfoAry = $db->map("id")->get("client", NULL, "id, member_id, name");
+                $clientInfoAry = $db->map("id")->get("client", NULL, "id, member_id, username, name");
             }
 
-            if($invoicePendingIDAry){ 
+            if($invoicePendingIDAry){
                 $db->where('id', $invoicePendingIDAry, 'IN');
                 $pendingData = $db->map('id')->get('mlm_pending_payment', NULL, 'id, client_id, amount, status');
             }
-
+//  print_r("clientInfoAry:".json_encode($clientInfoAry)."\n\n");
+//                 exit;
             foreach ($invoiceList as $invoiceRow) {
                 unset($invoice);
                 $invoice['id'] = $invoiceRow['id'];
                 $invoice['memberID'] = $clientInfoAry[$invoiceRow['client_id']]['member_id'];
-                $invoice['created_at'] = date($dateTimeFormat, strtotime($invoiceRow['created_at'])); 
-                $invoice['invoiceNumber'] = $invData[$invoiceRow['id']]['reference_number'] ?: '-';
+                $invoice['username'] = $clientInfoAry[$invoiceRow['client_id']]['username'];
+                $invoice['created_at'] = date($dateTimeFormat, strtotime($invoiceRow['created_at']));
+                // $invoice['invoiceNumber'] = $invData[$invoiceRow['id']]['reference_number'] ?: '-';
                 $invoice['fullname'] = $clientInfoAry[$invoiceRow['client_id']]['name'];
-                if($invData[$invoiceRow['id']]['payment_type'] == 'Credit'){
-                    $invoice['paymentMethod'] = $translations[$creditLang[$invOrderIDAry[$invoiceRow['id']]]][$language];
-                } else {
-                    $invoice['paymentMethod'] = General::getTranslationByName($invData[$invoiceRow['id']]['payment_type']);
-                }
-
+                $paymentMethod = !empty($invData[$invoiceRow['id']]['payment_method']) ? $invData[$invoiceRow['id']]['payment_method'] : "-";
+                $invoice['paymentMethod'] = $paymentMethod;
+                
                 if($invoiceRow['order'] == 'order'){
-                    $invoice['poNumber'] = $invData[$invoiceRow['id']]['po_number'] ?: "-" ;
-                    $invoice['deliveryOption'] = $invData[$invoiceRow['id']]['delivery_option'];
-                    $invoice['DONumber'] = $deliOrderNum[$invoiceRow['id']] ?: "-";
-                    $invoice['courierService'] = $invData[$invoiceRow['id']]['courier_service'];
-                    $invoice["orderAmount"] = Setting::setDecimal($invData[$invoiceRow['id']]['total_price']);
-                    $invoice["totalPV"] = Setting::setDecimal($invData[$invoiceRow['id']]['total_pv']);
+                    $invoice['poNumber'] = $invoiceRow['id'];
+                    $deliveryOption = !empty($invData[$invoiceRow['id']]['delivery_method']) ? $invData[$invoiceRow['id']]['delivery_method'] : "-";
+                    $invoice['deliveryOption'] = $deliveryOption;
+                    // $invoice['DONumber'] = $deliOrderNum[$invoiceRow['id']] ?: "-";
+                    // $invoice['courierService'] = $invData[$invoiceRow['id']]['courier_service'];
+                    $invoice["payment_amount"] = Setting::setDecimal($invData[$invoiceRow['id']]['payment_amount']);
+                    $invoice["redeem_amount"] = Setting::setDecimal($invData[$invoiceRow['id']]['redeem_amount']);
 
                     $invoice['status'] = $invData[$invoiceRow['id']]['status'];
-                    $invoice["statusDisplay"] = General::getTranslationByName($invData[$invoiceRow['id']]['status']);
-                } else {
-                    $invoice['poNumber'] = '-';
-                    $invoice['deliveryOption'] = '-';
-                    $invoice['DONumber'] = '-';
-                    $invoice['courierService'] = '-';
-                    $invoice["orderAmount"] = Setting::setDecimal($pendingData[$invoiceRow['id']]['amount']);
-                    $invoice["totalPV"] = Setting::setDecimal(0);
-
-                    $invoice['paymentMethod'] = General::getTranslationByName('VirtualAccount');
-                    $invoice['status'] = $pendingData[$invoiceRow['id']]['status'];
-                    $invoice["statusDisplay"] = General::getTranslationByName("PG ".$pendingData[$invoiceRow['id']]['status']);
+                    $invoice["statusDisplay"] = $invData[$invoiceRow['id']]['status'];
                 }
-                
-                $invoice['trackingFlag'] = 0;
-                $invoice['trackingNo'] = "-";
-                $invoice['trackingStatus'] = "-";
-                $invoice['DONumber'] = "-";
-                if($trackingNoAry[$invoiceRow['id']] && $invoiceRow['order'] == 'order'){
-                    $invoice['trackingFlag'] = 1;
-                    $invoice['trackingNo'] = $trackingNoAry[$invoiceRow['id']]['tracking_number'] ? : '-';
-                    $invoice['trackingStatus'] = General::getTranslationByName($trackingNoAry[$invoiceRow['id']]['status']) ? : '-';
-                    $invoice['DONumber'] = $trackingNoAry[$invoiceRow['id']]['reference_number'] ? : '-';
-                }
+                    // $invoice["statusDisplay"] = General::getTranslationByName($invData[$invoiceRow['id']]['status']);
+                // } else {
+                //     $invoice['poNumber'] = '-';
+                //     $invoice['deliveryOption'] = '-';
+                //     $invoice['DONumber'] = '-';
+                //     $invoice['courierService'] = '-';
+                //     $invoice["orderAmount"] = Setting::setDecimal($pendingData[$invoiceRow['id']]['amount']);
+                //     $invoice["totalPV"] = Setting::setDecimal(0);
 
-                $invoice['issueDOAllowed'] = 0;
-                if($leftStockQuantityAry[$invoiceRow['id']] > 0 && $invoiceRow['order'] == 'order'){
-                    $invoice['issueDOAllowed'] = 1;
-                }
+                //     $invoice['paymentMethod'] = General::getTranslationByName('VirtualAccount');
+                //     $invoice['status'] = $pendingData[$invoiceRow['id']]['status'];
+                //     $invoice["statusDisplay"] = General::getTranslationByName("PG ".$pendingData[$invoiceRow['id']]['status']);
+                // }
 
-                unset($tmpPackageList);
-                if($invoiceRow['order'] == 'order'){
-                    foreach ($invOrderDetailList[$invoiceRow['id']] as $productID => $amount) {
-                        $tmp['packageDisplay'] = $productData[$productID];
-                        $tmp['amount'] = $amount;
-                        $tmpPackageList[] = $tmp;
-                    }
-                    $invoice["packageList"] = $tmpPackageList;
-                } else{
-                    $invoice["packageList"] = $tmpPackageList;
-                }
+                // $invoice['trackingFlag'] = 0;
+                // $invoice['trackingNo'] = "-";
+                // $invoice['trackingStatus'] = "-";
+                // $invoice['DONumber'] = "-";
+                // if($trackingNoAry[$invoiceRow['id']] && $invoiceRow['order'] == 'order'){
+                //     $invoice['trackingFlag'] = 1;
+                //     $invoice['trackingNo'] = $trackingNoAry[$invoiceRow['id']]['tracking_number'] ? : '-';
+                //     $invoice['trackingStatus'] = General::getTranslationByName($trackingNoAry[$invoiceRow['id']]['status']) ? : '-';
+                //     $invoice['DONumber'] = $trackingNoAry[$invoiceRow['id']]['reference_number'] ? : '-';
+                // }
 
-                if($voucherDataAry[$invoiceRow["id"]] && $invoiceRow['order'] == 'order'){
-                    unset($voucherData);
-                    $voucherData["voucherType"] = $voucherDataAry[$invoiceRow["id"]]["type"];
-                    $voucherData["discountType"] = $voucherDataAry[$invoiceRow["id"]]["discount_type"];
-                    switch($voucherDataAry[$invoiceRow["id"]]["discount_type"]){
-                        case "percentage":
-                            $voucherData["discountPercentage"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_percentage"]);
-                            $voucherData["maxDiscountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_amount"]);
-                            break;
+                // $invoice['issueDOAllowed'] = 0;
+                // if($leftStockQuantityAry[$invoiceRow['id']] > 0 && $invoiceRow['order'] == 'order'){
+                //     $invoice['issueDOAllowed'] = 1;
+                // }
 
-                        case "amount":
-                            $voucherData["discountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_amount"]);
-                            break;
-                    }
-                    $voucherData["realDiscountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["real_discount_amount"]);
-                    $invoice["voucherData"] = $voucherData;
-                }
+                // unset($tmpPackageList);
+                // if($invoiceRow['order'] == 'order'){
+                //     foreach ($invOrderDetailList[$invoiceRow['id']] as $productID => $amount) {
+                //         $tmp['packageDisplay'] = $productData[$productID];
+                //         $tmp['amount'] = $amount;
+                //         $tmpPackageList[] = $tmp;
+                //     }
+                //     $invoice["packageList"] = $tmpPackageList;
+                // } else{
+                //     $invoice["packageList"] = $tmpPackageList;
+                // }
 
-                $invoice["invoiceAmount"] = Setting::setDecimal($invData[$invoiceRow['id']]['paid_amount']);
+                // if($voucherDataAry[$invoiceRow["id"]] && $invoiceRow['order'] == 'order'){
+                //     unset($voucherData);
+                //     $voucherData["voucherType"] = $voucherDataAry[$invoiceRow["id"]]["type"];
+                //     $voucherData["discountType"] = $voucherDataAry[$invoiceRow["id"]]["discount_type"];
+                //     switch($voucherDataAry[$invoiceRow["id"]]["discount_type"]){
+                //         case "percentage":
+                //             $voucherData["discountPercentage"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_percentage"]);
+                //             $voucherData["maxDiscountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_amount"]);
+                //             break;
+
+                //         case "amount":
+                //             $voucherData["discountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["discount_amount"]);
+                //             break;
+                //     }
+                //     $voucherData["realDiscountAmount"] = Setting::setDecimal($voucherDataAry[$invoiceRow["id"]]["real_discount_amount"]);
+                //     $invoice["voucherData"] = $voucherData;
+                // }
+
+                // $invoice["invoiceAmount"] = Setting::setDecimal($invData[$invoiceRow['id']]['paid_amount']);
 
                 $invoiceListing[] = $invoice;
             }
@@ -9362,14 +10372,14 @@
                 case 'apo':
                     $data['newCommand'] = 'getAdminOrderListing';
                     break;
-                
+
                 default:
                     break;
             }
 
             $data['invoiceList'] = $invoiceListing;
 
-            $totalRecordRes = $db->rawQuery("SELECT COUNT(id) AS totalRecord FROM (SELECT id FROM inv_order ".$orderRule." UNION ALL SELECT id FROM mlm_pending_payment ".$pendingRule.") x");
+            $totalRecordRes = $db->rawQuery("SELECT COUNT(id) AS totalRecord FROM (SELECT id FROM sale_order ".$orderRule.") x");
             $totalRecord = $totalRecordRes[0]['totalRecord'];
 
             $data["pageNumber"] = $pageNumber;
@@ -9416,7 +10426,7 @@
             $db->where("id", $invoiceID);
             $invoiceDetail = $db->getOne("inv_order","id, client_id, reference_number AS referenceNo, created_at AS createdAt, delivery_option AS deliveryOption, delivery_add_id, billing_add_id, total_price AS subTotal, tax_charges AS taxCharges, delivery_fee AS deliveryFee, paid_amount AS paidAmount, total_pv AS totalPV");
 
-            $invoiceDetail['createdAt'] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"])); 
+            $invoiceDetail['createdAt'] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"]));
             $invoiceDetail['subTotal'] = Setting::setDecimal($invoiceDetail['subTotal']);
             $invoiceDetail['taxCharges'] = Setting::setDecimal($invoiceDetail['taxCharges']);
             $invoiceDetail['deliveryFee'] = Setting::setDecimal($invoiceDetail['deliveryFee']);
@@ -9464,7 +10474,7 @@
             // client table:  Member ID, Full Name
             $db->where("id", $invoiceDetail['client_id']);
             $clientDetail = $db->getOne("client","member_id AS memberID, name");
-            
+
             unset($invoiceDetail['delivery_add_id']);
             unset($invoiceDetail['billing_add_id']);
             unset($invoiceDetail['client_id']);
@@ -9478,7 +10488,7 @@
                 $invOrderRow['weight'] = Setting::setDecimal($invOrderRow['weight']);
                 $invOrderRow['totalWeight'] = Setting::setDecimal($invOrderRow['weight'] * $invOrderRow['quantity'] * $invOrderRow['stock_quantity'] );
                 $invOrderRow['quantity'] = Setting::setDecimal($invOrderRow['quantity']);
-                $invOrderRow['quantityLeft'] = Setting::setDecimal($invOrderRow['quantityLeft']);  
+                $invOrderRow['quantityLeft'] = Setting::setDecimal($invOrderRow['quantityLeft']);
 
                 $invOrder[$invOrderRow['packageDisplay']][$invOrderRow['productDisplay']] = $invOrderRow;
                 $invProductIDAry[$invOrderRow["productDisplay"]] = $invOrderRow["productDisplay"];
@@ -9524,9 +10534,9 @@
             $data['invoiceDetail'] = $invoiceDetail;
             $data['deliveryAddressDetail'] = $addressDetail;
             $data['billingAddressDetail'] = $billingAddressDetail;
-            $data['clientDetail'] = $clientDetail;  
+            $data['clientDetail'] = $clientDetail;
             $data['packageList'] =  $invOrder;
-             
+
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00425"][$language] /* Successfully retrieved */, 'data' => $data);
         }
 
@@ -9566,22 +10576,22 @@
             $data['showInsuranceTax'] = 0;
             $invoiceDetail['insuranceTax'] = Setting::setDecimal($invoiceDetail['insuranceTax']);
             if($invoiceDetail['insuranceTax'] > 0) $data['showInsuranceTax'] = 1;
-            
-            $invoiceDetail['createdAt'] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"])); 
+
+            $invoiceDetail['createdAt'] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"]));
             $invoiceDetail['subTotal'] = Setting::setDecimal($invoiceDetail['subTotal']);
             $invoiceDetail['taxCharges'] = Setting::setDecimal($invoiceDetail['taxCharges']);
             $invoiceDetail['deliveryFee'] = Setting::setDecimal($invoiceDetail['deliveryFee']);
             $invoiceDetail['paidAmount'] = Setting::setDecimal($invoiceDetail['paidAmount']);
-            $invoiceDetail['totalPV'] = Setting::setDecimal($invoiceDetail['totalPV']); 
+            $invoiceDetail['totalPV'] = Setting::setDecimal($invoiceDetail['totalPV']);
             $invoiceDetail['trackingNo'] = $trackingNo ? implode(', ', $trackingNo) : '-';
 
             $addressIDAry = array($invoiceDetail['delivery_add_id'], $invoiceDetail['billing_add_id']);
 
             if($addressIDAry){
                 $db->where("id", $addressIDAry, "IN" );
-                $addressDetailAry= $db->map('id')->get("address", NULL,"id, name, address, district_id AS districtID, sub_district_id AS subDistrictID, post_code_id AS postCodeID, city_id AS cityID, state_id AS stateID, country_id AS countryID, email, phone, address_type");
+                $addressDetailAry= $db->map('id')->get("address", NULL,"id, name, address, district_id AS districtID, sub_district_id AS subDistrictID, post_code AS postCodeID, city AS cityID, state_id AS stateID, country_id AS countryID, email, phone, address_type");
             }
-   
+
             foreach ($addressDetailAry as $addressRow) {
                 $stateAry[$addressRow['stateID']] = $addressRow['stateID'];
                 $countryAry[$addressRow['countryID']] = $addressRow['countryID'];
@@ -9624,19 +10634,19 @@
             foreach ($addressDetailAry as $addressRow) {
                 unset($addressDetail);
                 $addressDetail['fullname'] = $addressRow['name'];
-                $addressDetail['address'] = $addressRow['address']; 
+                $addressDetail['address'] = $addressRow['address'];
                 $addressDetail['district'] = $countyRes[$addressRow['districtID']]['name'];
                 $addressDetail['subDistrict'] = $subCountyRes[$addressRow['subDistrictID']]['name'];
                 $addressDetail['postCode'] = $postCodeRes[$addressRow['postCodeID']]['name'];
-                $addressDetail['city'] = $cityRes[$addressRow['cityID']]['name']; 
-                $addressDetail['email'] = $addressRow['email']; 
+                $addressDetail['city'] = $cityRes[$addressRow['cityID']]['name'];
+                $addressDetail['email'] = $addressRow['email'];
                 $addressDetail['phone'] = $addressRow['phone'];
                 $addressDetail['state'] = $stateRes[$addressRow['stateID']]['name'];
                 $addressDetail['stateDisplay'] = $stateRes[$addressRow['stateID']]['name'];
                 $addressDetail['country'] = $countryRes[$addressRow['countryID']]['name'];
                 $addressDetail['dialingArea'] = $countryRes[$addressRow['countryID']]['country_code'];
                 $addressDetail['countryDisplay'] = $translations[$countryRes[$addressRow['countryID']]['translation_code']][$language];
-                
+
                 $addressDetailRes[$addressRow['id']] = $addressDetail;
             }
 
@@ -9646,7 +10656,7 @@
             // client table:  Member ID, Full Name
             $db->where("id", $invoiceDetail['client_id']);
             $clientDetail = $db->getOne("client","member_id AS memberID, name");
-            
+
             unset($invoiceDetail['delivery_add_id']);
             unset($invoiceDetail['billing_add_id']);
             unset($invoiceDetail['client_id']);
@@ -9679,7 +10689,7 @@
                 foreach ($packageLangRes as $langRow) {
                     $packageLang[$langRow['module_id']] = $langRow['content'];
                 }
-                
+
                 // $db->where("product_id", $mlmProductIDAry, "IN");
                 // $packagePriceAry = $db->map('product_id')->get('mlm_product_price', NULL ,'product_id,price'); // package price
 
@@ -9698,7 +10708,7 @@
                 $invOrderData['package'] = $mlmProductIDAry[$invOrderRow['packageDisplay']];
                 $invOrderData['packageDisplay'] = $packageLang[$mlmProductIDAry[$invOrderRow['packageDisplay']]];
                 $invOrderData['packagePrice'] = Setting::setDecimal($invOrderRow['packagePrice']);
-                $invOrderData['totalPackagePrice'] = Setting::setDecimal($invOrderRow['packagePrice'] * $invOrderRow['quantity']);            
+                $invOrderData['totalPackagePrice'] = Setting::setDecimal($invOrderRow['packagePrice'] * $invOrderRow['quantity']);
                 //$invOrderData['pvPrice'] = Setting::setDecimal($pvPriceAry[$invOrderRow['packageDisplay']]["pvPrice"]);
                 $invOrderData['pvPrice'] = Setting::setDecimal($mlmInvOrderPv[$invOrderRow['packageDisplay']]);
 
@@ -9706,7 +10716,7 @@
                 $invOrderData['packageQuantity'] = Setting::setDecimal($invOrderRow['quantity']);
                 $productListData['productDisplay'] = $productNameRes[$invOrderRow['productDisplay']];
                 $productListData['productID'] = $invOrderRow['productDisplay'];
-                
+
                 if(($pvPriceAry[$invOrderRow["packageDisplay"]]["weight"] > 0)){
                     $invOrderData["totalProductWeight"] = Setting::setDecimal($invOrderRow["weight"] * $invOrderRow["quantity"]);
                 }else{
@@ -9735,7 +10745,7 @@
             $db->orderBy("created_at","DESC");
             $taxPercentage = $db->getValue("inv_tax_charges","rate");
             if(!$taxPercentage) $taxPercentage = 0;
-        
+
             // assign data into data
             if($invoiceDetail['deliveryOption'] == "pickup"){
                 $data['deliveryAddressDetail']['pickUpAddress'] = $companyAddress;
@@ -9770,11 +10780,299 @@
             $data['companyContact'] = $companyContactList;
             $data['taxPercentage'] = $taxPercentage;
             $data['invoiceDetail'] = $invoiceDetail;
-            $data['clientDetail'] = $clientDetail;  
+            $data['clientDetail'] = $clientDetail;
             $data['packageList'] =  $invOrder;
             $data['issueDOAllowed'] = $issueDOFlag;
             if($voucherData) $data["voucherData"] = $voucherData;
-             
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00425"][$language] /* Successfully retrieved */, 'data' => $data);
+        }
+
+        public function getSODetail($params){
+            $db = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $SaleID = trim($params['SaleID']);
+
+            if(!$SaleID) {
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01051"][$language], 'data'=> "");
+            }
+
+            // Company address
+            $db->where('name', 'pickUpOrigins');
+            $companyAddress = $db->getValue('system_settings', 'reference');
+            
+            // Company Contact No/ Email/ Fax
+            $db->where('type', 'companyContact');
+            $res = $db->getValue('system_settings', 'value');
+            $companyContactList = json_decode($res, true);
+
+            // Company Address
+            $db->where('type', 'companyAddressActual');
+            $res = $db->getValue('system_settings', 'value');
+            $companyAddressList = json_decode($res, true);
+
+            $db->where("id", $SaleID);
+            $invoiceDetail = $db->getOne("sale_order","id, client_id, 
+                                        created_at AS createdAt, payment_method AS paymentMethod, 
+                                        delivery_method AS deliveryMethod, shipping_address, billing_address, 
+                                        payment_amount AS paymentAmount, payment_tax AS paymentTax, 
+                                        shipping_fee AS shippingfee, status");
+
+            // $db->where("inv_order_id", $invoiceDetail['id']);
+            // $db->where("status",array("Cancel"),"NOT IN");
+            // $deliveryOrderRes = $db->get('inv_delivery_order', null, 'inv_order_id, tracking_number');
+            // foreach ($deliveryOrderRes as $deliveryOrderRow) {
+            //     if($deliveryOrderRow['tracking_number']){
+            //         $trackingNo[] = $deliveryOrderRow['tracking_number'];
+            //     }
+            // }
+
+            $data['showInsuranceTax'] = 0;
+            // $invoiceDetail['insuranceTax'] = Setting::setDecimal($invoiceDetail['insuranceTax']);
+            // if($invoiceDetail['insuranceTax'] > 0) $data['showInsuranceTax'] = 1;
+
+            $invoiceDetail['createdAt'] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"]));
+            $invoiceDetail['paymentAmount'] = Setting::setDecimal($invoiceDetail['paymentAmount']);
+            $invoiceDetail['paymentTax'] = Setting::setDecimal($invoiceDetail['paymentTax']);
+            $invoiceDetail['shippingfee'] = Setting::setDecimal($invoiceDetail['shippingfee']);
+            $invoiceDetail['paymentMethod'] = $invoiceDetail['paymentMethod'];
+            $invoiceDetail['deliveryMethod'] = $invoiceDetail['deliveryMethod'];
+            $invoiceDetail['shipping_address'] = $invoiceDetail['shipping_address'];
+            $invoiceDetail['billing_address'] = $invoiceDetail['billing_address'];
+
+            // $invoiceDetail['trackingNo'] = $trackingNo ? implode(', ', $trackingNo) : '-';
+
+            $addressIDAry = array($invoiceDetail['shipping_address'], $invoiceDetail['billing_address']);
+
+            if($addressIDAry){
+                $db->where("id", $addressIDAry, "IN" );
+                $addressDetailAry= $db->map('id')->get("address", NULL,"id, name, address, district_id AS districtID, sub_district_id AS subDistrictID, post_code AS postCodeID, city AS cityID, state_id AS stateID, country_id AS countryID, email, phone, address_type");
+            }
+
+            foreach ($addressDetailAry as $addressRow) {
+                $stateAry[$addressRow['stateID']] = $addressRow['stateID'];
+                $countryAry[$addressRow['countryID']] = $addressRow['countryID'];
+                // $countyAry[$addressRow['districtID']] = $addressRow['districtID'];
+                // $subCountyAry[$addressRow['subDistrictID']] = $addressRow['subDistrictID'];
+                $postCodeAry[$addressRow['postCodeID']] = $addressRow['postCodeID'];
+                $cityAry[$addressRow['cityID']] = $addressRow['cityID'];
+            }
+
+            if($stateAry){
+                $db->where("id", $stateAry, "IN");
+                $stateRes = $db->map('id')->get("state", NULL,"id, name, translation_code");
+            }
+
+            if($countryAry){
+                $db->where("id", $countryAry, "IN");
+                $countryRes = $db->map('id')->get("country", NULL,"id, name, translation_code, country_code");
+            }
+
+            if($countyAry){
+                $db->where("id", $countyAry, "IN");
+                $countyRes = $db->map('id')->get("county", NULL,"id, name, translation_code");
+            }
+
+            if($subCountyAry){
+                $db->where("id", $subCountyAry, "IN");
+                $subCountyRes = $db->map('id')->get("sub_county", NULL,"id, name, translation_code");
+            }
+
+            if($postCodeAry){
+                $db->where("id", $postCodeAry, "IN");
+                $postCodeRes = $db->map('id')->get("zip_code", NULL,"id, name, translation_code");
+            }
+
+            // if($cityAry){
+            //     $db->where("id", $cityAry, "IN");
+            //     $cityRes = $db->map('id')->get("city", NULL,"id, name, translation_code");
+            // }
+
+            foreach ($addressDetailAry as $addressRow) {
+                unset($addressDetail);
+                $addressDetail['fullname'] = $addressRow['name'];
+                $addressDetail['address'] = $addressRow['address'];
+                // $addressDetail['district'] = $countyRes[$addressRow['districtID']]['name'];
+                // $addressDetail['subDistrict'] = $subCountyRes[$addressRow['subDistrictID']]['name'];
+                $addressDetail['postCode'] = $postCodeRes[$addressRow['postCodeID']]['name'];
+                $addressDetail['city'] = $addressRow['cityID'];
+                // $addressDetail['email'] = $addressRow['email'];
+                $addressDetail['phone'] = $addressRow['phone'];
+                $addressDetail['state'] = $stateRes[$addressRow['stateID']]['name'];
+                $addressDetail['stateDisplay'] = $stateRes[$addressRow['stateID']]['name'];
+                $addressDetail['country'] = $countryRes[$addressRow['countryID']]['name'];
+                $addressDetail['dialingArea'] = $countryRes[$addressRow['countryID']]['country_code'];
+                $addressDetail['countryDisplay'] = $translations[$countryRes[$addressRow['countryID']]['translation_code']][$language];
+
+                $addressDetailRes[$addressRow['id']] = $addressDetail;
+            }
+
+            $deliveryAddressData = $addressDetailRes[$invoiceDetail['shipping_address']];
+            $billingAddressData = $addressDetailRes[$invoiceDetail['billing_address']];
+
+            // client table:  Member ID, Full Name
+            $db->where("id", $invoiceDetail['client_id']);
+            $clientDetail = $db->getOne("client","member_id AS memberID, name");
+            
+            unset($invoiceDetail['delivery_add_id']);
+            unset($invoiceDetail['billing_add_id']);
+            unset($invoiceDetail['client_id']);
+
+            // $db->where("inv_order_id", $invoiceDetail['id']);
+            // $db->orderBy("mlm_product_id", "ASC");
+            // $invOrderList = $db->get('inv_order_detail', NULL ,'mlm_product_id AS packageDisplay, inv_product_id AS productDisplay, price AS packagePrice, weight, quantity, stock_quantity AS stockQuantity, left_stock_quantity AS quantityLeft, pv_price as orderPvPrice');
+
+            // foreach ($invOrderList as $invOrderRow) {
+            //     $invProductIDAry[$invOrderRow["productDisplay"]] = $invOrderRow["productDisplay"]; // product
+            //     $mlmProductIDAry[$invOrderRow["packageDisplay"]] = $invOrderRow["packageDisplay"]; // package
+
+            //     $mlmInvOrderPv[$invOrderRow["packageDisplay"]] = $invOrderRow["orderPvPrice"] * $invOrderRow["quantity"];
+            // }
+
+            $db->where("a.deleted", 0);
+            $db->where("sale_id", $invoiceDetail['id']);
+            $db->orderBy("product_template_id", "ASC");
+            $db->join('product_template b', 'b.id = a.product_template_id', 'LEFT');
+            $invOrderList = $db->get('sale_order_detail a', NULL ,'a.sale_id AS packageDisplay, a.product_template_id AS productDisplay, a.item_name, a.product_id, a.item_price AS packagePrice, a.quantity, a.subtotal as Total, product_attribute_value_id');
+
+            $product_attribute_value = $db->get('product_attribute_value a', null, 'id,name');
+
+            $subTotal =0;
+            foreach ($invOrderList as $invOrderRow) {
+                $invProductIDAry[$invOrderRow["productDisplay"]] = $invOrderRow["productDisplay"]; // product
+                $mlmProductIDAry[$invOrderRow["packageDisplay"]] = $invOrderRow["packageDisplay"]; // package
+                $subTotal = bcadd($subTotal, $invOrderRow["Total"],2);
+                $mlmInvOrderPv[$invOrderRow["packageDisplay"]] = $subTotal;
+            }
+
+            $invoiceDetail['subtotal'] = $subTotal;
+
+            if($invProductIDAry){
+                // product_template
+                $db->where("a.id", $invProductIDAry, "IN");
+                $db->join('product b', 'a.product_id = b.id', 'LEFT');
+                $productNameRes = $db->map('temp_id')->get('product_template a', NULL ,'a.id as temp_id, b.id as id, b.name');
+            }
+
+            if($mlmProductIDAry){
+                // package
+                $db->where("module_id", $mlmProductIDAry, "IN");
+                $db->where("module", "mlm_product");
+                $db->where("type", "name");
+                $db->where("language", $language);
+                $packageLangRes = $db->get('inv_language', NULL ,'module_id, language, content');
+
+                foreach ($packageLangRes as $langRow) {
+                    $packageLang[$langRow['module_id']] = $langRow['content'];
+                }
+
+                // $db->where("product_id", $mlmProductIDAry, "IN");
+                // $packagePriceAry = $db->map('product_id')->get('mlm_product_price', NULL ,'product_id,price'); // package price
+
+                $db->where("id", $mlmProductIDAry, "IN");
+                $pvPriceAry = $db->map("id")->get('mlm_product', NULL ,'id, weight, pv_price AS pvPrice');
+            }
+            unset($currentPackageID);
+            $index = 0;
+            foreach ($invOrderList as $invOrderRow) {
+                // unset($invOrderData);
+                // unset($productListData);
+                // if($currentPackageID != $invOrderRow['packageDisplay']){
+                //     unset($productList);
+                //     unset($totalProductWeight);
+                // }
+                // $invOrderData['package'] = $mlmProductIDAry[$invOrderRow['packageDisplay']];
+                $invOrderData['packageDisplay'] = $invOrderRow['item_name'];
+                $invOrderData['packagePrice'] = Setting::setDecimal($invOrderRow['packagePrice']);
+                $invOrderData['totalPackagePrice'] = Setting::setDecimal($invOrderRow['Total']);
+                //$invOrderData['pvPrice'] = Setting::setDecimal($pvPriceAry[$invOrderRow['packageDisplay']]["pvPrice"]);
+                // $invOrderData['pvPrice'] = Setting::setDecimal($mlmInvOrderPv[$invOrderRow['packageDisplay']]);
+
+                $invOrderData['packageQuantity'] = Setting::setDecimal($invOrderRow['quantity']);
+                // $productListData['productDisplay'] = $productNameRes[$invOrderRow['productDisplay']];
+                // $productListData['productID'] = $invOrderRow['productDisplay'];
+
+                // $productListData['stockQuantity'] = Setting::setDecimal($invOrderRow['stockQuantity']);
+                // $productListData['quantityLeft'] = Setting::setDecimal($invOrderRow['quantityLeft']);
+                // $productList[] = $productListData;
+                // $invOrderData["productList"] = $productList;
+                // $currentPackageID = $invOrderRow['packageDisplay'];
+
+
+                $string = $invOrderRow['product_attribute_value_id'];  
+                $array = json_decode($string);
+                $string = implode(",", $array);
+                $invOrderRow['product_attribute_value_id'] = $string;
+
+                $name_array = array();
+                foreach ($array as $id) {
+                    foreach ($product_attribute_value as $value) {
+                        if ($value['id'] == $id) {
+                        $name_array[] = $value['name']; // Store name in array
+                        }
+                    }
+                }
+                $name_string = implode(", ", $name_array);
+                $invOrderData['product_attribute_name'] = $name_string;
+
+                $invOrder[$index] = $invOrderData;
+                $index++; 
+            }
+
+            $issueDOFlag = 0;
+            if($leftStockQuantity > 0){
+                $issueDOFlag = 1;
+            }
+
+            $db->where("type","SST");
+            $db->orderBy("created_at","DESC");
+            $taxPercentage = $db->getValue("inv_tax_charges","rate");
+            if(!$taxPercentage) $taxPercentage = 0;
+
+            // assign data into data
+            if($invoiceDetail['deliveryMethod'] == "pickup"){
+                $data['deliveryAddressDetail']['pickUpAddress'] = $companyAddress;
+            }else{
+                $data['deliveryAddressDetail'] = $deliveryAddressData;
+            }
+
+            $db->where("inv_order_id",$invoiceDetail["id"]);
+            $voucherDataAry = $db->getOne("inv_order_voucher","inv_voucher_id,type,discount_type,discount_percentage,discount_amount,real_discount_amount");
+
+            // if($voucherDataAry){
+            //     unset($voucherData);
+            //     $db->where("id",$voucherDataAry["inv_voucher_id"]);
+            //     $voucherData["voucherCode"] = $db->getValue("inv_voucher","code");
+            //     $voucherData["voucherType"] = $voucherDataAry["type"];
+            //     $voucherData["discountType"] = $voucherDataAry["discount_type"];
+            //     switch($voucherDataAry["discount_type"]){
+            //         case "percentage":
+            //             $voucherData["discountPercentage"] = Setting::setDecimal($voucherDataAry["discount_percentage"]);
+            //             $voucherData["maxDiscountAmount"] = Setting::setDecimal($voucherDataAry["discount_amount"]);
+            //             break;
+
+            //         case "amount":
+            //             $voucherData["discountAmount"] = Setting::setDecimal($voucherDataAry["discount_amount"]);
+            //             break;
+            //     }
+            //     $voucherData["realDiscountAmount"] = Setting::setDecimal($voucherDataAry["real_discount_amount"]);
+            // }
+
+            $data['billingAddressDetail'] = $billingAddressData;
+            $data['companyAddress'] = $companyAddress;
+            $data['companyAddressAct'] = $companyAddressList;
+            $data['companyContact'] = $companyContactList;
+            $data['taxPercentage'] = $taxPercentage;
+            $data['invoiceDetail'] = $invoiceDetail;
+            $data['clientDetail'] = $clientDetail;
+            $data['packageList'] =  $invOrder;
+            $data['subtotal'] =  $mlmInvOrderPv;
+            $data['issueDOAllowed'] = $issueDOFlag;
+            // if($voucherData) $data["voucherData"] = $voucherData;
+
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00425"][$language] /* Successfully retrieved */, 'data' => $data);
         }
 
@@ -9825,14 +11123,14 @@
             }
 
             foreach ($invProductAry as $packageID => $productDetail) {
-                
+
                 foreach ($productAry as $key => $paramsProduct) {
                     $key = $key+1;
-                    
+
                     if($paramsProduct['packageID'] == $packageID){
 
                         foreach ($productDetail as $productID => $detailRow) {
-                           
+
                             if(!$paramsProduct['productID']){
                                 $errorFieldArr[] = array(
                                                 'id'  => "product".$packageID.'_'.$productID."Error",
@@ -9876,7 +11174,7 @@
 
             unset($productID);
             foreach ($invStock as $invProductID => $stockBalance) {
-                
+
                 foreach ($productRes as $packageID => $productDetail) {
 
                     foreach ($productDetail as $productID => $quantity) {
@@ -10012,7 +11310,7 @@
 
             $db->startTransaction();
 
-            try{        
+            try{
                 $getDONumberFormat = DATE('y').'/DO/FIZ/'.DATE('m').'/';
 
                 $db->where('reference_number', $getDONumberFormat.'%', 'LIKE');
@@ -10053,7 +11351,7 @@
                 foreach ($result as $packageID => $packageDetail) {
 
                     foreach ($packageDetail as $productID => $productDetail) {
-                        
+
                         foreach ($productDetail as $stockID => $quantity) {
                             $insertDeliveryOrderDetail = array(
                                 'inv_delivery_order_id' => $invDeliveryOrderID,
@@ -10074,7 +11372,7 @@
                         }
                     }
                 }
-                
+
                 unset($invStockRes);
                 unset($invStock);
 
@@ -10088,7 +11386,7 @@
                     $invStock[$invStockRow['inv_product_id']] += Setting::setDecimal($invStockRow['stock_in'] - $invStockRow['stock_out']);
                 }
 
-                foreach($invStock as $idKey => $rowStock){  
+                foreach($invStock as $idKey => $rowStock){
                     $db->where('id', $idKey);
                     $checkAlertDate = $db->getValue('inv_product', 'alert_at');
                     if($checkAlertDate < 0){
@@ -10152,9 +11450,9 @@
                     'trackingNo' => $deliveryOrder['tracking_number'],
                     'notes' => $remark,
                 );
-                
+
                 $cancelDO = self::thirdPartyCancelWaybill($waybillParams);
-                
+
                 if($cancelDO != "success"){
                     $data["errorMsg"] = $cancelDO;
                     return array("status" => "error", "code" => 2, "statusMsg" => "Failed to cancel this DO", "data" => $data);
@@ -10187,7 +11485,7 @@
                 foreach ($result as $packageID => $packageDetail) {
 
                     foreach ($packageDetail as $productID => $productDetail) {
-                        
+
                         foreach ($productDetail as $stockID => $quantity) {
                             $updateBalance = array(
                                 'left_stock_quantity' => $db->inc($quantity)
@@ -10265,7 +11563,7 @@
                 if($duplicatedTrackNo){
                     $errorFieldArr[] = array(
                                                 'id'  => "trackingNoError",
-                                                'msg' => $translations['E01118'][$language] 
+                                                'msg' => $translations['E01118'][$language]
                                             );
                 }
             }
@@ -10308,11 +11606,11 @@
             $seeAll         = $params['seeAll'];
             $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
             $limit          = General::getLimit($pageNumber);
-            $decimalPlaces  = Setting::getSystemDecimalPlaces();  
+            $decimalPlaces  = Setting::getSystemDecimalPlaces();
 
             if($seeAll == 1){
                 $limit = null;
-            } 
+            }
 
             //filter
             if (count($searchData) > 0) {
@@ -10331,7 +11629,7 @@
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
                                 }
-                                    
+
                                 $db->where('Date(created_at)', date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
@@ -10339,7 +11637,7 @@
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
                                 }
-                                    
+
                                 if($dateTo < $dateFrom){
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
@@ -10347,7 +11645,7 @@
 
                                 $db->where('Date(created_at)', date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             break;
@@ -10386,7 +11684,7 @@
                                 $sq->where("name", $dataValue);
                                 $sq->get("address", null, "client_id");
                             }
-                             
+
                             $sq2 = $db->subQuery();
                             $sq2->where("client_id", $sq, "IN");
                             $sq2->get("inv_order", null, "id");
@@ -10448,7 +11746,7 @@
                 if($creditNameAry){
                     $db->where("type",$creditNameAry, "IN");
                     $creditLang = $db->map("type")->get("credit", NULL, "type, translation_code");
-                } 
+                }
             }
 
             if($creatorIDAry){
@@ -10461,7 +11759,7 @@
                 $courierCompany = $invOrderIDRes[$deliveryOrderRow["inv_order_id"]]['courier_company'];
 
                 $tempDeliveryOrder["doID"] = $deliveryOrderRow["id"];
-                $tempDeliveryOrder["date"] = date($dateTimeFormat, strtotime($deliveryOrderRow["date"])); 
+                $tempDeliveryOrder["date"] = date($dateTimeFormat, strtotime($deliveryOrderRow["date"]));
                 $tempDeliveryOrder["invoiceNo"] = $invOrderIDRes[$deliveryOrderRow["inv_order_id"]]['invoiceNo'];
                 $tempDeliveryOrder["purchaseOrderNo"] = $invOrderIDRes[$deliveryOrderRow["inv_order_id"]]['purchaseOrderNo'];
                 $tempDeliveryOrder['deliveryOrderNo'] = $deliveryOrderRow['reference_number']?:'-';
@@ -10473,7 +11771,7 @@
                 $tempDeliveryOrder["status"] = $deliveryOrderRow["status"];
                 $tempDeliveryOrder["statusDisplay"] = General::getTranslationByName($deliveryOrderRow["status"]);
                 $tempDeliveryOrder["remark"] = $deliveryOrderRow["remark"]? $deliveryOrderRow["remark"]: "-";
-                $tempDeliveryOrder["issuedBy"] = $creatorRes[$deliveryOrderRow["creator_id"]];  
+                $tempDeliveryOrder["issuedBy"] = $creatorRes[$deliveryOrderRow["creator_id"]];
 
                 $tempDeliveryOrder["cancelAllowed"] = 0;
                 if($courierCompany == "ONDELIVERY" && (in_array($deliveryOrderRow["status"],array("Pending")))){
@@ -10517,7 +11815,7 @@
 
             $db->where('role_id',$adminRolesListAry, 'IN');
             $checkAdminRoleRes = $db->getValue('admin', 'id', null);
-            
+
 
             $availableToEdit = 0;
             if(in_array($userID,$checkAdminRoleRes)){
@@ -10558,28 +11856,28 @@
             // get invoice date and invoice no,deliveryOrderDate and deliveryOrderNo
             $db->where("id", $deliveryOrderDetail["inv_order_id"]);
             $invoiceDetail = $db->getOne("inv_order", "client_id, reference_number AS invoiceNo, created_at AS createdAt, special_note, remark, delivery_option, billing_add_id, delivery_add_id, courier_company, courier_service");
-            $invoiceDetail["createdAt"] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"])); 
+            $invoiceDetail["createdAt"] = date($dateTimeFormat, strtotime($invoiceDetail["createdAt"]));
 
             // get memberID
             $db->where("id", $invoiceDetail['client_id']);
             $clientInfo = $db->getOne("client", "member_id, name");
 
-            
-            // get receiverName and phoneNumber, billing address, delivery address     
+
+            // get receiverName and phoneNumber, billing address, delivery address
             $addressIDAry = array($invoiceDetail['billing_add_id'],$invoiceDetail['delivery_add_id']);
             if($addressIDAry){
                 $db->where("id", $addressIDAry, "IN");
                 $db->where("client_id", $invoiceDetail['client_id']);
-                $memberDetail= $db->map('id')->get("address", null, "id, name, phone, address, district_id, sub_district_id, post_code_id, city_id, state_id, country_id, email, phone, address_type");
-            }          
-        
+                $memberDetail= $db->map('id')->get("address", null, "id, name, phone, address, district_id, sub_district_id, post_code, city, state_id, country_id, email, phone, address_type");
+            }
+
             foreach ($memberDetail as $memberDetailRow) {
                 $stateAry[$memberDetailRow['state_id']] = $memberDetailRow['state_id'];
                 $countryAry[$memberDetailRow['country_id']] = $memberDetailRow['country_id'];
                 $countyAry[$memberDetailRow['district_id']] = $memberDetailRow['district_id'];
                 $subCountyAry[$memberDetailRow['sub_district_id']] = $memberDetailRow['sub_district_id'];
-                $postCodeAry[$memberDetailRow['post_code_id']] = $memberDetailRow['post_code_id'];
-                $cityAry[$memberDetailRow['city_id']] = $memberDetailRow['city_id'];
+                $postCodeAry[$memberDetailRow['post_code']] = $memberDetailRow['post_code'];
+                $cityAry[$memberDetailRow['city']] = $memberDetailRow['city'];
             }
 
             if($stateAry){
@@ -10620,12 +11918,12 @@
                 $addressValue["address"] = $memberDetailRow['address'];
                 $addressValue["districtDisplay"] = $countyRes[$memberDetailRow['district_id']]['name'];
                 $addressValue["subDistrictDisplay"] = $subCountyRes[$memberDetailRow['sub_district_id']]['name'];
-                $addressValue["postCodeDisplay"] = $postCodeRes[$memberDetailRow['post_code_id']]['name'];
-                $addressValue["cityDisplay"] = $cityRes[$memberDetailRow['city_id']]['name'];
+                $addressValue["postCodeDisplay"] = $postCodeRes[$memberDetailRow['post_code']]['name'];
+                $addressValue["cityDisplay"] = $cityRes[$memberDetailRow['city']]['name'];
                 $addressValue["stateDisplay"] = $stateRes[$memberDetailRow['state_id']];
                 $addressValue["countryDisplay"] = $translations[$countryRes[$memberDetailRow['country_id']]["translation_code"]][$language];
                 $addressValue["dialCode"] = $countryRes[$memberDetailRow['country_id']]["country_code"];
-                
+
                 $addressAry[$memberDetailRow['id']] = $addressValue;
             }
 
@@ -10660,7 +11958,7 @@
             $data["remark"] = $invoiceDetail["remark"];
             $data["deliveryOption"] = $invoiceDetail["delivery_option"];
             $data["pickUpAddress"] = $companyAddress;
-            $data['deliveryOrderDate'] = date($dateTimeFormat, strtotime($deliveryOrderDetail['deliveryOrderDate'])); 
+            $data['deliveryOrderDate'] = date($dateTimeFormat, strtotime($deliveryOrderDetail['deliveryOrderDate']));
             $data['deliveryOrderNo'] = $deliveryOrderDetail['deliveryOrderNo'];
             $data['courierCompany'] = $invoiceDetail['courier_company'];
             $data['courierService'] = $invoiceDetail['courier_service'];
@@ -10675,7 +11973,7 @@
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00425"][$language] /* Successfully retrieved */, 'data' => $data);
         }
-        
+
         // -------- PVP Listing (Admin) //PVP Transaction History (Member)-------- //
 
         public function getPVPListing($params){
@@ -10688,8 +11986,8 @@
             $pageNumber     = $params['pageNumber'] ? $params['pageNumber'] : 1;
             $limit          = General::getLimit($pageNumber);
             $limits          = "LIMIT ".implode(",",General::getLimit($pageNumber))."";
-            $decimalPlaces  = Setting::getSystemDecimalPlaces(); 
-            
+            $decimalPlaces  = Setting::getSystemDecimalPlaces();
+
             $userID = $db->userID;
             $site = $db->userType;
             $cpDb = $db->copy();
@@ -10779,7 +12077,7 @@
             }
 
             if (count($searchData) > 0) {
-        
+
                 foreach ($searchData as $k => $v) {
                     $dataName = trim($v['dataName']);
                     $dataValue = trim($v['dataValue']);
@@ -10876,7 +12174,7 @@
 
             if($seeAll == "1"){
                 $limit = $limits = null;
-            } 
+            }
 
             $detailRes = $db->getValue('inv_order_detail','id',null);
             $pvpListingRes = $db->rawQuery("SELECT detail.id, detail.inv_order_id, detail.mlm_product_id, detail.inv_product_id, detail.price AS unitPrice, detail.pv_price AS pvPrice, detail.quantity, b.client_id, b.created_at AS date FROM inv_order_detail detail LEFT JOIN inv_order b ON detail.inv_order_id = b.id WHERE detail.id IN ('".implode("', '", $detailRes)."') ORDER BY b.created_at DESC ".$limits."");
@@ -10889,14 +12187,14 @@
                 $memberIDAry[$pvpListingRow['client_id']] = $pvpListingRow['client_id'];
                 $mlmProductIDAry[$pvpListingRow['mlm_product_id']] = $pvpListingRow['mlm_product_id']; //mlm product
             }
-  
+
             if($memberIDAry){
                 $db->where('id', $memberIDAry,'IN');
                 $memberIDArr = $db->map('id')->get('client',null,'id, member_id, name, sponsor_id, state_id');
 
                 $db->where('client_id', $memberIDAry, "IN");
                 $db->where('address_type', 'billing');
-                $city = $db->map('client_id')->get('address', null, 'client_id, city_id');
+                $city = $db->map('client_id')->get('address', null, 'client_id, city');
             }
 
             if($city){
@@ -10943,7 +12241,7 @@
 
                 $mainLeaderAry[$mainLeaderMemberID]['name'] ?  $pvpListRes['mainLeaderName'] = $mainLeaderAry[$mainLeaderMemberID]['name']
                                                                    :  $pvpListRes['mainLeaderName'] = "-";
-               
+
                 $pvpList[] = $pvpListRes;
                 unset($pvpListRes);
 
@@ -10982,7 +12280,7 @@
             $db->orderBy('id', 'DESC');
             $getNewestQuantity = $db->get('system_settings_admin', null, 'value, status, created_at, creator_id');
             $currentQuantity = General::getSystemSettingAdmin('lowStockQuantity');
-            
+
             if(empty($currentQuantity)) return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => $data);
 
             foreach($getNewestQuantity as $getAdminID){
@@ -11059,7 +12357,7 @@
             if($outOfStock){
                 $db->having('SUM(stock_in)-SUM(stock_out)', 0,'<=');
             }else{
-                $db->having('SUM(stock_in)-SUM(stock_out)', $lowInStock,'<'); 
+                $db->having('SUM(stock_in)-SUM(stock_out)', $lowInStock,'<');
                 $db->having('SUM(stock_in)-SUM(stock_out)', 0,'>');
             }
             $allProductRes = $db->get('inv_stock', $limit, 'inv_product_id, SUM(stock_in) as stock_in, SUM(stock_out) as stock_out');
@@ -11084,7 +12382,7 @@
                 if(empty($getAllProductRes)){
                     return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => $data);
                 }
-                
+
                 if($getAllProductRes){
                     foreach($getAllProductRes as $getRecordID){
                         $ttlRecord[] = $getRecordID['id'];
@@ -11125,7 +12423,7 @@
                 }
             }
 
-            $data['result'] = $allGetDataList; 
+            $data['result'] = $allGetDataList;
             $data['pageNumber']     = $pageNumber;
             $data['totalRecord']    = $totalRecord;
             if($seeAll == "1"){
@@ -11136,7 +12434,7 @@
                 $data['numRecord']  = $limit[1];
             }
 
-            
+
             return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
         }
 
@@ -11170,7 +12468,7 @@
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
                                 }
-                                    
+
                                 $db->where('created_at', date('Y-m-d', $dateFrom), '>=');
                             }
                             if(strlen($dateTo) > 0) {
@@ -11178,7 +12476,7 @@
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00156"][$language] /* Invalid date. */, 'data'=>"");
                                 }
-                                    
+
                                 if($dateTo < $dateFrom){
                                     $db->resetState();
                                     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language] /* Date from cannot be later than date to. */, 'data'=>$data);
@@ -11186,7 +12484,7 @@
 
                                 $db->where('created_at', date('Y-m-d', $dateTo), '<=');
                             }
-                                
+
                             unset($dateFrom);
                             unset($dateTo);
                             break;
@@ -11198,10 +12496,10 @@
                         case 'voucherCode':
                             $db->where('code', $dataValue);
                             break;
-                        
+
                         case 'status':
                             $db->where('status', $dataValue);
-                            break; 
+                            break;
 
                     }
                     unset($dataName);
@@ -11235,12 +12533,12 @@
                 $getVouc['name']    = $getVouchers['name'];
                 $getVouc['code']    = $getVouchers['code'];
                 $getVouc['totalBalance'] = Setting::setDecimal($getVouchers['total_balance']);
-                $getVouc['totalUsed']    = Setting::setDecimal($getVouchers['total_used']);      
+                $getVouc['totalUsed']    = Setting::setDecimal($getVouchers['total_used']);
                 $getVouc['status']       = General::getTranslationByName($getVouchers['status']);
                 $getVouc['updaterName']  = $updaterName[$getVouchers['updater_id']];
                 $getVouc['createdAt']    = date($dateFormat, strtotime($getVouchers['created_at']));
                 $getVouc['updatedAt']    = $getVouchers['updated_at'] >0 ? date('d-m-y', strtotime($getVouchers['updated_at'])) : '-';
-                
+
                 $getVoucherAry[] = $getVouc;
             }
 
@@ -11265,7 +12563,7 @@
 
             $site = $db->userType;
 
-            $id = $params['id']; 
+            $id = $params['id'];
 
             $db->where('status', 'Active');
             $packageRes = $db->get('mlm_product', null, 'id, name, is_starter_kit');
@@ -11283,7 +12581,7 @@
             }
 
             foreach ($packageRes as $packageRow) {
-                $packageType = ($packageRow['is_starter_kit'] == 1) ? 'starter' : 'normal'; 
+                $packageType = ($packageRow['is_starter_kit'] == 1) ? 'starter' : 'normal';
                 $packageDetail['packageID'] = $packageRow['id'];
                 $packageDetail['packageName'] = $packageLang[$packageRow['id']];
 
@@ -11295,7 +12593,7 @@
             if($id){
                 $db->where('id', $id);
                 $getVoucher = $db->getOne('inv_voucher', 'name, code, total_balance AS balance, status');
-                $getVoucher['balance'] = Setting::setDecimal($getVoucher['balance']); 
+                $getVoucher['balance'] = Setting::setDecimal($getVoucher['balance']);
 
                 $db->where('inv_voucher_id', $id);
                 $getVoucherDetail = $db->get('inv_voucher_detail', null, 'name, value, type, reference');
@@ -11362,7 +12660,7 @@
                 );
             }else if($type =="edit"){
 
-                $db->where('id', $voucherID);                
+                $db->where('id', $voucherID);
                 $idResult = $db->getOne("inv_voucher", 'id');
 
                 if(!$idResult) {
@@ -11387,9 +12685,9 @@
                     'id'  => "voucherCodeError",
                     'msg' => $translations['E01132'][$language] /* Please Enter Code. */
                 );
-            } else if($type == 'add'){  
+            } else if($type == 'add'){
                 // check code avaibility
-                $db->where('code', $voucherCode);                
+                $db->where('code', $voucherCode);
                 $result = $db->getOne("inv_voucher", 'code');
 
                 if($result) {
@@ -11405,11 +12703,11 @@
                         "msg" => "Code cannot be edited.",
                     );
                 }
-            }   
+            }
 
             // Check balance Field
             if($type == 'edit'){
-                /*$db->where('id', $id); 
+                /*$db->where('id', $id);
                 $getIsUnlimited = $db->getValue("inv_voucher", 'is_unlimited');
 
                 if($getIsUnlimited == "1") {*/
@@ -11471,8 +12769,8 @@
                         }
                     }
                 }
-            }  
-            
+            }
+
             if(!$discountBy || !in_array($discountBy, $discountByArr)) {
                 $errorFieldArr[] = array(
                     'id'  => "discountByError",
@@ -11496,7 +12794,7 @@
                         );
                     }
                 }
-                
+
             }else if($discountBy == 'amount'){
                 if(!is_numeric($discountAmount) || $discountAmount < 0) {
                     $errorFieldArr[] = array(
@@ -11575,7 +12873,7 @@
 
             if($discountBy == 'percentage'){
                 $insertVoucherDetail = array(
-    
+
                     "inv_voucher_id" => $insertNewVoucher,
                     "name" => "discountBy",
                     "value" => $discountPercentage,
@@ -11592,7 +12890,7 @@
                     "type" => $discountBy,
                 );
             }
-            
+
             $insertNewVoucherDetail = $db->insert($tableNames, $insertVoucherDetail);
 
             if($isTieUpPackage == 1){
@@ -11615,13 +12913,13 @@
                     );
 
                     $insertNewVoucherDetail = $db->insert($tableNames, $insertVoucherDetail);
-                }  
+                }
 
                 $db->where("id",$packageIDAry,"IN");
                 $packageCodeAry = $db->getValue("mlm_product","code",null);
                 $packageCodeAry = implode(", ",$packageCodeAry);
             }
-            
+
             if (!$insertNewVoucherDetail)
                 return array('status' => "error", 'code' => 1, 'statusMsg' => "Failed to add voucher detail" /* Failed to update data. */, 'data'=> "");
 
@@ -11793,7 +13091,7 @@
                 "updatedDiscountMaxAmount"      => $discountMaxAmount ? $discountMaxAmount: '-',
                 "updatedDiscountAmount"         => $discountAmount ? $discountAmount: '-'
             );
-                
+
             $activityRes = Activity::insertActivity($title, $titleCode, $activityCode, $activityData, $userID);
             // Failed to insert activity
             if(!$activityRes)
@@ -11890,7 +13188,7 @@
                                 $ssq->where('client_id',$sq);
                                 $ssq->get('inv_order',null,'id');
                                 $db->where("inv_order_id", $ssq, "IN");
-                            }                            
+                            }
                             break;
 
                         case 'voucherCode':
@@ -11899,13 +13197,13 @@
                             $sq->get("inv_voucher", NULL, "id");
                             $db->where("inv_voucher_id", $sq, "IN");
                             break;
-                        
+
                         case 'invoiceNo':
                             $sq = $db->subQuery();
                             $sq->where("reference_number", $dataValue);
                             $sq->get("inv_order", NULL, "id");
                             $db->where("inv_order_id", $sq, "IN");
-                            break; 
+                            break;
 
                     }
                     unset($dataName);
@@ -11973,7 +13271,7 @@
         }
 
 
-        
+
         public function updateStarterpackEmailAttachment($params){
             $db             = MysqliDb::getInstance();
             $language       = General::$currentLanguage;
@@ -11981,25 +13279,25 @@
             $dateTime       = date("YmdHis");
 
 
-            $name  = trim($params['name']); 
-            $pdfpath  = trim($params['path']); 
-            $contenttype  = trim($params['contenttype']); 
-            
-              
-            if(empty($name)){          
-                 return array('status' => "error", 'code' => 1, 'statusMsg' => "name is empty");
- 
-            }  
+            $name  = trim($params['name']);
+            $pdfpath  = trim($params['path']);
+            $contenttype  = trim($params['contenttype']);
 
-            if(empty($pdfpath)){          
+
+            if(empty($name)){
+                 return array('status' => "error", 'code' => 1, 'statusMsg' => "name is empty");
+
+            }
+
+            if(empty($pdfpath)){
                  return array('status' => "error", 'code' => 2, 'statusMsg' => "Path is empty");
- 
-            }  
+
+            }
                 $db->where("pdfname",$name);
                 $checkName =$db->getOne("pdffile");
                 if(empty($checkName)){
                 return array('status' => "Error", 'code' => 3, 'statusMsg' =>"pdf name not found" ,"data"=>"");
-   
+
                 }
                 $updateIsActive = array(
                 "isActive"   => "0"
@@ -12010,10 +13308,10 @@
                     'path'                   => $pdfpath,
                     'isActive'               => 1,
                     );
-            $db->where("pdfname",$name);             
+            $db->where("pdfname",$name);
             $insertpdf = $db->update('pdffile', $inserpdfparams);
              return array('status' => "ok", 'code' => 0, 'statusMsg' =>"" ,"data"=>"");
-            
+
         }
 
         public function checkStarterpackEmailAttachment($params){
@@ -12025,13 +13323,546 @@
             $db->where("isActive","1");
             $data=$db->getOne("pdffile");
             if(empty($data)){
-            return array('status' => "ok", 'code' => 0, 'statusMsg' => "Result Not Found" ,"data"=>"");                
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "Result Not Found" ,"data"=>"");
             }
             return array('status' => "ok", 'code' => 0, 'statusMsg' => "" ,"data"=>$data);
-           
+
         }
 
+        public function getProductInventoryList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
 
+            $pageNumber      = $params['pageNumber'] ? $params['pageNumber'] : 1;
+            $seeAll          = $params['seeAll'];
+            $limit           = General::getLimit($pageNumber);
+            $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];
+
+            if(!$seeAll){
+                $limit = General::getLimit($pageNumber);
+            }
+
+            $db->where('deleted', '0');
+            $db->orderBy('created_at', 'DESC');
+            $copyDb = $db->copy();
+            $productInv = $db->get("product", $limit, "id, barcode as skuCode, name, product_type, cost, sale_price");
+
+            if(empty($productInv)){
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
+            }
+
+            foreach($productInv as $productInvRow){
+                $productDetail['id']                = $productInvRow['id'];
+                $productDetail['skuCode']           = $productInvRow['skuCode'];
+                $productDetail['name']              = $productInvRow['name'];
+                $productDetail['productType']       = $productInvRow['product_type'];
+                $productDetail['cost']              = $productInvRow['cost'];
+                $productDetail['salePrice']         = $productInvRow['sale_price'];
+                $productDetail['image']             = '';
+
+                $productInvList[] = $productDetail;
+            }
+
+            $totalRecord              = $copyDb->getValue("product p", "count(p.id)");
+            $data['productInventory'] = $productInvList;
+            $data['pageNumber']       = $pageNumber;
+            $data['totalRecord']      = $totalRecord;
+            if($seeAll) {
+                $data['totalPage']    = 1;
+                $data['numRecord']    = $totalRecord;
+            } else {
+                $data['totalPage']    = ceil($totalRecord/$limit[1]);
+                $data['numRecord']    = $limit[1];
+            }
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
+        }
+
+        public function getProductDetails($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $productInvId   = $params['productInvId'];
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+            include('config.php');
+
+            if(!$productInvId) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
+            }
+
+            $db->where('deleted', '0');
+            $db->where('id', $productInvId);
+            $productInv = $db->get("product", $limit, "id, barcode as skuCode, name, product_type, description, cost, sale_price, cooking_time, cooking_suggestion, full_instruction, full_instruction2");
+
+            if(empty($productInv)){
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
+            }
+
+            foreach($productInv as $productInvRow){
+                $productDetail['id']                = $productInvRow['id'];
+                $productDetail['skuCode']           = $productInvRow['skuCode'];
+                $productDetail['name']              = $productInvRow['name'];
+                $productDetail['productType']       = $productInvRow['product_type'];
+                $productDetail['description']       = $productInvRow['description'];
+                $productDetail['cost']              = $productInvRow['cost'];
+                $productDetail['salePrice']         = $productInvRow['sale_price'];
+                $productDetail['cookingTime']       = $productInvRow['cooking_time'];
+                $productDetail['cookingSuggestion'] = $productInvRow['cooking_suggestion'];
+                $productDetail['fullInstruction']   = $productInvRow['full_instruction'];
+                $productDetail['fullInstruction2']  = $productInvRow['full_instruction2'];
+
+                $productInvList[] = $productDetail;
+            }
+
+            $db->where('deleted', 0);
+            $db->where('reference_id', $productInvId);
+            $productMedia = $db->get('product_media', null, 'id, type, url');
+
+            if($productMedia) {
+                foreach($productMedia as $val) {
+                    if($val['type'] == 'video') {
+                        if($val['url'] != '') {
+                            $link = $val['url'];
+                            $pattern = '/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/';
+                            preg_match($pattern, $link, $matches);
+                            $video_id = $matches[7];
+
+                            $video['url'] = $video_id;
+                        }
+                        $videoList[] = $video;
+                    }
+
+                    if($val['type'] == 'Image') {
+                        $media['url']  = $val['url'];
+                        $media['name'] = str_replace($config['tempMediaUrl'], '', $val['url']);
+                        $mediaList[] = $media;
+                    }
+                }
+            } else {
+                $mediaList = '';
+                $videoList = '';
+            }
+            $productInvList[0]['media'] = $mediaList;
+            $productInvList[0]['video'] = $videoList;
+
+            $db->where('product_id', $productInvId);
+            $productVar = $db->get('product_template', null, 'id, product_attribute_value_id');
+
+            if(!empty($productVar)) {
+                // get all attribute value id in product template
+                $attrIdList = [];
+                foreach($productVar as $attr) {
+                    foreach($attr as $val) {
+                        foreach(json_decode($val, true) as $v) {
+                            if(empty($attrIdList)) {
+                                $attrIdList[] = $v;
+                            } else {
+                                if(!in_array($v, $attrIdList)) {
+                                    $attrIdList[] = $v;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if(!empty($attrIdList)) {
+                    // use the id in $attrIdList to find the product attribute and product attribute value
+                    $db->where('pav.deleted', 0);
+                    $db->where('pav.id', $attrIdList, 'IN');
+                    $db->join('product_attribute pa', 'pa.id = pav.product_attribute_id', 'LEFT');
+                    $productAttr = $db->get('product_attribute_value pav', null, 'pav.id, pav.name, pav.product_attribute_id as attribute_id, pa.name as attribute_name');
+
+                    foreach($productAttr as $val) {
+                        $attr[] = $val['attribute_id'];
+
+                        $attrVal[$val['attribute_id']]['attribute_id'] = $val['attribute_id'];
+                        $attrVal[$val['attribute_id']]['attribute_name'] = $val['attribute_name'];
+
+                        $attribute['id'] = $val['id'];
+                        $attribute['name'] = $val['name'];
+
+                        $attrVal[$val['attribute_id']][$val['attribute_name']][] = $attribute;
+                    }
+
+                    $db->where('product_attribute_id', $attr, 'IN');
+                    $attribute = $db->get('product_attribute_value', null, 'id, name, product_attribute_id');
+                }
+                $data['attribute'] = $attrVal;
+                $data['productTemplate'] = $productVar;
+            } else {
+                $data['attribute'] = '';
+                $data['productTemplate'] = '';
+            }
+
+            $data['productInventory'] = $productInvList;
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
+        }
+
+        public function generateProductSKU($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $vendorId = trim($params['vendorId']);
+
+            if($vendorId) {
+                $db->where('deleted', 0);
+                $db->where('id', $vendorId);
+                $vendorCode = $db->getValue('vendor', 'vendor_code');
+
+                $productSku = General::generateDynamicCode($vendorCode.'-',3,'product','barcode');
+
+                if($productSku) {
+                    $data['productSku'] = $productSku;
+                } else {
+                    $data['productSku'] = $vendorCode.'-001';
+                }
+            }
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
+        }
+
+        public function getPackageProductList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $type = trim($params['type']);
+
+            if($type == 'Package') {
+                $db->where('deleted', 0);
+                $productList = $db->get('product', null, 'id, name');
+    
+                $data['productList'] = $productList;
+            }
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
+        }
+
+        public function addAttribute($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $dateTime       = date("Y-m-d H:i:s");
+
+            $attribute      = trim($params['attribute']);
+            $attributeVal   = $params['attributeVal'];
+            $status         = trim($params['status']);
+
+            if($attribute) {
+                $insetAttrData = array(
+                    "name"       => $attribute,
+                    "deleted"    => 0,
+                    "created_at" => $dateTime,
+                );
+                $insertAttr = $db->insert('product_attribute', $insetAttrData);
+            }
+
+            if($attributeVal) {
+                foreach ($attributeVal as $val) {
+                    $insetAttrValData = array(
+                        "name"                 => $val['name'],
+                        "product_attribute_id" => $insertAttr,
+                        "deleted"              => 0,
+                        "created_at"           => $dateTime,
+                    );
+                    $insetAttrValDataList[] = $insetAttrValData;
+                }
+                $insertAttrVal = $db->insertMulti('product_attribute_value', $insetAttrValDataList);
+            }
+
+            if($insertAttr) {
+                return array('status'=>'ok', 'code'=>0, 'statusMsg'=> $translations["B00102"][$language] /* Successfully Added */ , 'data'=> '');
+            }
+        }
+
+        public function getAttributeDetail($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $dateTime       = date("Y-m-d H:i:s");
+            $attrId         = $params['attrId'];
+            $type           = trim($params['type']);
+            $inputId        = trim($params['inputId']);
+            
+            if($attrId) {
+                if($type != 'get') {
+                    $db->where('pa.id', $attrId);
+                    $db->join('product_attribute_value pav', 'pav.product_attribute_id = pa.id', 'LEFT');
+                    $result = $db->get('product_attribute pa', null, 'pa.id as attribute_id, pa.name as attribute_name, pa.deleted as attr_delete, pav.id, pav.name, pav.deleted');
+
+                    foreach ($result as $key => $val) {
+                        $attributeID = $val['attribute_id'];
+
+                        $attribute[$attributeID]['id']           = $val['attribute_id'];
+                        $attribute[$attributeID]['name']         = $val['attribute_name'];
+
+                        if ($val['attr_delete'] == 0) {
+                            $attribute[$attributeID]['status']   = "Active";
+                        } else {
+                            $attribute[$attributeID]['status']   = "Inactive";
+                        }
+                        
+                        $attribute[$attributeID]['value'][$key]['id']   = $val['id'];
+                        $attribute[$attributeID]['value'][$key]['name'] = $val['name'];
+
+                        if ($val['deleted'] == 0) {
+                            $attribute[$attributeID]['value'][$key]['status'] = "Active";
+                        } else {
+                            $attribute[$attributeID]['value'][$key]['status'] = "Inactive";
+                        }
+                    }
+                } else {
+                    $db->where('product_attribute_id', $attrId);
+                    $attribute = $db->get('product_attribute_value', null, 'id, name');
+
+                    $data['inputId'] = $inputId;
+                }
+            }
+
+            $data['attributeDetail'] = $attribute;
+
+            return array('status'=>'ok', 'code'=>0, 'statusMsg'=> 'Get Attribute Successfully' , 'data'=> $data);
+        }
+
+        public function editAttribute($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $dateTime       = date("Y-m-d H:i:s");
+
+            $attributeID     = trim($params['attrId']);
+            $attributeName   = trim($params['attribute']);
+            $attributeStatus = trim($params['status']);
+            $attributeValue  = $params['attributeVal'];
+
+            if($attributeID) {
+                if($attributeStatus == "Active") {
+                    $attributeStatus = 0;
+                } else {
+                    $attributeStatus = 1;
+                }
+
+                $attrData = array(
+                    "name"       => $attributeName,
+                    "deleted"    => $attributeStatus,
+                    "updated_at" => $dateTime,
+                );
+
+                $db->where('id', $attributeID);
+                $updateAttr = $db->update("product_attribute", $attrData);
+            }
+
+            if($attributeValue) {
+                foreach($attributeValue as $val) {
+                    if($val['status'] == "Active") {
+                        $attrStatus = 0;
+                    } else {
+                        $attrStatus = 1;
+                    }
+
+                    $attrValData = array(
+                        "name"       => $val['name'],
+                        "deleted"    => $attrStatus,
+                        "updated_at" => $dateTime,
+                    );
+                    $db->where('id', $val['id']);
+                    $db->update("product_attribute_value", $attrValData);
+                }
+            }
+
+            if($updateAttr) {
+                return array('status' => 'ok', 'code' => 0, 'statusMsg' => $translations["A00684"][$language] /* Update Successful */, 'data' => "");
+            }
+        }
+
+        public function getAttributeList($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+
+            $searchData      = $params['searchData'];
+            $pageNumber      = $params['pageNumber'] ? $params['pageNumber'] : 1;
+            $seeAll          = $params['seeAll'];
+            $limit           = General::getLimit($pageNumber);        
+            $dateTimeFormat  = Setting::$systemSetting['systemDateTimeFormat'];      
+
+            $userID = $db->userID;
+            $site = $db->userType;
+
+            if(!$seeAll){
+                $limit = General::getLimit($pageNumber);
+            }
+
+            if (count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+
+                    switch($dataName) {
+                        case 'createdAt':
+                            $dateFrom = trim($v['tsFrom']);
+                            $dateTo = trim($v['tsTo']);
+                            if(strlen($dateFrom) > 0) {
+                                $db->where('DATE(pa.created_at)', date('Y-m-d', $dateFrom), '>=');
+                            }
+                            if(strlen($dateTo) > 0) {
+                                if($dateTo < $dateFrom)
+                                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language], 'data'=>$data);
+
+                                $db->where('DATE(pa.created_at)', date('Y-m-d', $dateTo), '<=');
+                            }
+
+                            unset($dateFrom);
+                            unset($dateTo);
+                            unset($columnName);
+                            break;
+
+                        case 'name':
+                            $db->where('pa.name', "%".$dataValue."%", "LIKE");
+                            break;
+                        
+                        case "status":
+                            if($dataValue == "Active") {
+                                $db->where("pa.deleted", 0);
+                            } else if($dataValue == "Inactive") {
+                                $db->where("pa.deleted", 1);
+                            }
+                            break;
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                }
+            }
+
+            $db->join('product_attribute_value pav', 'pav.product_attribute_id = pa.id', 'LEFT');
+            $copyDb = $db->copy();
+            $getAttributeList = $db->get('product_attribute pa', null, 'pa.id as attribute_id, pa.name as attribute_name, pav.id, pav.name');
+            if(empty($getAttributeList)) {
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00101"][$language] /* No Results Found */, 'data' => '');
+            }
+
+            foreach ($getAttributeList as $val) {
+                $attributeID = $val['attribute_id'];
+
+                $attribute[$attributeID]['id']           = $val['attribute_id'];
+                $attribute[$attributeID]['name']         = $val['attribute_name'];
+                $attribute[$attributeID]['value_name'][] = $val['name'];
+            }
+
+            $totalRecord              = $copyDb->getValue("product_attribute pa", "count(pav.id)");
+            $data['attributeList']    = $attribute;
+            $data['pageNumber']       = $pageNumber;
+            $data['totalRecord']      = $totalRecord;
+            if($seeAll) {
+                $data['totalPage']    = 1;
+                $data['numRecord']    = $totalRecord;
+            } else {
+                $data['totalPage']    = ceil($totalRecord/$limit[1]);
+                $data['numRecord']    = $limit[1];
+            }
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
+        }
+
+        public function editOrderDetails($params) {
+            $db             = MysqliDb::getInstance();
+            $language       = General::$currentLanguage;
+            $translations   = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+            $dateTime = date('Y-m-d H:i:s');
+
+            $SaleID = trim($params['saleID']);
+            $SaleOrderDetail = $params['orderDetailArray'];
+            $status = $params['status'];
+            $payment_amount = $params['payment_amount'];
+            $shipping_fee = $params['shipping_fee'];
+            $payment_tax = $params['payment_tax'];
+            $payment_method = $params['payment_method'];
+            $delivery_method = $params['delivery_method'];
+
+            if(!$SaleID) {
+                return array('status' => "error", 'code' => 21, 'statusMsg' => $translations["E01051"][$language], 'data'=> "");
+            }
+            if(!$SaleOrderDetail) {
+                return array('status' => "error", 'code' => 22, 'statusMsg' => $translations["E01186"][$language], 'data'=> "");
+            }
+
+            $db->where('id', $SaleID);
+            $sale = $db->getOne('sale_order');
+
+            if(!$sale) {
+                return array('status' => "error", 'code' => 23, 'statusMsg' => $translations["E01187"][$language], 'data'=> "");
+            }
+
+            $status = (!empty($params['status'])) ? $params['status'] : $sale['status'];
+            $payment_amount = (!empty($params['payment_amount'])) ? $params['payment_amount'] : $sale['payment_amount'];
+            $shipping_fee = (!empty($params['shipping_fee'])) ? $params['shipping_fee'] : $sale['shipping_fee'];
+            $payment_tax = (!empty($params['payment_tax'])) ? $params['payment_tax'] : $sale['payment_tax'];
+            $payment_method = (!empty($params['payment_method'])) ? $params['payment_method'] : $sale['payment_method'];
+            $delivery_method = (!empty($params['delivery_method'])) ? $params['delivery_method'] : $sale['delivery_method'];
+     
+            foreach ($SaleOrderDetail as $detailRow) {
+                if(!$detailRow['product_id']) {
+                    return array('status' => "error", 'code' => 24, 'statusMsg' => $translations["E01188"][$language] /* Invalid Stock. */, 'data' => "");
+                }
+                if(!$detailRow['product_template_id']) {
+                    return array('status' => "error", 'code' => 25, 'statusMsg' => $translations["E01188"][$language] /* Invalid Stock. */, 'data' => "");
+                }
+                if(!$detailRow['quantity']) {
+                    return array('status' => "error", 'code' => 26, 'statusMsg' => $translations["E01188"][$language] /* Invalid Stock. */, 'data' => "");
+                }
+
+                $product_idAry[$detailRow['product_id']] = $detailRow['product_id'];
+                $product_template_idAry[$detailRow['product_template_id']] = $detailRow['product_template_id'];
+            }
+
+            if($product_idAry){
+                $db->where("id", $product_idAry, "IN" );
+                $productAry= $db->map('id')->get("product", NULL,"");
+            }
+            if($product_template_idAry){
+                $db->where("id", $product_template_idAry, "IN" );
+                $product_templateAry= $db->map('id')->get("product_template", NULL,"");
+            }
+            
+            $updateData = array(
+                "deleted"    => 1
+            );
+            $db->where('deleted', 0);
+            $db->where('sale_id', $SaleID);
+            $db->update("sale_order_detail", $updateData);
+            
+            $updateData = array(
+                "status"    => $status,
+                "payment_amount"    => $payment_amount,
+                "shipping_fee"    => $shipping_fee,
+                "payment_tax"    => $payment_tax,
+                "payment_method"    => $payment_method,
+                "delivery_method"    => $delivery_method,
+            );
+            $db->where('id', $SaleID);
+            $db->update("sale_order", $updateData);
+
+            foreach ($SaleOrderDetail as $detailRow) {
+                unset($newRecord);
+                $newRecord = array(
+                    "client_id"             =>  $sale['client_id'],
+                    "product_id"            =>  $detailRow['product_id'],
+                    "product_template_id"   =>  $detailRow['product_template_id'],
+                    "item_name"             =>  $productAry[$detailRow['product_id']]['name'],
+                    "item_price"            =>  $productAry[$detailRow['product_id']]['cost'],
+                    "quantity"              =>  $detailRow['quantity'],
+                    "subtotal"              =>  Setting::setDecimal($productAry[$detailRow['product_id']]['cost']*$detailRow['quantity']),
+                    "sale_id"               =>  $sale['id'],
+                    "deleted"               =>  0,
+                    "created_at"            =>  $dateTime
+                );
+                $db->insert("sale_order_detail", $newRecord);
+            }
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["A00684"][$language] /* Update Successful */, 'data' => "");
+        }
     }
-
 ?>

@@ -1526,7 +1526,13 @@
                     $userTable = 'client';
                     $timeOut = Setting::$systemSetting["memberTimeout"];
                     break;
-                
+
+                case 'App':
+                    $result = $db->getOne('client_session');
+                    $userTable = 'client';
+                    $timeOut = Setting::$systemSetting["appTimeout"];
+                    break;
+
                 default:
                     return false;
                     break;

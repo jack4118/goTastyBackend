@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `product` CHANGE `expired_date` `expired_day` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL, CHANGE `sale_price` `margin_percen` DECIMAL(20,8) NOT NULL;
+    </query>
+</document> 

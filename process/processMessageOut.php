@@ -19,6 +19,9 @@
     include($currentPath.'/../include/class.provider.php');
     include($currentPath.'/../include/class.message.php');
     include($currentPath.'/../include/class.log.php');
+
+    //echo $config['dB'];
+    //return $config['dBUser'];
     
     $db = new MysqliDb($config['dBHost'], $config['dBUser'], $config['dBPassword'], $config['dB']);
     $pdb = new MysqliDb($config['dBHost'], $config['processUser'], $config['processPassword'], $config['dB']);
@@ -138,14 +141,17 @@
                             
                         case 'phone':
                             
+                            
+                            //$xml = simplexml_load_string($response);
+                            // $msgCode = (string)$xml->statusCode;
+                            // $msg = (string)$xml->statusMsg;
                             // Send the sms and check for errors
                             $response = $notification->sendSMS($to, $text,$providerArray[$result['type']]);
-                            $xml = simplexml_load_string($response);
-                            $msgCode = (string)$xml->statusCode;
-                            $msg = (string)$xml->statusMsg;
+                            $msgCode = $response['code'];
+                            // $msgCode = 0;
                             
                             //if success sent
-                            if ($msgCode == '1606')
+                            if ($msgCode ==  0)
                             {
                                 $sent = 1;
                                 $data = array('sent' => $sent, 'sent_at' => date("Y-m-d H:i:s"));

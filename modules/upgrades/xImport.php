@@ -89,6 +89,62 @@ $repository = array(
 
     /* Bruce */
     "1667453297" => "Metafiz - Insurance Charges: add column insurance_tax in inv_order",
+
+    /* Zhen Hao */
+    "1678845072" => "Create Vendor and Vendor Address",
+    "1679030254" => "Create Product",
+    "1679302079" => "Create Product Category",
+    "1679471701" => "Create Attribute and Attribute Value",
+    "1679539703" => "Alter product table change expired date to expired day, sale price to margin percentage",
+    "1679647958" => "Create product template and product media, alter product",
+    "1680174582" => "drop quantity column in product",
+    "1680969438" => "Create product item and change product margin percen to sale price",
+
+    /* Bq Chiew */
+    "1679048563" => "Create Shop Table",
+    "1679477405" => "Create Assign_Shop Table",
+    "1679979965" => "Create Device Table",
+
+    /* Lee Yang */
+    "1679364206" => "Create Purchase Request and Purchase Order",
+    "1680680151" => "Modify and add column for purchase_request table and purchase_order table",
+    "1680692054" => "Create Warehouse and Stock",
+
+    /*-- by TeckLoong --*/
+    "1679363597" => "alter table shopping_cart, rename mlm_product_id to product_id",
+    "1679469848" => "insert FPX data into table provider and provider_setting",
+    "1679477250" => "insert FPX data into table provider and provider_setting",
+    "1679997488" => "insert data into table provider_setting and alter column table uploads",
+    "1680000700" => "alter column table uploads",
+    "1680063339" => "add table saleDetail, sale, payment_gateway_details",
+    "1680168673" => "rename table sale to sale_order, saleDetail to sale_order_detail",
+    "1680225443" => "add column product_template_id, product_id in table sale_order, shopping_cart",
+    "1680230726" => "add column shipping_address, billing_address in table sale_order",
+    "1680232179" => "add record for deliveryFee in table system_settings",
+    "1680339721" => "add record for pamentMethod and deliveryMethod in table system_settings",
+    "1680683486" => "rename column payment_fee to shipping_fee in table system_settings",
+    "1680951524" => "add column deleted in table sale_order_detail",
+    "1680963658" => "add record for companyAddressActual in table system_settings",
+    "1681092317" => "add column sale_id in table shopping_cart",
+    
+
+    /* Chee Lam */
+    "1679370085" => "Modify Address table city_id column able to accept string",
+    "1679377353" => "Import Malaysia State into state table",
+    "1680489642" => "Tune address table - rename city_id and post_code_id",
+    "1680926634" => "Add new column 'buying date' in purchase_request table",
+    "1680936448" => "Create new table 'purchase_product'",
+    "1680941116" => "Add new column 'product_name' for purchase_product table",
+    "1680963909" => "Change Purchase Request table column - product id",
+    "1680964853" => "Add new column 'purchase_order' in purchase_product table",
+    "1680966691" => "Add new column 'remarks' in purchase_product table",
+    "1681052264" => "Update System_Settings minPasswordLength from 6 to 8",
+    "1681092614" => "Create Delivery Method table",
+
+    /* Sam */
+    "1680156089" => "client table add new column to define encryption method",
+    "1680772047" => "alter po_request and pr_request and add pr_order_line table",
+    
 );
 
 ksort($repository);

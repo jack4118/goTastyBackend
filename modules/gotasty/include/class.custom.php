@@ -1302,7 +1302,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $totalID, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -1488,7 +1488,7 @@
             $totalAmount = ceil($totalPrice);
 
             $db->where('id', $billingAddressID);
-            $billingData = $db->getOne('address', 'name, email, phone, address, (SELECT name FROM city WHERE city.id = city_id) AS city_name, (SELECT name FROM state WHERE state.id = state_id) state_name, (SELECT name FROM country WHERE country.id = country_id) AS country_name, (SELECT name FROM zip_code WHERE zip_code.id = post_code_id) AS post_code');
+            $billingData = $db->getOne('address', 'name, email, phone, address, (SELECT name FROM city WHERE city.id = city) AS city_name, (SELECT name FROM state WHERE state.id = state_id) state_name, (SELECT name FROM country WHERE country.id = country_id) AS country_name, (SELECT name FROM zip_code WHERE zip_code.id = post_code) AS post_code');
 
             $tmpPackageName = "";
             $packageTotalPrice = 0;

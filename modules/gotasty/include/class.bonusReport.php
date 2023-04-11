@@ -403,7 +403,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -1912,7 +1912,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -2225,7 +2225,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -2492,7 +2492,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -5843,7 +5843,7 @@
 
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;
@@ -6269,7 +6269,7 @@
             if($clientIDAry){
                 $db->groupBy('client_id');
                 $db->where('client_id', $clientIDAry, 'IN');
-                $getCityID = $db->map('client_id')->get('address',null,'client_id,city_id');
+                $getCityID = $db->map('client_id')->get('address',null,'client_id,city');
 
                 foreach($getCityID as $getCityIDRow){
                     $cityIDAry[$getCityIDRow] = $getCityIDRow;

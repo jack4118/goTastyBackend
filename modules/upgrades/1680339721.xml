@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('FPX', 'FPX', 'pamentMethod', '', 'FPX', '');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('QRCode', 'QR Code', 'pamentMethod', '', 'QR Code', '');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('ManualBankTransfer', 'Manual Bank Transfer', 'pamentMethod', '', 'Manual Bank Transfer', '');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('Pickup', 'Selft Pickup', 'deliveryMethod', '', 'Selft Pickup', '');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) 
+        VALUES ('delivery', 'delivery charge', 'deliveryMethod', '', 'delivery charge', '');
+    </query>
+</document> 

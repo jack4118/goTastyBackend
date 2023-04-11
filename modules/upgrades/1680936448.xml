@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `purchase_product` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `purchase_request_id` bigint(20) NOT NULL,
+            `vendor_id` bigint(20) NOT NULL,
+            `product_id` bigint(20) NOT NULL,
+            `quantity` int(11) NOT NULL,
+            `cost` float NOT NULL,
+            `total_cost` float(20,2) NOT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+    </query>
+</document> 

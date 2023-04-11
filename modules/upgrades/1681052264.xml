@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `system_settings` SET `value` = '8' WHERE `name` = 'minPasswordLength';
+    </query>
+</document>

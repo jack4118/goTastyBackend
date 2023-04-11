@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE shopping_cart ADD sale_id bigint(20) AFTER client_id;
+    </query>
+</document> 

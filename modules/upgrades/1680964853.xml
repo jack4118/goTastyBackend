@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `purchase_product` ADD COLUMN `purchase_order_id` BIGINT(20) NOT NULL AFTER `purchase_request_id`;
+    </query>
+</document> 

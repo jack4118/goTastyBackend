@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE sale_order ADD shipping_address VARCHAR(255) NOT NULL AFTER receipt_id;;
+    </query>
+    <query>
+        ALTER TABLE sale_order ADD billing_address VARCHAR(255) NOT NULL AFTER receipt_id;
+    </query>
+</document> 

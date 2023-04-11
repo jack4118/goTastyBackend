@@ -66,6 +66,7 @@
                                             ),
                         "paymentMethod" => array(
                                                 array("percentage" => "100","credit_type" => "bonusDef", "description" => "Couple Bonus Payout"),
+                                                // array("percentage" => "100","credit_type" => "gotastyDef", "description" => "Couple Bonus Payout"),
                                             ),
     );
 

@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE purchase_request DROP COLUMN product_id, 
+        DROP COLUMN quantity, 
+        DROP COLUMN product_cost, 
+        DROP COLUMN total_quantity;
+    </query>
+    <query>
+        ALTER TABLE purchase_order 
+        DROP COLUMN quantity, 
+        DROP COLUMN product_cost, 
+        DROP COLUMN total_quantity;
+    </query>
+    <query>
+        CREATE TABLE `purchase_order_line` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `pr_id` bigint(20) NOT NULL,
+            `po_id` bigint(20) NOT NULL,
+            `product_id` bigint(20) NOT NULL,
+            `product_name` varchar(255) NOT NULL,
+            `unit_price` decimal(20,4) NOT NULL,
+            `quantity` int(11) NOT NULL,
+            `subtotal` decimal(20,4) NOT NULL,
+            `created_at` datetime NOT NULL,
+            `updated_at` datetime NOT NULL,
+            PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+    </query>
+
+</document> 

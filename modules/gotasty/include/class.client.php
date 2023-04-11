@@ -51,6 +51,7 @@
                     return array("status" => "error", "code" => 2, "statusMsg" => $translations["E00227"][$language], "data" => "");
                     break;
             }
+            
             $copyDb = $db->copy();
             $dataRow = $db->getOne($tableName, "id, ".$updatedColumn);
             if(empty($dataRow)){
@@ -60,6 +61,51 @@
             $copyDb->update($tableName,$updatedData);
 
             return array("status" => "ok", "code" => 0, "statusMsg" => "Updated successfully.", "data" => "");
+        }
+
+        public function sendTelegramNotification($content){
+            global $config;
+            $db = MysqliDb::getInstance();
+
+            // retrieve bot api
+            $db->where('company', $config['companyName']);
+            $db->where('name','telegram');
+            $db->where('type', 'notification');
+            $URL1 = $db->getOne('provider',null,'url1');
+
+            $URL = $URL1['url1'] . '/sendMessage';
+
+            $chat_id = $config['telegramGroup'];
+            
+            $data = [
+                'chat_id'   => $chat_id,
+                'text'      => $content,
+            ];
+            // error_log(print_r($content, true));
+            $URL .= "?".http_build_query($data)."&parse_mode=Markdown";
+    
+            // ##### GET METHOD #####
+            $curl=curl_init($URL);
+    
+            curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt($curl, CURLOPT_VERBOSE, 0);  // for debug
+            curl_setopt($curl, CURLOPT_CONNECTTIMEOUT ,120);
+            curl_setopt($curl, CURLOPT_TIMEOUT, 120); //timeout in seconds
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($curl, CURLOPT_HTTPHEADER, 0);
+    
+            $response = curl_exec($curl);
+    
+            /* get http status code*/
+            $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+    
+            if(curl_errno($curl)){
+                return array('code' => 1, 'status' => "error", 'statusMsg' => '', 'http_code' => $httpCode, 'curl_error_no' => curl_errno($curl), 'curl_error' => curl_error($curl));
+            }
+    
+            curl_close($curl);
+    
+            // return $response;
         }
 
         function getCreditDisplay(){
@@ -73,6 +119,31 @@
             }
             return $creditListReturn;
         }
+
+        function create_passlib_pbkdf2($algo, $password, $salt, $iterations){
+          $hash = hash_pbkdf2($algo, $password, base64_decode(str_replace(".", "+", $salt)), $iterations, 64, true);
+          return sprintf("\$pbkdf2-%s\$%d\$%s\$%s", $algo, $iterations, $salt, str_replace("+", ".", rtrim(base64_encode($hash), '=')));
+        }
+
+
+
+        function verify_passlib_pbkdf2($password, $passlib_hash){
+            if (empty($password) || empty($passlib_hash)) return false;
+
+            $parts = explode('$', $passlib_hash);
+            if (!array_key_exists(4, $parts)) return false;
+            $t = explode('-', $parts[1]);
+            if (!array_key_exists(1, $t)) return false;
+
+            $algo = $t[1];
+            $iterations = (int) $parts[2];
+            $salt = $parts[3];
+            $orghash = $parts[4];
+
+            $hash = Self::create_passlib_pbkdf2($algo, $password, $salt, $iterations);
+            return $passlib_hash === $hash;
+        }
+
         
         public function getPortfolioDetail($portfolioId) {
             $db = MysqliDb::getInstance();
@@ -99,7 +170,7 @@
             $username = trim($params['username']);
             $password = trim($params['password']);
             $loginFromID = trim($params['login_user_id']);
-            $params['loginBy'] = 'email';
+            // $params['loginBy'] = 'email';
             $isAutoLogin = trim($params['isAutoLogin']);
             $marcaje = trim($params['marcaje']);
             $marcajeTK = $params['marcajeTK'];
@@ -141,7 +212,7 @@
                     $copyDb = $db->copy();
                     $mainID = $copyDb->getValue('client', 'main_id');
                     if($mainID != $loginFromID){
-                        return array('status' => 'error', 'code' => 1, 'statusMsg' => "Invalid Login", 'data' => "");
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E00101"][$language] /* Invalid Login */, 'data' => "");
                     }
                     $fieldName = "Username ";
                     $loginFromMainAcc = 1;
@@ -156,7 +227,7 @@
                     $copyDb->where("main_id", $id);                    
                     $subIDAry = $copyDb->getValue('client', 'id', null);
                     if(!in_array($loginFromID, $subIDAry)){
-                        return array('status' => 'error', 'code' => 1, 'statusMsg' => "Invalid Login", 'data' => "");
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E00101"][$language] /* Invalid Login */, 'data' => "");
                     }
                     $fieldName = "Username ";
                     break;
@@ -168,7 +239,7 @@
                     break;
 
                 default:
-                    return array('status' => 'error', 'code' => 1, 'statusMsg' => "Invalid Login Type", 'data' => "");
+                    return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01178"][$language] /* Invalid Login Type. */,'data' => "");
                     break;
             }
 
@@ -179,6 +250,7 @@
             }
             // $db->where('register_method',$params['loginBy']);
             $result = $db->get('client');
+            //return array("status" => "error", "code" => 1, "statusMsg" => "", "data" => $db->getLastQuery());
 
             if(empty($result)){
                 $returnData['field'][] = array('id' => 'usernameError', 'msg' => $translations["E01093"][$language]);
@@ -192,33 +264,76 @@
             $clientId = $result[0]["id"];
 
             //if doesn't have id means it is not login from admin site
+
+            // return array("status" => "error", "code" => 21, "statusMsg" => "testing", "data" => Self::verify_passlib_pbkdf2($password,$result[0]['password']));
             if (!$loginFromAdmin) {
-                if ($passwordEncryption == "bcrypt") {
+                // this is verification method using pbkdf2_sha512
+
+                //return array("status" => "error", "code" => 21, "statusMsg" => $passwordEncryption, "data" => Self::verify_passlib_pbkdf2($password,$result[0]['password']));
+                if ($result[0]['encryption_method'] == "pbkdf2_sha512"){
+
+                    // We need to verify hash password by using this function
+                    if (!Self::verify_passlib_pbkdf2($password,$result[0]['password'])){
+
+
+                        // return array("status" => "error", "code" => 21, "statusMsg" => $errMsg, "data" => Client::verify_passlib_pbkdf2($result[0]['password'] , $password));
+
+                        // $db->where('name', 'memberFailLogin');
+                        // $failLimit = $db->getValue('system_settings', 'value');
+
+                        // $failTime = $result[0]['fail_login'] + 1;
+                        // $updateData["fail_login"] = $failTime;
+                        // $remainTime = $failLimit - $failTime;
+
+                        // if($failTime >= $failLimit || $remainTime == 0) {
+                        //     if($result[0]['terminated'] != 1){
+                        //         $updateData["suspended"] = 1;
+                        //         $errMsg = $translations["E00471"][$language];
+                        //     }else{
+                        //         $errMsg = $translations["E00473"][$language];
+                        //     }
+                        // }else{
+                        //      // $errMsg = $translations["E01093"][$language];
+                        //     $errMsg = $translations["E00818"][$language];
+                        //     $errMsg = str_replace("%%count%%", $remainTime, $errMsg);
+                        // }
+                        
+                        // $db->where("id", $clientId);
+                        // $db->update('client', $updateData);
+
+                        $errMsg = $translations['E00468'][$language];
+                        $returnData['field'][] = array('id' => 'passwordError', 'msg' => $errMsg);
+                        return array("status" => "error", "code" => 1, "statusMsg" => $errMsg, "data" => $returnData);
+                    }
+
+                }else {
+              //  if ($passwordEncryption == "bcrypt") {
                     // We need to verify hash password by using this function
                     if (!password_verify($password, $result[0]['password'])){
-                        $db->where('name', 'memberFailLogin');
-                        $failLimit = $db->getValue('system_settings', 'value');
+                        // $db->where('name', 'memberFailLogin');
+                        // $failLimit = $db->getValue('system_settings', 'value');
 
-                        $failTime = $result[0]['fail_login'] + 1;
-                        $updateData["fail_login"] = $failTime;
-                        $remainTime = $failLimit - $failTime;
+                        // $failTime = $result[0]['fail_login'] + 1;
+                        // $updateData["fail_login"] = $failTime;
+                        // $remainTime = $failLimit - $failTime;
 
-                        if($failTime >= $failLimit || $remainTime == 0) {
-                            if($result[0]['terminated'] != 1){
-                                $updateData["suspended"] = 1;
-                                $errMsg = $translations["E00471"][$language];
-                            }else{
-                                $errMsg = $translations["E00473"][$language];
-                            }
-                        }else{
-                             // $errMsg = $translations["E01093"][$language];
-                            $errMsg = $translations["E00818"][$language];
-                            $errMsg = str_replace("%%count%%", $remainTime, $errMsg);
-                        }
+                        // if($failTime >= $failLimit || $remainTime == 0) {
+                        //     if($result[0]['terminated'] != 1){
+                        //         $updateData["suspended"] = 1;
+                        //         $errMsg = $translations["E00471"][$language];
+                        //     }else{
+                        //         $errMsg = $translations["E00473"][$language];
+                        //     }
+                        // }else{
+                        //      // $errMsg = $translations["E01093"][$language];
+                        //     $errMsg = $translations["E00818"][$language];
+                        //     $errMsg = str_replace("%%count%%", $remainTime, $errMsg);
+                        // }
                         
-                        $db->where("id", $clientId);
-                        $db->update('client', $updateData);
+                        // $db->where("id", $clientId);
+                        // $db->update('client', $updateData);
 
+                        $errMsg = $translations['E00468'][$language];
                         $returnData['field'][] = array('id' => 'passwordError', 'msg' => $errMsg);
                         return array("status" => "error", "code" => 1, "statusMsg" => $errMsg, "data" => $returnData);
                     }
@@ -297,7 +412,15 @@
             foreach ($result2 as $row){
                 $blockedRights[] = $row['blocked_rights'];
             }
-
+            $db->where('id', $id);
+            $clientDetail = $db->get('client', null, 'member_id, type, concat(dial_code, phone) as phone');
+            foreach ($clientDetail as $row) {
+                $member_id = $row['member_id'];
+                $type = $row['type'];
+                $phone = $row['phone'];
+            }
+            $content = '*Login Message* '."\n\n".'Member ID: '.$member_id."\n".'Type: '.$type."\n".'Phone Number: '.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+            Client::sendTelegramNotification($content);
             $memo = Bulletin::getPopUpMemo($id, $turnOffPopUpMemo);
             
             $member['memo'] = $memo;
@@ -378,7 +501,7 @@
 
             return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data);
         }
-
+        
         public function getValidCreditType() {
 
             $db = MysqliDb::getInstance();
@@ -409,19 +532,19 @@
             $db->join("country c", "m.country_id=c.id", "LEFT");
             $db->join("client s", "m.sponsor_id=s.id", "LEFT");
             $db->where("m.id", $clientID);
-            $member = $db->getOne("client m", "m.name, m.email, m.phone, m.address, c.name AS country, m.disabled, m.suspended, m.freezed, s.username AS sponsorUsername");
-
+            // $member = $db->getOne("client m", "m.name, m.email, m.phone, m.dial_code, m.address, c.name AS country, m.disabled, m.suspended, m.freezed, s.username as sponsorUsername, s.name as sponsorName, s.dial_code as sponsorDialCode, s.phone AS sponsorPhone");
+            $member = $db->getOne("client m", "m.name, m.email, m.phone, m.dial_code, m.address, c.name AS country, m.disabled, m.suspended, m.freezed, m.sponsor_id as sponsorId");
             $db->where("disabled",0);
             $db->where("address_type","billing");
             $db->where("client_id",$clientID);
-            $billingRes = $db->getOne("address","name,email,phone,address,state_id,district_id,sub_district_id,post_code_id,city_id,country_id,remarks");
+            $billingRes = $db->getOne("address","name,email,phone,address,state_id,district_id,sub_district_id,post_code,city,country_id,remarks");
 
             unset($districtIDAry,$subDistrictIDAry,$postCodeIDAry,$cityIDAry,$stateIDAry,$countryIDAry);
 
             $districtIDAry[$billingRes["district_id"]] = $billingRes["district_id"];
             $subDistrictIDAry[$billingRes["sub_district_id"]] = $billingRes["sub_district_id"];
-            $postCodeIDAry[$billingRes["post_code_id"]] = $billingRes["post_code_id"];
-            $cityIDAry[$billingRes["city_id"]] = $billingRes["city_id"];
+            $postCodeIDAry[$billingRes["post_code"]] = $billingRes["post_code"];
+            $cityIDAry[$billingRes["city"]] = $billingRes["city"];
             $stateIDAry[$billingRes["state_id"]] = $billingRes["state_id"];
             $countryIDAry[$billingRes["country_id"]] = $billingRes["country_id"];
 
@@ -456,22 +579,48 @@
             }
 
             unset($billingInfo);
-
             $billingInfo["name"] = $billingRes["name"];
             $billingInfo["email"] = $billingRes["email"];
-            $billingInfo["dialingArea"] = $countryRes[$billingRes["country_id"]]["country_code"];
+            // $billingInfo["dialingArea"] = $countryRes[$billingRes["country_id"]]["country_code"];
+            $billingInfo['dialingArea'] = $member['dial_code'];
             $billingInfo["phone"] = $billingRes["phone"];
             $billingInfo["address"] = $billingRes["address"];
             $billingInfo["remarks"] = $billingRes["remarks"];
             $billingInfo["country"] = $translations[$countryRes[$billingRes["country_id"]]["translation_code"]][$language] ? $translations[$countryRes[$billingRes["country_id"]]["translation_code"]][$language] : $countryRes[$billingRes["country_id"]]["name"];
             $billingInfo["state"] = $stateRes[$billingRes["state_id"]];
-            $billingInfo["city"] = $cityRes[$billingRes["city_id"]];
+            // $billingInfo["city"] = $cityRes[$billingRes["city"]];
+            $billingInfo["city"] = $billingRes["city"];
             $billingInfo["district"] = $districtRes[$billingRes["district_id"]];
             $billingInfo["subDistrict"] = $subDistrictRes[$billingRes["sub_district_id"]];
-            $billingInfo["postalCode"] = $postCodeRes[$billingRes["post_code_id"]];
+            // $billingInfo["postalCode"] = $postCodeRes[$billingRes["post_code"]];
+            $billingInfo["postalCode"] = $billingRes["post_code"];
+
+            unset($sponsorInfo);
+            // get sponsor user detail
+            if($member['sponsorId'] != '0')
+            {   
+                $db->where('concat(dial_code, phone)', $member['sponsorId']);
+                $db->where('type', 'Client');
+                $sponsorDetail = $db->getOne('client');
+            }
+            
+            if($sponsorDetail)
+            {
+                $sponsorInfo["sponsorName"] = $sponsorDetail['name'];
+                $sponsorInfo["sponsorDialCode"] = $sponsorDetail['dial_code'];
+                $sponsorInfo["sponsorPhone"] = $sponsorDetail['phone'];
+            }
+            
+            if(!$sponsorDetail)
+            {
+                $sponsorInfo["sponsorName"] = '-';
+                $sponsorInfo["sponsorDialCode"] = '-';
+                $sponsorInfo["sponsorPhone"] = '-';
+            }
 
             $data['member'] = $member;
             $data["billingInfo"] = $billingInfo;
+            $data["sponsorInfo"] = $sponsorInfo;
             if(empty($member))
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00279"][$language] /* No result found */, 'data' => "");
             return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $data);
@@ -2943,12 +3092,13 @@
             // $username           = $params['username'];
             $password           = $params['password'];
             $retypePassword     = $params['retypePassword'];
-            // $verificationCode   = $params['verificationCode'];
-            // $otpType            = $params['otpType'];
+            $verificationCode   = $params['verificationCode'];
+            $otpType            = $params['otpType'];
             // $step               = $params['step'];
             // $phoneNumber        = $params['phoneNumber'];
             // $dialCode           = $params['dialCode'];
-            $email = trim($params['email']);
+            //$email = trim($params['email']);
+            $phone = trim($params['phone']);
 
             $maxPass  = Setting::$systemSetting['maxPasswordLength'];
             $minPass  = Setting::$systemSetting['minPasswordLength'];
@@ -3014,6 +3164,22 @@
             //     $clientEmail = $clientData['email'];
             // }
 
+            if($phone == '60')
+            {
+                $errorFieldArr[] = array(
+                    'id'  => 'phoneError',
+                    'msg' => $translations["E00773"][$language] /* Invalid phone number */
+                );
+            }
+
+            if(!$verificationCode)
+            {
+                $errorFieldArr[] = array(
+                    'id'  => 'otpError',
+                    'msg' => $translations["E00864"][$language] /* Invalid OTP code */
+                );
+            }
+
             if(!$password){
                 $errorFieldArr[] = array(
                     'id'  => 'passwordError',
@@ -3042,13 +3208,13 @@
             }
             if(!$retypePassword){
                 $errorFieldArr[] = array(
-                    'id'  => 'retypePasswordError',
+                    'id'  => 'checkPasswordError',
                     'msg' => $translations["E00306"][$language] /* Please fill in password */
                 );
             }
             else if($password != $retypePassword){
                 $errorFieldArr[] = array(
-                    'id'  => 'retypePasswordError',
+                    'id'  => 'checkPasswordError',
                     'msg' => $translations["M01051"][$language] /* The passwords you entered do not match. Please retype your password. */
                 );
             }
@@ -3086,15 +3252,75 @@
             //     $data['field'] = $errorFieldArr;
             //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements */, 'data' => $data);
             // }
+            $verifyCode = Otp::verifyOTPCode($clientID,$otpType,"resetPassword",$verificationCode,$phone);
+                    
+            if($verifyCode["status"] != "error")
+            {
+                $db->where('phone_number',$phone);
+                $db->where('status','Sent');
+                $db->where('msg_type','OTP Code');
+                $db->where('verification_type','resetPassword##phone');
+                $db->where('code',$verificationCode);
+                $fields = array("status");
+                $values = array("Verified");
+                $arrayData = array_combine($fields, $values);
+                $row = $db->update("sms_integration", $arrayData);
+            }
+            else
+            {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => 'Wrong OTP code', 'data' => $verifyCode);
+            }
 
             $params['step'] = 3;
-            $verificationRes = Client::accountOwnerVerification($params, 'resetPassword');
+            
+            if(empty($phone)) {
+                $errorFieldArr[] = array(
+                    'id' => 'phoneError',
+                    'msg' => $translations["E00305"][$language] /* Please fill in mobile number */
+                );
+            }
+            
+            if(!$verificationCode){
+                $errorFieldArr[] = array(
+                    'id'  => 'verificationCodeError',
+                    'msg' => $translations["M01050"][$language] /* Please insert otp code */
+                );      
+            }
+            
+            if($errorFieldArr){
+                $data['field'] = $errorFieldArr;
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements. */, 'data'=> $data);
+            }
+            
+            
+            $db->where('concat(dial_code, phone)', $phone);
+            $db->orWhere('member_id', $phone);
+            $clientID = $db->getOne('client', 'id, email, username, concat(dial_code, phone) as phone');
+            
+            if(!$clientID)
+                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => $db->getLastQuery());
+            
+            if($clientID)
+            {
+                $verificationRes['status'] = 'ok';
+            }
+            // $verificationRes = Client::accountOwnerVerification($params, 'resetPassword');
             if($verificationRes['status'] != 'ok') return $verificationRes;
+
+            $db->where('phone_number',$phone);
+            $db->where('status','Verified');
+            $db->where('msg_type','OTP Code');
+            $db->where('verification_type','resetPassword##phone');
+            $db->where('code',$verificationCode);
+            $fields = array("status");
+            $values = array("Success");
+            $arrayData = array_combine($fields, $values);
+            $row = $db->update("sms_integration", $arrayData);
 
             $otpID = $verificationRes['data'];
 
-            $db->where('email', $email);
-            $db->orWhere('member_id', $email);
+            $db->where('concat(dial_code, phone)', $phone);
+            $db->orWhere('member_id', $phone);
             $clientID = $db->getValue('client', 'id');
 
             $db->where('client_id', $clientID);
@@ -3115,14 +3341,27 @@
             }
 
             $db->where('ID', $clientID);
-            $updateData = array('password' => Setting::getEncryptedPassword($password));
+            $updateData = array(
+                'password'          => Setting::getEncryptedPassword($password),
+                'encryption_method' => 'bcrypt'
+            );
             $db->update('client', $updateData);
 
             if($otpID){
                 $db->where('id', $otpID, 'IN');
                 $db->update('sms_integration', array('expired_at' => $db->now()));
             }
-
+            $content = '*Reset Password Message* '."\n\n".'Client ID: '.$clientID."\n".'Phone Number: '.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+            Client::sendTelegramNotification($content);
+            $db->where('phone_number',$phone);
+            $db->where('status','Verified');
+            $db->where('msg_type','OTP Code');
+            $db->where('verification_type','resetPassword##phone');
+            $db->where('code',$verificationCode);
+            $fields = array("status");
+            $values = array("Success");
+            $arrayData = array_combine($fields, $values);
+            $row = $db->update("sms_integration", $arrayData);
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00168"][$language] /* Update successful */, 'data' => "");
         }
 
@@ -5880,7 +6119,7 @@
 
             $db->where('address_type', 'billing');
             $db->where('client_id',$clientId);
-            $clientAddress = $db->getOne('address','address, (SELECT name FROM county WHERE id = district_id) AS district, (SELECT name FROM sub_county WHERE id = sub_district_id) AS subDistrict, (SELECT name FROM zip_code WHERE id = post_code_id) AS zipCode, (SELECT name FROM city WHERE id = city_id) AS city, (SELECT name FROM state WHERE id = state_id) AS province, (SELECT translation_code FROM country WHERE id = address.country_id) AS countryName');
+            $clientAddress = $db->getOne('address','address, (SELECT name FROM county WHERE id = district_id) AS district, (SELECT name FROM sub_county WHERE id = sub_district_id) AS subDistrict, (SELECT name FROM zip_code WHERE id = post_code) AS zipCode, (SELECT name FROM city WHERE id = city) AS city, (SELECT name FROM state WHERE id = state_id) AS province, (SELECT translation_code FROM country WHERE id = address.country_id) AS countryName');
 
             if($clientAddress['countryName']){
                 $clientAddress['countryName'] = $translations[$clientAddress['countryName']]['english'];;    
@@ -5958,7 +6197,7 @@
             
             $db->where('address_type', 'billing');
             $db->where('client_id',$clientId);
-            $clientAddress = $db->getOne('address','address, (SELECT name FROM county WHERE id = district_id) AS district, (SELECT name FROM sub_county WHERE id = sub_district_id) AS subDistrict, (SELECT name FROM city WHERE id = city_id) AS city, (SELECT name FROM zip_code WHERE id = post_code_id) AS zipCode, (SELECT name FROM state WHERE id = state_id) AS province, (SELECT translation_code FROM country WHERE id = address.country_id) AS countryName');
+            $clientAddress = $db->getOne('address','address, (SELECT name FROM county WHERE id = district_id) AS district, (SELECT name FROM sub_county WHERE id = sub_district_id) AS subDistrict, (SELECT name FROM city WHERE id = city) AS city, (SELECT name FROM zip_code WHERE id = post_code) AS zipCode, (SELECT name FROM state WHERE id = state_id) AS province, (SELECT translation_code FROM country WHERE id = address.country_id) AS countryName');
 
             if($clientAddress['countryName']){
                 $clientAddress['countryName'] = $translations[$clientAddress['countryName']]['english'];;    
@@ -6247,38 +6486,18 @@
             $name = trim($params['name']);
             $dob = trim($params['dob']);
             $step = trim($params['step']);
-            $email = trim($params['email']);
+            $phone = trim($params['phone']);
             $verificationCode = $params['verificationCode'];
+            $dialCode = $params['dialCode'];
+            $number = $params['number'];
+            $type = $type ? $type : $params['type'];
             if(!$step) $step = 1;
 
-            // Validate name
-            if(empty($name)) {
-                $errorFieldArr[] = array(
-                    'id'    => 'nameError',
-                    'msg'   => $translations["E00296"][$language] /* Please insert full name */
-                );
-            }
-
-            // Validate Date of Birth
-            if (!is_numeric($dob)){
-                $errorFieldArr[] = array(
-                    'id' => 'dateOfBirthError',
-                    'msg' => $translations["E00156"][$language] /* Invalid date. */
-                );
-            }
-
-            if(empty($identityNumber)){
-                $errorFieldArr[] = array(
-                    'id' => 'identityNumberError',
-                    'msg' => $translations["E01040"][$language] /* Please Insert Identity Number */
-                );
-            }
-
             if($type == 'resetPassword'){
-                if(empty($email)) {
+                if(empty($phone)) {
                     $errorFieldArr[] = array(
-                        'id' => 'emailError',
-                        'msg' => $translations["E00318"][$language] /* Please fill in email */
+                        'id' => 'phoneError',
+                        'msg' => $translations["E00305"][$language] /* Please fill in mobile number */
                     );
                 }
             }
@@ -6297,51 +6516,915 @@
                 return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements. */, 'data'=> $data);
             }
 
-            $db->where('dob', date("Y-m-d", $dob));
-            $db->where('name', $name);
-            
-            if ($identityType == "nric") 
-                $db->where('identity_number', $identityNumber);
-            else
-                $db->where('passport', $identityNumber);
-
-            $clientData = $db->getOne('client', 'id, username, email');
-
-            if(!$clientData){
-                return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => "");
-            }
-
             if($type == 'resetPassword'){
-                $db->where('email', $email);
-                $db->orWhere('member_id', $email);
-                $clientID = $db->getValue('client', 'id');
+                $db->where('concat(dial_code, phone)', $phone);
+                $db->orWhere('member_id', $phone);
+                $clientID = $db->getOne('client', 'id, email, username, concat(dial_code, phone) as phone');
 
-                if($clientData['id'] != $clientID)
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => "");
+                if(!$clientID)
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => $db->getLastQuery());
             }
 
-            $data['loginID'] = $clientData['username'];
-            $data['email'] = $clientData['email'];
+            $data['loginID'] = $clientID['username'];
+            $data['phone'] = $clientID['phone'];
 
             if($type == 'resetPassword'){
 
-                if($step == 1){
-                    $otpParams['email'] = $clientData['email'];
-                    $otpParams['sendType'] = 'email';
+                // if($step == 1){
+                    $otpParams['phone'] = $clientID['phone'];
+                    $otpParams['sendType'] = 'phone';
                     $otpParams['type'] = $type;
 
+                    //return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01102"][$language] /* Sorry, we could not find the correct memberID with these information. Please try again. */, 'data' => $clientID['phone']);
+
                     $otpRes = Otp::sendOTPCode($otpParams);
+                    $content = '*OTP Request* '."\n\n".'Phone : '.$otpParams['phone']."\n".'Send Type: phone'."\n".'OTP Code: '.$otpRes['data']['otpCode']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                    Client::sendTelegramNotification($content);
 
                     return $otpRes;
-                }else{
-                    $verifyCode = Otp::verifyOTPCode($clientID,'email',$type,$verificationCode);
+                // }
 
-                    if(!($step == 3)) $verifyCode['data'] = '';
-                    return $verifyCode;
-                }
+            }else {
+
+                // if ($step == 1){
+                    $otpParams['phone'] = $number;
+                    $otpParams['sendType'] = 'phone';
+                    $otpParams['type'] = $type;
+                    $otpParams['dialCode'] = $dialCode;
+
+                    $db->orderby('created_on');
+                    $db->where('phone_number',$dialCode.$number);
+                    $db->where('status','Sent');
+                    $db->where('verification_type','register##phone');
+                    $availableOTP = $db->getOne('sms_integration','created_on');
+                    $availableOTP = $availableOTP['created_on'];
+                    $currentDateTime = time();
+
+                    $availableOTP = strtotime($availableOTP);
+
+                    $diff_minutes = ($currentDateTime - $availableOTP) / 60;
+                    if ($diff_minutes >= 3) {
+                        $otpRes = Otp::sendOTPCode($otpParams);
+                    } else 
+                    {
+                        return array('status' => "error", 'code' => 1, 'statusMsg' => "Please wait the resend OTP colddown", 'data' => "");
+                    }
+                    if($otpRes)
+                    {
+                        $db->where('phone_number', $dialCode.$number);
+                        $getOtpCode = $db->getOne('sms_integration','code');
+                        foreach ($getOtpCode as $row) {
+                            $OtpCode = $row['code'];
+                        }
+                        $content = '*OTP Request* '."\n\n".'Phone : '.$otpParams['phone']."\n".'Send Type: phone'."\n".'OTP Code: '.$otpRes['data']['otpCode']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                        Client::sendTelegramNotification($content);
+                    }
+                    return $otpRes;
+                // }
+
+            }
+
+            // verify OTP code
+            $verifyCode = Otp::verifyOTPCode($clientID,'phone',$type,$verificationCode,$phone);
+            if($verifyCode['status'] == 'error')
+            {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => "Wrong OTP code", 'data' => "");
+            }
+            else
+            {
+                $db->where('phone_number',$phone);
+                $db->where('status','Sent');
+                $db->where('msg_type','OTP Code');
+                $db->where('verification_type','resetPassword##phone');
+                $db->where('code',$verificationCode);
+                $fields = array("status");
+                $values = array("Verified");
+                $arrayData = array_combine($fields, $values);
+                $row = $db->update("sms_integration", $arrayData);
             }
 
             return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $data);
+        }
+
+        public function guestOwnerVerification($params) {
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+
+            $name = trim($params['name']);
+            $emailAddress = trim($params['emailAddress']);
+            $dialingArea = trim($params['dialingArea']);
+            $phone = trim($params['phone']);
+            $companyName = trim($params['companyName']);
+            $address = $params['streetNo'];
+            $city = $params['city'];
+            $zipCode = $params['zipCode'];
+            $state = $params['state'];
+            $country = $params['country'];
+            $package    = $params['package'];
+            $purchaseAmount = $params['purchaseAmount'];
+            $ShipToSameAddress = $params['guestShipToSameAddress'];
+
+            $name2 = trim($params['name2']);
+            $emailAddress2 = trim($params['emailAddress2']);
+            $dialingArea2 = trim($params['dialingArea2']);
+            $phone2 = trim($params['phone2']);
+            $companyName2 = trim($params['companyName2']);
+            $address2 = $params['streetNo2'];
+            $city2 = $params['city2'];
+            $zipCode2 = $params['zipCode2'];
+            $state2 = $params['state2'];
+            $country2 = $params['country2'];
+            $deliveryMethod = trim($params['deliveryMethod']);
+
+            if(empty($name)) {
+                $errorFieldArr[] = array(
+                    'id' => 'nameError',
+                    'msg' => 'Please fill in name' 
+                );
+            }
+
+
+            if(empty($dialingArea)) {
+                $errorFieldArr[] = array(
+                    'id' => 'dialCodeError',
+                    'msg' => $translations["E01084"][$language] /* Please fill in valid dial code */
+                );
+            }
+
+            if(empty($phone)) {
+                $errorFieldArr[] = array(
+                    'id' => 'phoneError',
+                    'msg' => $translations["M02436"][$language] /* Enter your phone number */
+                );
+            }
+
+            if(empty($address)) {
+                $errorFieldArr[] = array(
+                    'id' => 'addressError',
+                    'msg' => $translations["M03152"][$language] /* Enter your address */
+                );
+            }
+
+            if(empty($city)) {
+                $errorFieldArr[] = array(
+                    'id' => 'cityError',
+                    'msg' => $translations["M03157"][$language] /* Enter your city */
+                );
+            }
+
+            if(empty($zipCode)) {
+                $errorFieldArr[] = array(
+                    'id' => 'zipCodeError',
+                    'msg' => $translations["E01030"][$language] /* Please Insert Zip Code */
+                );
+            }
+
+
+            if($ShipToSameAddress != 1)
+            {
+                if(empty($address2)) {
+                    $errorFieldArr[] = array(
+                        'id' => 'addressError',
+                        'msg' => $translations["M03152"][$language] /* Enter your address */
+                    );
+                }
+    
+                if(empty($city2)) {
+                    $errorFieldArr[] = array(
+                        'id' => 'cityError',
+                        'msg' => $translations["M03157"][$language] /* Enter your city */
+                    );
+                }
+    
+                if(empty($zipCode2)) {
+                    $errorFieldArr[] = array(
+                        'id' => 'zipCodeError',
+                        'msg' => $translations["E01030"][$language] /* Please Insert Zip Code */
+                    );
+                }
+            }
+
+            if($errorFieldArr){
+                $data['field'] = $errorFieldArr;
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00130"][$language] /* Data does not meet requirements. */, 'data'=> $data);
+            }
+
+            // check is the user exist or not
+            $db->where('concat(dial_code,phone)',$dialingArea.$phone);
+            $userExist = $db->get('client',null,'id, username, name, email, dial_code, phone, address, country_id, state_id, city_id');
+
+            if($userExist)
+            {
+                foreach($userExist as $userRow)
+                {
+                    $clientID = $userRow['id'];
+                }
+
+                $db->where('name',$country);
+                $countryID = $db->get('country',null,'id');
+                $countryID = $countryID[0]['id'];
+                $db->where('name',$state);
+                $stateID = $db->get('state',null,'id');
+                $stateID = $stateID[0]['id'];
+                $db->where('name',$city);
+                $db->where('country_id',$countryID);
+                $cityID = $db->get('city',null,'id');
+                $cityID = $cityID[0]['id'];
+
+                $data = array(
+                    "email"         => $emailAddress,
+                    "address"       => $address,
+                    "country_id"    => $countryID,
+                    "state_id"      => $stateID,
+                    "city_id"       => $cityID,
+                    "updated_at"    => date("Y-m-d H:i:s"),
+                );
+                $db->where('concat(dial_code,phone)',$dialingArea.$phone);
+                // update client table details
+                $updateUser = $db->update('client',$data);
+                if(!$updateUser)
+                {
+                    $content = '*Failed to Update User Existing profile* '."\n\n"."Client Phone No: ".$dialingArea.$phone."\n"."Address: ".$address."\n"."Country ID: ".$countryID."\n"."State ID: ".$stateID."\n"."City ID: ".$cityID."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                    Client::sendTelegramNotification($content);
+                    return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01180"][$language] /* Failed to update user existing profile. */, 'data' => '');
+                }
+            }
+            else
+            {
+                // $clientID = $db->getNewID();
+                $memberID = Subscribe::generateMemberID();
+                $dateTime = $db->now();
+                $db->where('name',$country);
+                $countryID = $db->get('country',null,'id');
+                $countryID = $countryID[0]['id'];
+                $db->where('name',$state);
+                $stateID = $db->get('state',null,'id');
+                $stateID = $stateID[0]['id'];
+                $db->where('name',$city);
+                $db->where('country_id',$countryID);
+                $cityID = $db->get('city',null,'id');
+                $cityID = $cityID[0]['id'];
+
+                $insertClientData = array(
+                    // "id" => $clientID,
+                    "member_id" => $memberID,
+                    "email" => $emailAddress,
+                    "name" => $name,
+                    "username" => $dialingArea.$phone, 
+                    "dial_code" => $dialingArea,
+                    "phone" => $phone,
+                    "address" => $address,
+                    "state_id" => $stateID,
+                    "city_id" => $cityID,
+                    "country_id" => $countryID,
+                    "type" => "Guest",
+                    "created_at" => $dateTime,
+                );
+                $createGuest = $db->insert('client',$insertClientData);
+                if(!$createGuest)
+                {
+                    $content = '*Failed to register new guest Message* '."\n\n".'Member ID: '.$memberID."\n"."Name: ".$name."\n".'Type: Guest'."\n".'Phone Number: +'.$dialingArea.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                    Client::sendTelegramNotification($content);
+                    return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01182"][$language] /* Failed to create new client. */ , 'data' => '');
+                }
+                // get User Client Id (Guest)
+                $db->where('concat(dial_code,phone)', $dialingArea.$phone);
+                $db->where('type', 'Guest');
+                $clientID = $db->getOne('client');
+                $clientID = $clientID['id']; 
+            }
+            // convert country name and state name into id
+            $db->where('name', $country);
+            $countryId = $db->getOne('country');
+
+            $db->where('name', $country2);
+            $countryId2 = $db->getOne('country');
+
+            $db->where('name', $state);
+            $stateId = $db->getOne('state');
+
+            $db->where('name', $state2);
+            $stateId2 = $db->getOne('state');
+
+            if($ShipToSameAddress == '1')
+                {
+                    $db->where('id',$clientID);
+                    $clientDetails = $db->getOne('client');
+                    // Billing address
+                    $data = array(
+                        "client_id" => $clientID,
+                        "name" => $clientDetails['name'],
+                        "email" => $emailAddress,
+                        "phone" => $clientDetails['phone'],
+                        "address" => $address,
+                        "post_code" => $zipCode,
+                        "city" => $city,
+                        "state_id" => $stateId['id'],
+                        "country_id" => $countryId['id'],
+                        "address_type" => 'shipping',
+                        "remarks" => $companyName,
+                        "created_at" => $db->now(),
+                    );
+                    // Shipping address
+                    $data2 = array(
+                        "client_id" => $clientID,
+                        "name" => $name2,
+                        "email" => $emailAddress2,
+                        "phone" => $phone2,
+                        "address" => $address,
+                        "post_code" => $zipCode,
+                        "city" => $city,
+                        "state_id" => $stateId['id'],
+                        "country_id" => $countryId['id'],
+                        "address_type" => 'shipping',
+                        "remarks" => $companyName,
+                        "created_at" => $db->now(),
+                    );
+                    $insertAddress1 = $db->insert('address',$data);
+                    if(!$insertAddress1)
+                    {
+                        $content = '*Failed to insert new company address Message* '."\n\n".'client ID: '.$clientID."\n"."Name: ".$clientDetails['name']."\n"."Email: ".$clientDetails['email']."\n".'Type: Guest'."\n".'Phone Number: +'.$clientDetails['phone']."\n"."Address: ".$clientDetails['address']."\n"."Post Code: ".$zipCode."\n"."City: ".$city."\n"."State id: ".$clientDetails['state_id']."\n"."Country id: ".$clientDetails['country_id']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                        Client::sendTelegramNotification($content);
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01181"][$language] /* Failed to insert company address. */, 'data' => '');
+                    }
+                    $insertAddress2 = $db->insert('address',$data2);
+                    if(!$insertAddress2)
+                    {
+                        $content = '*Failed to insert new company address Message* '."\n\n".'client ID: '.$clientID."\n"."Name: ".$clientDetails['name']."\n"."Email: ".$clientDetails['email']."\n".'Type: Guest'."\n".'Phone Number: +'.$clientDetails['phone']."\n"."Address: ".$clientDetails['address']."\n"."Post Code: ".$zipCode."\n"."City: ".$city."\n"."State id: ".$clientDetails['state_id']."\n"."Country id: ".$clientDetails['country_id']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                        Client::sendTelegramNotification($content);
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01181"][$language] /* Failed to insert company address. */, 'data' => '');
+                    }
+                }
+                else
+                {
+                    $db->where('id',$clientID);
+                    $clientDetails = $db->getOne('client');
+                    // insert address Table
+                    // Billing address
+                    $data = array(
+                        "client_id" => $clientID,
+                        "name" => $clientDetails['name'],
+                        "email" => $emailAddress,
+                        "phone" => $clientDetails['phone'],
+                        "address" => $address,
+                        "post_code" => $zipCode,
+                        "city" => $city,
+                        "state_id" => $stateId['id'],
+                        "country_id" => $countryId['id'],
+                        "address_type" => 'silling',
+                        "remarks" => $companyName,
+                        "created_at" => $db->now(),
+                    );
+                    // Shipping address
+                    $data2 = array(
+                        "client_id" => $clientID,
+                        "name" => $name2,
+                        "email" => $emailAddress2,
+                        "phone" => $phone2,
+                        "address" => $address2,
+                        "post_code" => $zipCode2,
+                        "city" => $city2,
+                        "state_id" => $stateId2['id'],
+                        "country_id" => $countryId2['id'],
+                        "address_type" => 'shipping',
+                        "remarks" => $companyName,
+                        "created_at" => $db->now(),
+                    );
+                    $insertAddress1 = $db->insert('address',$data);
+                    if(!$insertAddress1)
+                    {
+                        $content = '*Failed to insert new company address Message* '."\n\n".'client ID: '.$clientID."\n"."Name: ".$clientDetails['name']."\n"."Email: ".$clientDetails['email']."\n".'Type: Guest'."\n".'Phone Number: +'.$clientDetails['phone']."\n"."Address: ".$clientDetails['address']."\n"."Post Code: ".$zipCode."\n"."City: ".$city."\n"."State id: ".$clientDetails['state_id']."\n"."Country id: ".$clientDetails['country_id']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                        Client::sendTelegramNotification($content);
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01181"][$language] /* Failed to insert company address. */, 'data' => '');
+                    }
+                    $insertAddress2 = $db->insert('address',$data2);
+                    if(!$insertAddress2)
+                    {
+                        $content = '*Failed to insert new company address Message* '."\n\n".'client ID: '.$clientID."\n"."Name: ".$clientDetails['name']."\n"."Email: ".$clientDetails['email']."\n".'Type: Guest'."\n".'Phone Number: +'.$clientDetails['phone']."\n"."Address: ".$clientDetails['address']."\n"."Post Code: ".$zipCode."\n"."City: ".$city."\n"."State id: ".$clientDetails['state_id']."\n"."Country id: ".$clientDetails['country_id']."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                        Client::sendTelegramNotification($content);
+                        return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01181"][$language] /* Failed to insert company address. */, 'data' => '');
+                    }
+                }
+            // add to shopping cart
+            foreach ($package as $value) {
+                $cartParams['packageID'] = $value['packageID'];
+                $cartParams['quantity'] = $value['quantity'];
+                $cartParams['product_template'] = $value['product_template'];
+                $cartParams['clientID'] = $clientID;
+                $cartParams['type'] = 'inc';
+                $addCartResult = Inventory::addShoppingCart($cartParams);
+
+                if(!$addCartResult)
+                {
+                    return array("code" => 1, "status" => "error", "statusMsg" => 'failure' , 'data' => $addCartResult['statusMsg']);
+                }
+            }
+
+            // get the shipping address id
+            $db->where('client_id', $clientID);
+            $ShippingAddressList = $db->get('address', null,'id');
+            
+            $ShippingId = $ShippingAddressList[0]['id'];
+            $BillingId = $ShippingAddressList[1]['id'];
+
+            unset($params);
+            $params['clientID'] = $clientID;
+            $params['package'] = $package;
+            
+            $updateInventory = Inventory::updateShoppingCart($params);
+            if($updateInventory['status'] == 'error')
+            {
+                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01183"][$language] /* Failed to update shopping card. */, 'data' => $updateInventory['statusMsg']);
+            }
+            unset($params);
+            $params['quantityOfReward'] = '0';
+            $params['isRedeemReward'] = '0';
+            $params['redeemAmount'] = '0';
+            $params['memberPointDeduct'] = '0';
+            $params['billing_address'] = $BillingId;
+            $params['shipping_address'] = $ShippingId;
+            $params['purchase_amount'] = $purchaseAmount;
+            $params['clientID'] = $clientID;
+            $params['delivery_method'] = $deliveryMethod;
+            $addNewPayment = Cash::addNewPayment($params, $clientID); // addNewPayment
+            if($addNewPayment['status'] == 'error')
+            {
+                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01184"][$language] /* Failed to add new payment. */, 'data' => $addNewPayment);
+            }
+            
+            $content = '*Register New guest Message* '."\n\n".'Member ID: '.$memberID."\n"."Name: ".$name."\n".'Type: Guest'."\n".'Phone Number: +'.$dialingArea.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+            Client::sendTelegramNotification($content);
+            return array('status' => 'ok', 'code' => 0, 'statusMsg' => $addNewPayment['statusMsg'], 'data' => $addNewPayment['data']);
+        }
+
+        public function getState($params)
+        {
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+
+            $country_name = trim($params['countryName']);
+            $country_id   = trim($params['countryId']);
+            $state_id     = trim($params['stateId']);
+            $state_name   = trim($params['stateName']);
+
+            if(empty($country_id))
+            {
+                // get all country
+                $countryList = $db->get('country',null,'id, name');
+
+                // get all state
+                $stateList = $db->get('state',null,'id, name');
+            }  
+            if(!empty($country_id))
+            {
+                if(empty($country_name))
+                {
+                    // get the country name
+                    $db->where('id',$country_id);
+                    $country_name = $db->getOne('country','name');
+                    $country_name = $country_name['name'];
+                }
+                if(empty($state_id))
+                {
+                    // $stateList = $db->get('state',null,'id, name');
+                    $db->where('country_id',$country_id);
+                    $state_id = $db->getOne('state','id');
+                    $state_id = $state_id['id'];
+                }
+                else if (!empty($state_id))
+                {
+                    if(empty($state_name));
+                    {
+                        // get the state name
+                        $db->where('id',$state_id);
+                        $db->where('country_id',$country_id);
+                        $state_name = $db->getOne('state','name');
+                        $state_name = $state_name['name'];
+                    }
+                    
+                }
+                // get the country id and name
+                $db->where('id',$country_id);
+                $countryList = $db->getOne('country','id, name');
+
+                // get the state id and name
+                $db->where('country_id',$country_id);
+                $stateList = $db->get('state',null,'id, name');
+            }
+            
+            $data['state'] = $stateList;
+            $data['country'] = $countryList;
+            return array("code" => 0, "status" => "ok", "statusMsg" => '', "data" => $data);
+        }
+
+        public function getProductListMember($params)
+        {
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+            
+            $userID = $db->userID;
+            $site = $db->userType;
+
+            $categories = trim($params['categories']);
+
+            if(empty($categories))
+            {
+                $productList = $db->get('product',null, 'id, sale_price, name, product_type, barcode as skuCode');
+                $db->where('name', 'percentage');
+                $db->where('type', 'marginPercen');
+                $margin_percen = $db->getOne('system_settings','value');
+                $margin_percen = $margin_percen['value'];
+                foreach($productList as $productInvRow)
+                {
+                    $productDetail['id']                = $productInvRow['id'];
+                    $productDetail['skuCode']           = $productInvRow['skuCode'];
+                    $productDetail['name']              = $productInvRow['name'];
+                    $productDetail['productType']       = $productInvRow['product_type'];
+                    $productDetail['marginPercen']      = $margin_percen;
+                    $productDetail['salePrice']         = $productInvRow['sale_price'];
+
+                    $db->where('reference_id', $productInvRow['id']);
+                    $db->where('type', 'Image');
+                    $productImage = $db->getOne('product_media', 'url');
+
+                    if($productImage) {
+                        $productDetail['image']             = $productImage['url'];
+                    } else {
+                        $productDetail['image']             = '';
+                    }
+
+                    $productInvList[] = $productDetail;
+                }
+                $data['productInventory'] = $productInvList;
+                return array("code" => 0, "status" => "ok", "statusMsg" => '', "data" => $data);
+            }
+            $db->where('name',$categories);
+            $productID = $db->get('product_category',null,'id');
+
+            if(!$productID)
+            {
+                // probably not searching category, try search product name
+                $searchTerm = '%'.$categories.'%';
+                $productList = $db->rawQuery("SELECT * FROM product WHERE name LIKE '".$searchTerm."'");
+                if(!$productList)
+                {
+                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00279"][$language] /* No result found */, 'data' => "");
+                }
+                $productID = $productList;
+                // return array("code" => 333, "status" => "ok", "productID" => $productID);
+            }
+
+            // $productID = '["'.$productID[0]['id'].'"]';
+
+            // $db->where('categ_id',$productID);
+            // $productList = $db->get('product',null, 'id, cost, margin_percen, name, product_type, barcode as skuCode');
+            foreach($productList as $productInvRow)
+            {
+                $productDetail['id']                = $productInvRow['id'];
+                $productDetail['skuCode']           = $productInvRow['skuCode'];
+                $productDetail['name']              = $productInvRow['name'];
+                $productDetail['productType']       = $productInvRow['product_type'];
+                $productDetail['marginPercen']      = $productInvRow['margin_percen'];
+                $productDetail['salePrice']         = $productInvRow['sale_price'];
+
+                $productInvList[] = $productDetail;
+            }
+            $data['productInventory'] = $productInvList;
+            return array("code" => 0, "status" => "ok", "statusMsg" => '', "data" => $data);
+        }
+
+        public function getCategoryInventoryMember($params) {
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+
+            $userID = $db->userID;
+            $site = $db->userType;
+
+            $searchForm = $params['searchData'];
+            $categories = trim($params['categories']);
+
+            $searchData[1]['dataName'] = 'name';
+            $searchData[1]['dataType'] = 'text';
+            $searchData[1]['dataValue'] = $categories;
+            
+            // $params['categories'] = $searchForm;
+            $productList = Client::getProductListMember($params);
+            // foreach($productList as $row)
+            // {
+            //     $productDetail['productInventory']  = $row['productInventory'];
+
+            //     $productInvList[] = $productDetail;
+            // }
+            // return array("code" => 110, "status" => "ok", "productList" => $productList);
+
+            $pageNumber = $params['pageNumber'] ? $params['pageNumber'] : 1;
+            $seeAll = $params['seeAll'] ? : 0;
+            $limit = General::getLimit($pageNumber);
+
+            if($seeAll) {
+                $limit = NULL;
+            }
+
+            if(count($searchData) > 0) {
+                foreach ($searchData as $k => $v) {
+                    $dataName = trim($v['dataName']);
+                    $dataValue = trim($v['dataValue']);
+                    $dataType  = trim($v['dataType']);
+
+                    switch($dataName) {
+                        case "status":
+                            if($dataValue == "Active") {
+                                $db->where("deleted", 0);
+                            } else if($dataValue == "Inactive") {
+                                $db->where("deleted", 1);
+                            }
+                            break;
+
+                        case 'createdAt':
+                            $dateFrom = trim($v['tsFrom']);
+                            $dateTo = trim($v['tsTo']);
+                            if(strlen($dateFrom) > 0) {
+                                $db->where('DATE(created_at)', date('Y-m-d', $dateFrom), '>=');
+                            }
+                            if(strlen($dateTo) > 0) {
+                                if($dateTo < $dateFrom)
+                                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00158"][$language], 'data'=>$data);
+
+                                $db->where('DATE(created_at)', date('Y-m-d', $dateTo), '<=');
+                            }
+
+                            unset($dateFrom);
+                            unset($dateTo);
+                            unset($columnName);
+                            break;
+
+                        case 'name':
+                            $db->where('name', $dataValue);
+                            break;
+                    }
+                    unset($dataName);
+                    unset($dataValue);
+                    unset($dataType);
+                }
+            }
+
+            $copyDB = $db->copy();
+            $db->orderBy("created_at", "DESC");
+            $db->where('deleted','0');
+            $categoryRes = $db->get("product_category", null, "id, name, deleted, created_at");
+
+            if(!$categoryRes) {
+                if(!$productList)
+                {
+                    return array("status" => "ok", "code" => 0, "statusMsg" => $translations["B00101"][$language] /* No results found */, "data" => "");
+                }
+                $db->where('deleted','0');
+                $categoryRes = $db->get("product_category", null, "id, name, deleted, created_at");
+            }
+
+            foreach ($categoryRes as $categoryRow) {
+                $categoryID[$categoryRow['id']] = $categoryRow['id'];
+            }
+
+            if($categoryID){
+                $db->where('module_id', $categoryID, 'IN');
+                $db->where('module', 'category');
+                $db->where('type', 'name');
+                $langRes = $db->get('inv_language', null, 'module_id, language, content');
+
+                foreach ($langRes as $langRow) {
+                    $lang[$langRow['module_id']][$langRow['language']] = $langRow['content'];
+                }
+            }
+
+            foreach($categoryRes as $categoryRow) {
+                $category["id"] = $categoryRow["id"];
+                $category["name"] = $categoryRow["name"];
+                $category["display"] = $lang[$categoryRow['id']][$language];
+
+                switch($categoryRow["deleted"]) {
+                    case "0":
+                        $category["status"] = "Active";
+                        $category["statusDisplay"] = General::getTranslationByName($category["status"]);
+                        break;
+
+                    case "1":
+                        $category["status"] = "Inactive";
+                        $category["statusDisplay"] = General::getTranslationByName($category["status"]);
+                        break;
+
+                    default:
+                        break;
+                }
+
+                $category["createdAt"] = date($dateTimeFormat, strtotime($categoryRow['created_at']));
+
+                $categoryList[] = $category;
+            }
+            // check productInventory
+            if($productList['data']['productInventory'] == null)
+            {
+
+                $db->where('name', $categories);
+                $categoryId = $db->getOne('product_category');
+                $categoryId = $categoryId['id'];
+
+                $categ_id = '"'.$categoryId.'"';
+                $db->where('categ_id', '%'.$categ_id.'%', 'LIKE');
+                $productList = $db->get('product');
+            }
+            else
+            {
+                $productList = $productList['data']['productInventory'];
+            }
+
+
+            // do another filter
+            if(empty($categories))
+            {
+                $db->where('deleted', '0');
+                $categoryList = $db->get('product_category');
+            }
+
+            if(!empty($categories))
+            {
+                if(empty($searchForm))
+                {
+                    $db->where('name', $categories);
+                    $db->where('deleted', '0');
+                    $categoryId = $db->getOne('product_category');
+                    $categoryId = $categoryId['id'];
+                    $categ_id = '"'.$categoryId.'"';
+                    $db->where('categ_id', '%'.$categ_id.'%', 'LIKE');
+                    if(!empty($categories))
+                    {
+                        $db->where('name', "%".$searchForm."%", 'LIKE');
+                    }
+                    $productList = $db->get('product');
+                    foreach($productList as $productInvRow)
+                    {
+                        $productDetail['id']                = $productInvRow['id'];
+                        $productDetail['skuCode']           = $productInvRow['skuCode'];
+                        $productDetail['name']              = $productInvRow['name'];
+                        $productDetail['productType']       = $productInvRow['product_type'];
+                        $productDetail['marginPercen']      = $productInvRow['margin_percen'];
+                        $productDetail['salePrice']         = $productInvRow['sale_price'];
+                        $db->where('reference_id', $productInvRow['id']);
+                        $db->where('type', 'Image');
+                        $productImage = $db->getOne('product_media', 'url');
+    
+                        if($productImage) {
+                            $productDetail['image']             = $productImage['url'];
+                        } else {
+                            $productDetail['image']             = '';
+                        }
+                        $productInvList[] = $productDetail;
+                    }
+                    $productList = $productInvList;
+                }
+                else
+                {
+                    $db->where('name', "%".$searchForm."%", 'LIKE');
+                    $db->where('deleted', '0');
+                    $productList = $db->get('product');
+                    foreach($productList as $productInvRow)
+                    {
+                        $productDetail['id']                = $productInvRow['id'];
+                        $productDetail['skuCode']           = $productInvRow['skuCode'];
+                        $productDetail['name']              = $productInvRow['name'];
+                        $productDetail['productType']       = $productInvRow['product_type'];
+                        $productDetail['marginPercen']      = $productInvRow['margin_percen'];
+                        $productDetail['salePrice']         = $productInvRow['sale_price'];
+                        $db->where('reference_id', $productInvRow['id']);
+                        $db->where('type', 'Image');
+                        $productImage = $db->getOne('product_media', 'url');
+    
+                        if($productImage) {
+                            $productDetail['image']             = $productImage['url'];
+                        } else {
+                            $productDetail['image']             = '';
+                        }
+                        $productInvList[] = $productDetail;
+                    }
+                    $productList = $productInvList;
+                }   
+            }
+            else
+            {
+                if(!empty($searchForm))
+                {
+                    $db->where('name', "%".$searchForm."%", 'LIKE');
+                    $db->where('deleted', '0');
+                    $productList = $db->get('product');
+                    foreach($productList as $productInvRow)
+                    {
+                        $productDetail['id']                = $productInvRow['id'];
+                        $productDetail['skuCode']           = $productInvRow['skuCode'];
+                        $productDetail['name']              = $productInvRow['name'];
+                        $productDetail['productType']       = $productInvRow['product_type'];
+                        $productDetail['marginPercen']      = $productInvRow['margin_percen'];
+                        $productDetail['salePrice']         = $productInvRow['sale_price'];
+                        $db->where('reference_id', $productInvRow['id']);
+                        $db->where('type', 'Image');
+                        $productImage = $db->getOne('product_media', 'url');
+    
+                        if($productImage) {
+                            $productDetail['image']             = $productImage['url'];
+                        } else {
+                            $productDetail['image']             = '';
+                        }
+                        $productInvList[] = $productDetail;
+                    }
+                    $productList = $productInvList;
+                }
+                // return array("code" => 110, "status" => "ok", "productList" => $productList);
+            }
+
+            if($params['type'] == "export"){
+                $params['command'] = __FUNCTION__;
+                $data = Excel::insertExportData($params);
+                return array('status' => "ok", 'code' => 0, 'statusMsg' =>$translations["E00716"][$language], 'data' => $data);
+            }
+
+            // $db->where('name', "%".$searchForm."%", 'LIKE');
+            // $productList = $db->get('product');
+            if($categories == 'All Categories')
+            {
+                if(empty($searchForm))
+                {
+                    $db->where('deleted', '0');
+                    $productList = $db->get('product');
+                    foreach($productList as $productInvRow)
+                    {
+                        $productDetail['id']                = $productInvRow['id'];
+                        $productDetail['skuCode']           = $productInvRow['skuCode'];
+                        $productDetail['name']              = $productInvRow['name'];
+                        $productDetail['productType']       = $productInvRow['product_type'];
+                        $productDetail['marginPercen']      = $productInvRow['margin_percen'];
+                        $productDetail['salePrice']         = $productInvRow['sale_price'];
+                        $db->where('reference_id', $productInvRow['id']);
+                        $db->where('type', 'Image');
+                        $productImage = $db->getOne('product_media', 'url');
+    
+                        if($productImage) {
+                            $productDetail['image']             = $productImage['url'];
+                        } else {
+                            $productDetail['image']             = '';
+                        }
+                        $productInvList[] = $productDetail;
+                    }
+                    $productList = $productInvList;
+                    // return array("code" => 110, "status" => "ok", "productList" => $productList);
+                }
+            }
+
+            $totalRecord = $copyDB->getValue('product_category', "count(*)");
+            $data["categoryList"] = $categoryList;
+            if($productList == '')
+            {
+                $data['productInventory'] = $productList['data']['productInventory'];
+            }
+            else
+            {
+                $data['productInventory'] = $productList;
+            }
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["A00114"][$language] /* Search Sucecssful */, 'data'=> $data);
+        }
+        
+        public function clientPurchaseHistory($params)
+        {
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+
+            $ClientID = $db->userID;
+            $site = $db->userType;
+
+            if(empty($ClientID))
+            {
+                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E00257"][$language] /* User id is invalid */, 'data' => '');
+            }
+            $db->orderBy('s.id','Desc');
+            $db->where('s.client_id',$ClientID);
+            $db->join('payment_gateway_details pg','s.id = pg.purchase_id','LEFT');
+            try{
+            $result = $db->get('sale_order s',null,'s.id, pg.created_at as payment_date, pg.purchase_amount, s.status');
+            } catch(Exception $e)
+            {
+                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01185"][$language] /* Failed to execute query */, 'data' => '');
+            }
+            if(!$result)
+            {
+                return array('status' => 'ok', 'code' => 0, 'statusMsg' => $translations["M03624"][$language] /* No Result Found */, 'data' => '');
+            }
+
+            return array('status' => 'ok', 'code' => 0, 'statusMsg' => '', 'data' => $result);
         }
     }
 ?>

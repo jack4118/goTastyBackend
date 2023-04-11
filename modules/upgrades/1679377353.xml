@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO state(country_id, name, translation_code, disabled, created_at) VALUES ('129', 'Kuala Lumpur', '', '0' , NOW());
+    </query>
+    <query>
+        INSERT INTO state(country_id, name, translation_code, disabled, created_at) VALUES ('129', 'Negeri Sembilan', '', '0', NOW());
+    </query>
+    <query>
+        INSERT INTO state(country_id, name, translation_code, disabled, created_at) VALUES ('129', 'Johor', '', '0', NOW());
+    </query>
+    <query>
+        INSERT INTO state(country_id, name, translation_code, disabled, created_at) VALUES ('129', 'Melaka', '', '0', NOW());
+    </query>
+    <query>
+        INSERT INTO state(country_id, name, translation_code, disabled, created_at) VALUES ('129', 'Pahang', '', '0', NOW());
+    </query>
+</document>

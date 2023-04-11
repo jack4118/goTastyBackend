@@ -2934,7 +2934,7 @@
             if($clientDataAry){
                 $db->where('client_id',array_keys($clientDataAry),"IN");
                 $db->where('address_type','billing');
-                $clientDetailArr = $db->map('client_id')->get('address',null,'client_id,city_id,state_id');
+                $clientDetailArr = $db->map('client_id')->get('address',null,'client_id,city,state_id');
 
                 $db->where('DATE(created_at)',$monthFirstDate,">=");
                 $db->where('DATE(created_at)',$bonusDate,"<=");
@@ -2955,7 +2955,7 @@
                     "level"     => $clientData['level'],
                     "new_recruit"=> $newRecruitArr[$clientID],
                     "bonus_date"=> $bonusDate,
-                    "city_id"   => $clientDetailArr[$clientID]['city_id'],
+                    "city_id"   => $clientDetailArr[$clientID]['city'],
                     "state_id"  => $clientDetailArr[$clientID]['state_id'],
                 );
                 $db->insert('client_monthly_detail',$insertData);

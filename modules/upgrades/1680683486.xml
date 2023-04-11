@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `sale_order` CHANGE COLUMN `payment_fee` `shipping_fee` DECIMAL(10,2) NOT NULL;
+    </query>
+    <query>
+         UPDATE system_settings SET value = '{"contactNo":"60182626000","email":"support@gotasty.com"}' WHERE type = 'companyContact';
+    </query>
+    <query>
+         UPDATE system_settings SET reference = 'Go Tasty Sdn. Bhd.(1429649-H)
+C-01-05, Southgate Commercial Centre,
+Jalan Dua, Chan Sow Lin, 55200 Kuala Lumpur' WHERE name = 'pickUpOrigins';
+    </query>
+</document> 

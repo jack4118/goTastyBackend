@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE sale_order_detail ADD product_id bigint(20) NOT NULL AFTER client_id;;
+    </query>
+    <query>
+        ALTER TABLE sale_order_detail ADD product_template_id bigint(20) NOT NULL AFTER product_id;
+    </query>
+     <query>
+        ALTER TABLE shopping_cart ADD product_template_id bigint(20) NOT NULL AFTER product_id;
+    </query>
+</document> 

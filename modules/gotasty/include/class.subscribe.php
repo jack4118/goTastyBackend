@@ -854,52 +854,17 @@
 
             $batchRegister      = trim($params['batchRegister']); 
             // personal information
-            $fullName           = trim($params['fullName']); 
-            // $username           = trim($params['username']); 
-            $email              = trim($params['email']);
             $dialingArea        = trim($params['dialingArea']);
             $phone              = trim($params['phone']); 
-            $dateOfBirth        = trim($params["dateOfBirth"]); 
-            $gender             = trim($params["gender"]); 
             $password           = trim($params['password']);
             $checkPassword      = trim($params['checkPassword']);
-            $sponsorName        = trim($params['sponsorName']);
-            // billing address and delivery address
-            $address            = trim($params['address']);
-            $addressType        = trim($params['addressType']); // billing or delivery
-            $district           = trim($params['district']);
-            $subDistrict        = trim($params['subDistrict']);
-            $postalCode         = trim($params['postalCode']);
-            $city               = trim($params['city']);
-            $state              = trim($params['state']);
-            $country            = trim($params['country']);
-            $remarks            = trim($params['remarks']);
-
-            // bank info
-            $bankOptional       = trim($params['bankOptional']); // 1 need check, 0 no need
-            $bankID             = trim($params['bankID']);
-            $branch             = trim($params['branch']);
-            $bankCity           = trim($params['bankCity']);
-            $accountHolder      = trim($params['accountHolder']);
-            $accountNo          = trim($params['accountNo']);
-            // $uploadData         = $params['uploadData']; // imageSize, imageType, imageName, imageFlag
-            // additional info
-            $martialStatus      = trim($params['martialStatus']); // single, married, widowed, divorced, separated
-            $childNumber        = trim($params['childNumber']);
-            $childAge           = $params['childAge'];
-            $taxNumber          = trim($params['taxNumber']);
-            $identityType       = trim($params['identityType']); // nric or passport
-            $identityNumber     = trim($params['identityNumber']); // ktp number
-            $passport           = trim($params['passport']); // passport
-            // $ktpImage           = $params['ktpImage']; // imageSize, imageType, imageName, imageFlag
 
             $step               = trim($params['step']);
             $type               = trim($params['registerType']);
             $registerMethod     = trim($params['registerMethod']); // default username  
+            $sponsorID        = trim($params['sponsorId']); 
 
             //Placement Option
-            // $placementPosition    = trim($params["placementPosition"]);  //moved to purchase starter kit verification    
-
             $site = $db->userType;
             $payerID = $db->userID;
 
@@ -938,77 +903,6 @@
             }
 
             if($step >= 1){
-                // Validate fullName
-                if(empty($fullName)) {
-                    $errorFieldArr[] = array(
-                        'id'    => 'nameError',
-                        'msg'   => $translations["E00296"][$language] /* Please insert full name */
-                    );
-                } else {
-                    if (strlen($fullName) < $minFName || strlen($fullName) > $maxFName) {
-                        $errorFieldArr[] = array(
-                            'id'    => 'nameError',
-                            'msg'   => $translations["E00297"][$language] /* Full name cannot be less than  */ . $minFName . $translations["E00298"][$language] /*  or more than  */ . $maxFName . '.'
-                        );
-                    }
-                } 
-
-                // Validate username
-                // if (empty($username)) {
-                //     $errorFieldArr[] = array(
-                //         'id' => 'usernameError',
-                //         'msg' => $translations["E00299"][$language] /* Please fill in username */
-                //     );
-                // } else {
-                //     if (!(ctype_alnum($username) && !ctype_alpha($username) && !ctype_digit($username))) {
-                //     // if (!preg_match("/^[a-zA-Z]+[a-zA-Z0-9]+$/",$username)) {
-                //         $errorFieldArr[] = array(
-                //             'id' => 'usernameError',
-                //             'msg' => $translations["E00844"][$language], /* Username unavailable */
-                //         );
-                //     } else if (strlen($username) < $minUName || strlen($username) > $maxUName) {
-                //         $errorFieldArr[] = array(
-                //             'id' => 'usernameError',
-                //             'msg' => str_replace(array("%%minUName%%", "%%maxUName%%"), array($minUName, $maxUName), $translations["E00806"][$language]),
-                //             // 'msg' => $translations["E00806"][$language] /* Username cannot be less than */ ." ". $ ." ". $translations["E00301"][$language] /*  or more than  */ . $ . '.'
-                //         );
-                //     } else {
-                //         $db->where("username", $username);
-                //         $result = $db->getOne("client");
-                //         if (!empty($result)) {
-                //             $errorFieldArr[] = array(
-                //                 'id' => 'usernameError',
-                //                 'msg' => $translations["E00302"][$language] /* Username unavailable */
-                //             );
-                //         }
-                //     }
-                // }       
-
-                // Valid email
-                if (empty($email)) {
-                    $errorFieldArr[] = array(
-                        'id' => 'emailError',
-                        'msg' => $translations["E00318"][$language] /* Please fill in email */
-                    );
-                } else {
-                    if ($email) {
-                        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                            $errorFieldArr[] = array(
-                                'id' => 'emailError',
-                                'msg' => $translations["E00319"][$language] /* Invalid email format. */
-                            );
-                        }else{
-                            $db->where('email',$email);
-                            $isOccupied = $db->has('client');
-                            if ($isOccupied) {
-                                $errorFieldArr[] = array(
-                                    'id'  => 'emailError',
-                                    'msg' => $translations['E00748'][$language] /* Email Already Used */
-                                );
-                            }
-                        }
-                    }
-                }
 
                 // Validate phone
                 if (empty($dialingArea) || empty($phone)) {
@@ -1028,41 +922,6 @@
                     $db->where("dial_code", $dialingArea);
                     $db->where("phone", $phone);
                     $totalAccThisPhone = $db->getValue("client", "COUNT(*)");
-                    /*if (!empty($totalAccThisPhone)) {
-                        if($totalAccThisPhone>=$maxAccPP){
-                            $errorFieldArr[] = array(
-                                'id' => 'phoneError',
-                                'msg' => $translations["E00994"][$language] 
-                            );
-                        }
-                    }*/
-                }
-
-                // Validate Date of Birth
-                if (!is_numeric($dateOfBirth)){
-                    $errorFieldArr[] = array(
-                        'id' => 'dateOfBirthError',
-                        'msg' => $translations["E00156"][$language] /* Invalid date. */
-                    );
-                }
-
-                // check Date of Birth, min 18 years old
-                $ts1 = date("Y-m-d", $dateOfBirth); 
-                $tempDob = date("Y-m-d", strtotime('-18 year', strtotime("now")));
-                $ts2 = $tempDob;
-                if($ts1 > $ts2){
-                    $errorFieldArr[] = array(
-                        'id' => 'dateOfBirthError',
-                        'msg' => $translations["E01053"][$language] /* You must be 18 and above to register. */
-                    );
-                }
-
-                // Validate Gender
-                if(empty($gender) || (!in_array($gender, $genderArr))){
-                    $errorFieldArr[] = array(
-                        'id' => 'genderError',
-                        'msg' => $translations["E00766"][$language] /* Invalid gender */
-                    );
                 }
 
                  // Validate password
@@ -1091,6 +950,16 @@
                         );
                     }
                 }
+                if(!empty($sponsorID))
+                {
+                    if (!preg_match("#[0-9]+#", $sponsorID)) 
+                    {
+                        $errorFieldArr[] = array(
+                            'id' => 'referralError',
+                            'msg' => $translations["E01179"][$language] /* Invalid Referral ID. */
+                        );
+                    }
+                }
 
                 //checking re-type password
                 if (empty($checkPassword)) {
@@ -1106,116 +975,12 @@
                         );
                     }
                 }
-
-                // Validate sponsorName
-                if (empty($sponsorName)) {
-                    $errorFieldArr[] = array(
-                        'id' => 'sponsorUsernameError',
-                        'msg' => $translations["E00320"][$language] /* Please fill in sponsor */
-                    );
-                } else {
-                    $db->where("member_id", $sponsorName);
-                    $db->where('`terminated`','0');
-                    $sponsorID = $db->getValue("client", "id");
-                    $sponsorDownlineAry = Tree::getSponsorTreeDownlines($payerID);
-
-                    if($sponsorID){
-                        $db->where('client_id',$sponsorID);
-                        $placementChecking = $db->getOne("tree_placement");
-                    }
-                  
-                    if (empty($sponsorID)) {
-                        $errorFieldArr[] = array(
-                            'id' => 'sponsorUsernameError',
-                            'msg' => $translations["E00321"][$language] /* Invalid sponsor */
-                        );
-                    } else if(empty($placementChecking)) {
-                        $errorFieldArr[] = array(
-                            'id' => 'sponsorUsernameError',
-                            'msg' => $translations["E00321"][$language] /* Invalid sponsor */
-                        );
-                    }else if (!in_array($sponsorID, $sponsorDownlineAry) && $payerID) {
-                        $errorFieldArr[] = array(
-                            'id' => 'sponsorUsernameError',
-                            'msg' => $translations["E00820"][$language] /* Invalid sponsor */
-                        );
-                    }
-                }
-
-
-                //Placement checking moved to starter kit purchase verification
-                /*$placementUsername = $sponsorName;
-
-                if($placementUsername){
-                    $db->where("member_id", $placementUsername);
-                    $placementID = $db->getValue("client", "id");
-
-                    if($site == "Admin") {
-                        $payerID = $placementID;
-                    }
-
-                    if($placementUsername || $payerID) {
-                        if (empty($placementPosition)) {
-                            $errorFieldArr[] = array(
-                                "id"  => "placementPositionError",
-                                "msg" => $translations["E00325"][$language]
-                            );
-                        } else if (!in_array($placementPosition,[1,2])) {
-                            $errorFieldArr[] = array(
-                                "id"  => "placementPositionError",
-                                "msg" => $translations["E00325"][$language]
-                            );
-                        }
-
-                        // valid octopus username
-                        $db->where("client_id", $placementID);
-                        $db->where("trace_key", "%".$placementID."%", "LIKE");
-                        $isUnderPlacementID = $db->getOne("tree_placement", "id");
-                        if(!$isUnderPlacementID) {
-                            $errorFieldArr[] = array(
-                                "id"  => "placementUsernameError",
-                                "msg" => $translations["E00579"][$language]
-                            );
-                        }
-
-                        // if placement 2 leg full, loop until downline leg empty
-                        $placementDownlineID = $placementID;
-
-                        do {
-                            if($placementValid) $placementDownlineID = $placementValid;
-                            $db->where("upline_id",$placementDownlineID);
-                            $db->where("client_position",$placementPosition);
-                            $placementValid = $db->getOne("tree_placement","client_id")['client_id'];
-                        } while (!empty($placementValid));
-
-                        $db->where('id',$placementDownlineID);
-                        $placementDownline = $db->getOne('client','id, username');
-    
-                    }
-                }*/
             } 
 
             if ($step >= 2) {
-                // Validate Address type
-                if(empty($addressType)) {
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01026"][$language], 'data' => '');
-                }
 
-                // Validate address
-                if(empty($address)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "addressError",
-                        'msg' => $translations['E00943'][$language]
-                    );
-                }
 
-                // Validate country
-                if(!is_numeric($country) || empty($country)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "countryIDError",
-                        'msg' => $translations['E00947'][$language]
-                    );
-                }else{
+                if(is_numeric($country) && $country) {
                     $db->where("id",$country);
                     $countryRes = $db->getOne("country","name,translation_code");
                     if(!$countryRes){
@@ -1226,13 +991,7 @@
                     }
                 }
 
-                // Validate state
-                if(!is_numeric($state) || empty($state)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "stateError",
-                        'msg' => $translations['E00667'][$language]
-                    );
-                }else{
+                if (is_numeric($state) && $state){
                     $db->where("id",$state);
                     $db->where("country_id",$country);
                     $db->where("disabled",0);
@@ -1245,13 +1004,7 @@
                     }
                 }
 
-                // Validate city
-                if(!is_numeric($city) || empty($city)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "cityError",
-                        'msg' => $translations['E01029'][$language]
-                    );
-                }else{
+                if (is_numeric($city) && $city){
                     $db->where("id",$city);
                     $db->where("state_id",$state);
                     $db->where("country_id",$country);
@@ -1265,13 +1018,7 @@
                     }
                 }
 
-                // Validate district
-                if(!is_numeric($district) || empty($district)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "districtErrror",
-                        'msg' => $translations['E01113'][$language]
-                    );
-                }else{
+                if (is_numeric($district) && $district){
                     $db->where("id",$district);
                     $db->where("city_id",$city);
                     $db->where("country_id",$country);
@@ -1285,13 +1032,7 @@
                     }
                 }
 
-                // Validate sub district
-                if(!is_numeric($subDistrict) || empty($subDistrict)) {
-                    $errorFieldArr[] = array(
-                        'id'  => "subDistrictError",
-                        'msg' => $translations['E01028'][$language]
-                    );
-                }else{
+                if (is_numeric($subDistrict) && $subDistrict){
                     $db->where("id",$subDistrict);
                     $db->where("county_id",$district);
                     $db->where("country_id",$country);
@@ -1305,13 +1046,7 @@
                     }
                 }
 
-                // Validate postal code
-                if(!is_numeric($postalCode) || empty($postalCode)) {
-                     $errorFieldArr[] = array(
-                        'id'  => "postalCodeError",
-                        'msg' => $translations['E01030'][$language]
-                    );
-                }else{
+                if (is_numeric($postalCode) && $postalCode){
                     $db->where("id",$postalCode);
                     $db->where("sub_county_id",$subDistrict);
                     $db->where("country_id",$country);
@@ -1371,52 +1106,9 @@
                     );
                 }
 
-                // $db->where("type", "Upload Setting");
-                // $validMediaRes  = $db->map('name')->get("system_settings",null,"name, value ,reference");
-
-                // $validImageType = explode("#", $validMediaRes['validImageType']['value']);
-                // $maxImageSize   = $validMediaRes['validImageType']['reference'];
-
-                // if(!empty($uploadData)) {
-                //     if($uploadData['imageFlag'] == 1) {
-                //         if(!$uploadData['imageName']){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00556"][$language], 'data' => "");
-                //         }
-                //         if(!in_array($uploadData['imageType'], $validImageType)){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00899"][$language], 'data' => $data);
-                //         }
-                //         if(!$uploadData['imageSize']){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00992"][$language]. " (Image)", 'data' => $data);
-                //         }
-                //         if($uploadData['imageSize']>$maxImageSize){
-                //             $sizeMB  = $maxImageSize / 1024 / 1024;
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => str_replace("%%maxSize%%", $sizeMB, $translations["E00976"][$language]) . " (Image)" /* Maximum upload file size is %%maxSize%% MB */, 'data' => $data);
-                //         } 
-                //     }
-                // }else{
-                //     $errorFieldArr[] = array(
-                //         'id'  => "uploadDataError",
-                //         'msg' => $translations["E01036"][$language] /* Please Upload Bank Account Front Page*/
-                //     );
-                // }
             }
 
             if ($step >= 4) {
-
-                // Validate Gender
-                if(empty($martialStatus) || (!in_array($martialStatus, $martialStatusArr))){
-                    $errorFieldArr[] = array(
-                        'id' => 'martialStatusError',
-                        'msg' => $translations["E01037"][$language] /* Please Select Marital Status */
-                    );
-                }
-
-                if(!is_numeric($childNumber) || $childNumber < 0){
-                    $errorFieldArr[] = array(
-                        'id' => 'childNumberError',
-                        'msg' => $translations["E01038"][$language] /* Please Insert Child Number */
-                    );
-                }
 
                 if($childNumber > 0 && !$batchRegister){
                     $childAgeOption = explode('#', Setting::$systemSetting['childAgeOption']);
@@ -1443,65 +1135,6 @@
                         }
                     }
                 }
-
-                // if(empty($taxNumber)){
-                //     $errorFieldArr[] = array(
-                //         'id' => 'taxNumberError',
-                //         'msg' => $translations["E01039"][$language] /* Please Insert Tax Number */
-                //     );
-                // }
-
-                if($identityType == "nric"){
-                    if(empty($identityNumber)){
-                        $errorFieldArr[] = array(
-                            'id' => 'identityNumberError',
-                            'msg' => $translations["E01040"][$language] /* Please Insert Identity Number */
-                        );
-                    }else if(!is_numeric($identityNumber)){
-                        $errorFieldArr[] = array(
-                            'id' => 'identityNumberError',
-                            'msg' => $translations["E00858"][$language] /* Only number is allowed */
-                        );
-                    }
-                } else if ($identityType == "passport"){
-                    if(empty($passport)){
-                        $errorFieldArr[] = array(
-                            'id' => 'passportNumberError',
-                            'msg' => $translations["E01042"][$language] /* Please Insert Passport Number */
-                        );
-                    }
-                }else{
-                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00218"][$language], 'data' => "");
-                }
-
-                // $db->where("type", "Upload Setting");
-                // $validMediaRes  = $db->map('name')->get("system_settings",null,"name, value ,reference");
-
-                // $validImageType = explode("#", $validMediaRes['validImageType']['value']);
-                // $maxImageSize   = $validMediaRes['validImageType']['reference'];
-
-                // if(!empty($ktpImage)){
-                //     if($ktpImage['imageFlag'] == 1) {
-                //         if(!$ktpImage['imageName']){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00556"][$language], 'data' => "");
-                //         }
-                //         if(!in_array($ktpImage['imageType'], $validImageType)){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00899"][$language], 'data' => $data);
-                //         }
-                //         if(!$ktpImage['imageSize']){
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00992"][$language]. " (Image)", 'data' => $data);
-                //         }
-                //         if($ktpImage['imageSize']>$maxImageSize){
-                //             $sizeMB  = $maxImageSize / 1024 / 1024;
-                //             return array('status' => "error", 'code' => 1, 'statusMsg' => str_replace("%%maxSize%%", $sizeMB, $translations["E00976"][$language]) . " (Image)" /* Maximum upload file size is %%maxSize%% MB */, 'data' => $data);
-                //         } 
-                //     }                    
-                // }else{
-                //     $errorFieldArr[] = array(
-                //         'id' => 'ktpImageError',
-                //         'msg' => $translations["E01041"][$language] /* Please Upload KTP image */
-                //     );
-                // }
             }
 
             if($errorFieldArr){
@@ -1637,22 +1270,6 @@
                             }
                         }
                     }
-                    /*if($productData["setting"]["Purchase Setting"]){
-                        foreach ($productData["setting"]["Purchase Setting"] as $purchaseRow) {
-                            if($purchaseRow["value"] <= 0) continue;
-
-                            $payAmount = 0;
-
-                            if($purchaseRow["reference"]){
-                                $db->where("client_id",$clientID);
-                                $payAmount = $db->getValue($purchaseRow["reference"],"SUM(payable_amount)");
-
-                                if($payAmount <= $purchaseRow["value"]){
-                                    return array('status' => "error", 'code' => 2, 'statusMsg' => "You are not valid to buy this product.", 'data'=> "");
-                                }
-                            }
-                        }
-                    }*/
 
                     $paymentSetting = Cash::getPaymentDetail($payerID, $registerType, $price, $productID, "");
                     $paymentMethod = $paymentSetting['data']["paymentData"];
@@ -1791,62 +1408,28 @@
 
             $dateOfBirth = date("d/m/Y", $dateOfBirth);
 
-            $dataOut['fullName'] = $fullName;
-            $dataOut['sponsorID'] = $sponsorID;
-            // $dataOut['placementID'] = $placementDownlineID; //moved to purchase starter kit verification
-            // $dataOut['placementPosition'] = $placementPosition;
-            // $dataOut['placementDownline'] = $placementDownline;
-            //$dataOut['username']  = $username;
-            $dataOut["email"] = $email;
             $dataOut["dialingArea"] = $dialingArea;
             $dataOut["phone"] = $phone;
-            $dataOut["dateOfBirth"] = $dateOfBirth;
-            $dataOut["gender"] = General::getTranslationByName($gender);
-            $dataOut["sponsorName"] = $sponsorName;
-            $dataOut["address"] = $address;
-            $dataOut["addressType"] = $addressType;
-            $dataOut["district"] = $districtRes["translation_code"] ? $translations[$districtRes["translation_code"]][$language] : $districtRes["name"];
-            $dataOut["subDistrict"] = $subDistrictRes["translation_code"] ? $translations[$subDistrictRes["translation_code"]][$language] : $subDistrictRes["name"];
-            $dataOut["postalCode"] = $postalCodeRes["translation_code"] ? $translations[$postalCodeRes["translation_code"]][$language] : $postalCodeRes["name"];
-            $dataOut["city"] = $cityRes["translation_code"] ? $translations[$cityRes["translation_code"]][$language] : $cityRes["name"];
-            $dataOut["state"] = $stateRes["translation_code"] ? $translations[$stateRes["translation_code"]][$language] : $stateRes["name"];
-            $dataOut["country"] = $countryRes["translation_code"] ? $translations[$countryRes["translation_code"]][$language] : $countryRes["name"];
-            $dataOut["remarks"] = $remarks;
-            $dataOut["bankID"] = $bankID;
-            $dataOut["branch"] = $branch;
-            $dataOut["bankCity"] = $bankCity;
-            $dataOut["accountHolder"] = (!empty($accountHolder))?$accountHolder:'-';
-            $dataOut["accountNo"] = (!empty($accountNo))?$accountNo:'-';
-            // $dataOut["uploadData"] = $uploadData;
-            $dataOut["martialStatus"] = General::getTranslationByName($martialStatus);
-            $dataOut["childNumber"] = $childNumber;
-            $dataOut["childAge"] = implode("#", $childAge);
-            $dataOut["taxNumber"] = $taxNumber;
-            $dataOut["identityType"] = General::getTranslationByName($identityType);
-            $dataOut["identityNumber"] = $identityNumber;
-            $dataOut["passport"] = $passport;
-            // $dataOut["ktpImage"] = $ktpImage;
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => "", 'data' => $dataOut);
         }
 
-        public function memberRegistrationConfirmation($params) {
+        public function memberRegistrationConfirmation($msgpackData) {
             $db = MysqliDb::getInstance();
             $language           = General::$currentLanguage;
             $translations       = General::$translations;
 
+            $params = $msgpackData['params'];
             // personal information
             $fullName           = trim($params['fullName']); 
             // $username           = trim($params['username']); 
-            $email              = trim($params['email']);
+            // $email              = trim($params['email']);
             $dialingArea        = trim($params['dialingArea']);
             $phone              = trim($params['phone']); 
-            $dateOfBirth        = trim($params["dateOfBirth"]); 
-            $gender             = trim($params["gender"]); 
+            // $dateOfBirth        = trim($params["dateOfBirth"]); 
+            // $gender             = trim($params["gender"]); 
             $password           = trim($params['password']);
             $checkPassword      = trim($params['checkPassword']);
-            $sponsorName        = trim($params['sponsorName']); 
-
             //Placement Option
             // $placementPosition    = trim($params["placementPosition"]);  
 
@@ -1880,21 +1463,116 @@
             // $ktpImage           = $params['ktpImage']; // imageSize, imageType, imageName, imageFlag
 
             $type               = trim($params['registerType']);
+            $verificationCode    = trim($params['otpCode']);
+            $type1               = trim($params['type']);
             $registerMethod     = trim($params['registerMethod']); // default username    
             $dateTime           = date("Y-m-d H:i:s");
             $date               = date("Y-m-d");
             $params["step"]     = 5;
+            $sponsorID        = trim($params['sponsorId']); 
+            // $ip = $db->$ip;
+            $ip = $msgpackData['ip'];
+
+            if($sponsorID)
+            {
+                $sponsorID = intval($sponsorID);
+            }
+            $validationResult = self::memberRegistration($params);
+            if($validationResult['status'] == 'error')
+            {
+                $data = $validationResult['data'];
+                $fields = $data['field'];
+
+                for ($i = 0; $i < count($fields); $i++) {
+                $content = '*Register Issue* '."\n\n".'Error Type: '.$fields[$i]['id']."\n".'Error Message: '.$fields[$i]['msg']."\n".'Type: '.$type."\n".'Phone Number: '.$dialingArea.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+                Client::sendTelegramNotification($content);
+                }
+                return array("code" => 1, "status" => "error", "statusMsg" => "Data not meet requirement", "data" => $validationResult['data']);
+            }
+
+            // Check the referral code is valid or not
+            if(!empty($sponsorID))
+            {
+                $db->where('concat(dial_code, phone)',$sponsorID);
+                $validSponsorID = $db->getOne('client');
+
+                if(!$validSponsorID)
+                {
+                    return array("code" => 1, "status" => "error", "statusMsg" => $translations["E01179"][$language] /* Invalid Referral ID. */ );
+                }
+            }
+
+            //Check is the user Exist or not
+            $db->where('dial_code',$dialingArea);
+            $db->where('phone',$phone);
+            $db->where('type','Client');
+            $userExist = $db->get('client',null);
+            
+            if($userExist)
+            {
+                return array("code" => 1, "status" => "error", "statusMsg" => $translations["E00749"][$language] /* Phone Already Used. */ , 'data' => '');
+            }
+
+            // verify user is Guest or Client
+            $db->where('concat(dial_code, phone)', $dialingArea.$phone);
+            $db->where('type','Guest');
+            $GuestAcc = $db->get('client');
+            if($GuestAcc)
+            {
+                $password = Setting::getEncryptedPassword($password);
+                $updateData = array(
+                    'name'          => $fullName,
+                    'password'      => $password,
+                    'type'          => 'Client',
+                    'activated'     => '1',
+                    'fail_login'    => '0',
+                    'sponsor_id'    => $sponsorID,
+                    'updated_at'    => date("Y-m-d H:i:s"),
+                );
+    
+                //update Guest to Client Account
+                $db->where('concat(dial_code, phone)',$dialingArea.$phone);
+                $db->where('type','Guest');
+                $result = $db->update('client',$updateData);
+    
+                if($result)
+                {
+                    return array('status' => 'ok', 'code' => 0, 'statusMsg' => $translations["B00168"][$language] /* Update successful. */, 'data' => '');
+                }
+                else
+                {
+                    return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E00131"][$language] /* Update failed. */, 'data' => '');
+                }
+            }
 
             $site = $db->userType;
             $payerID = $db->userID;
-
-            $validationResult = self::memberRegistration($params);
-
+            $verifyCode = Otp::verifyOTPCode($clientID,'phone',$type1,$verificationCode,$dialingArea.$phone);
+            if($verifyCode['status'] == 'error')
+            {
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E01176"][$language] /* Invalid OTP Code. */, 'data' => "");
+            }
+            else
+            {
+                if($fullName == '' || $fullName == null)
+                {
+                    return array("code" => 1, "status" => "error", "statusMsg" => $translations["E00107"][$language] /* Please Enter Username. */ );
+                }
+                $db->where('phone_number',$dialingArea.$phone);
+                $db->where('status','sent');
+                $db->where('msg_type','OTP Code');
+                $db->where('verification_type','register##phone');
+                $db->where('code',$verificationCode);
+                $fields = array("status");
+                $values = array("Verified");
+                $arrayData = array_combine($fields, $values);
+                $row = $db->update("sms_integration", $arrayData);
+            }
+            
             if(strtolower($validationResult['status']) != 'ok'){
                 return $validationResult;
             }
 
-            $sponsorID = $validationResult['data']['sponsorID'];
             // $placementID = $validationResult['data']['placementID'];
             // $placementPosition = $validationResult['data']['placementPosition'];
             $productID = $validationResult['data']['productID'];
@@ -2000,11 +1678,11 @@
                 case 'free':
                     break;
 
-                default: 
-                    return array('status' => "error", 'code' => 2, 'statusMsg' => "Invalid Register Type.", 'data' => '');
+                    default: 
+                    return array('status' => "error", 'code' => 2, 'statusMsg' => $translations["E01177"][$language] /* Invalid Register Type. */, 'data' => '');
                     break;
             }
-
+            $passwordLogin = $password;
             $password = Setting::getEncryptedPassword($password);
             // $tPassword = Setting::getEncryptedPassword($tPassword);
             $sponsorCode = General::generateSponsorCode();
@@ -2014,34 +1692,37 @@
             $dateOfBirth = date("Y-m-d H:i:s", $dateOfBirth);
             // insert into client table -----------
             $insertClientData = array(
-                "id" => $clientID,
+                // "id" => $clientID,
                 "member_id" => $memberID,
                 "name" => $fullName,
-                "username" => $memberID, 
-                "email" => $email,
+                "username" => $dialingArea.$phone, 
+                // "email" => $email,
                 "dial_code" => $dialingArea,
                 "phone" => $phone,
-                "dob" => $dateOfBirth,
+                // "dob" => $dateOfBirth,
                 "password" => $password,
-                "sponsor_code" => $sponsorName,
+                // "sponsor_code" => $sponsorName,
                 "address" => $address,
                 "state_id" => $state,
                 "country_id" => $country,
                 "type" => "Client",
+                "activated" => '1',
+                "disabled" => '0',
                 "sponsor_id" => $sponsorID,
-                "placement_id" => $placementID,
-                "placement_position" => $placementPosition,
+                // "placement_id" => $placementID,
+                // "placement_position" => $placementPosition,
                 "created_at" => $dateTime,
-                "identity_number" => $identityNumber,
-                "passport" => $passport,
+                // "identity_number" => $identityNumber,
+                // "passport" => $passport,
                 "register_method" => $registerMethod,
             );
     
             $insertClientResult  = $db->insert('client', $insertClientData);
-
+            // $lq = $db->getLastQuery();
+            // return array("code" => 110, "status" => "ok", "statusMsg" => $lq);
             // Failed to insert client account
             if (!$insertClientResult)
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language] /* Failed to register member. */, 'data' => "");
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language] /* Failed to register member. */, 'data' => "1");
 
             // insert into client_detail table -----------
             $insertClientDetailData = array(
@@ -2060,7 +1741,7 @@
 
             // Failed to insert client detail table
             if (!$insertClientResult)
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "");
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "2");
 
             if($bankOptional){
                 // insert into mlm_client_bank table -----------
@@ -2081,31 +1762,37 @@
 
                 // Failed to insert mlm_client_bank table
                 if (!$insertClientBankResult)
-                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "");
+                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "3");
             }
 
-            // insert into address table -----------
-            $insertClientAddressDetail = array(
-                "client_id" => $clientID,
-                "name" => $fullName,
-                "phone" => $phone,
-                "address" => $address,
-                "district_id" => $district,
-                "sub_district_id" => $subDistrict,
-                "post_code_id" => $postalCode,
-                "city_id" => $city,
-                "state_id" => $state,
-                "country_id" => $country,
-                "address_type" => "billing",
-                // "remarks" => $remarks,
-                "created_at" => $dateTime,
-            );
+            // get the client id
+            $db->where('concat(dial_code,phone)', $dialingArea.$phone);
+            $clientID = $db->getOne('client','id');
+            $clientID = $clientID['id'];
 
-            $insertClientAddressResult  = $db->insert('address', $insertClientAddressDetail);
+            // insert into address table -----------
+            // $insertClientAddressDetail = array(
+            //     "client_id" => $clientID,
+            //     "name" => $fullName,
+            //     "phone" => $phone,
+            //     "address" => $address,
+            //     "district_id" => $district,
+            //     "sub_district_id" => $subDistrict,
+            //     "post_code" => $postalCode,
+            //     "city" => $city,
+            //     "state_id" => $state,
+            //     "country_id" => $country,
+            //     "address_type" => "billing",
+            //     "type" => "1",
+            //     // "remarks" => $remarks,
+            //     "created_at" => $dateTime,
+            // );
+
+            // $insertClientAddressResult  = $db->insert('address', $insertClientAddressDetail);
 
             // Failed to insert address table
-            if (!$insertClientAddressResult)
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "");
+            // if (!$insertClientAddressResult)
+                // return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "4");
 
 
             if($addressType == 'delivery'){
@@ -2117,8 +1804,8 @@
                     "address" => $address,
                     "district_id" => $district,
                     "sub_district_id" => $subDistrict,
-                    "post_code_id" => $postalCode,
-                    "city_id" => $city,
+                    "post_code" => $postalCode,
+                    "city" => $city,
                     "state_id" => $state,
                     "country_id" => $country,
                     "address_type" => "delivery",
@@ -2130,14 +1817,14 @@
 
                 // Failed to insert address table
                 if (!$insertClientDeliveryAddressResult)
-                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "");
+                    return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "5");
             }
 
-            $sponsorTree = Tree::insertSponsorTree($clientID, $sponsorID);
+            // $sponsorTree = Tree::insertSponsorTree($clientID, $sponsorID);
 
             // Failed to insert sponsorTree
-            if (!$sponsorTree)
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "");
+            // if (!$sponsorTree)
+            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language]  /* Failed to register member. */, 'data' => "6");
 
             // if($placementID){
             //     $placementTree = Tree::insertPlacementTree($clientID, $placementID,$placementPosition);
@@ -2146,7 +1833,7 @@
             //     }
             // }
 
-            Leader::insertMainLeaderSetting($clientID, $sponsorID);
+            //Leader::insertMainLeaderSetting($clientID, $sponsorID);
             
             //Copy sponsor's blocked country IP settings
 //            $db->where('client_ID', $sponsorID);
@@ -2369,8 +2056,40 @@
             // }
 
             // $dataOut["uploadData"] = $data;
+            $db->where('phone_number',$dialingArea.$phone);
+            $db->where('status','Verified');
+            $db->where('msg_type','OTP Code');
+            $db->where('verification_type','register##phone');
+            $db->where('code',$verificationCode);
+            $fields = array("status");
+            $values = array("Success");
+            $arrayData = array_combine($fields, $values);
+            $row = $db->update("sms_integration", $arrayData);
 
-            return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00145"][$language] /* Registration successful. */, 'data' => "");
+            // Get Referral Name
+            $db->where('concat(dial_code, phone)',$sponsorID);
+            $sponsorDetails = $db->getOne('client',null,'name, dial_code, phone');
+            $sponsorName = $sponsorDetails['name'];
+            $sponsorPhone = $sponsorDetails['dial_code'].$sponsorDetails['phone'];
+            $content = '*Register Message* '."\n\n".'Member ID: '.$memberID."\n".'Type: Client'."\n".'Phone Number: +'.$dialingArea.$phone."\n".'Referral ID: '.$sponsorID."\n".'Referral Name: '.$sponsorName."\n".'Referral Phone No: +'.$sponsorPhone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
+            Client::sendTelegramNotification($content);
+
+            unset($msgpackData);
+            unset($params);
+            $params['id'] = '';
+            $params['username'] = $dialingArea.$phone;
+            $params['loginBy'] = 'phone';
+            $params['password'] = $passwordLogin;
+            $msgpackData['params'] = $params;
+            // $msgpackData['ip'] = '127.0.0.1';
+            $msgpackData['ip'] = $ip;
+            $loginAction = Client::memberLogin($msgpackData);
+            if ($loginAction)
+            {
+                return $loginAction;
+                // return array('status' => "ok", 'code' => 0, 'statusMsg' => 'Login Successfull', 'data' => $loginAction);
+            }
+            // return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00145"][$language] /* Registration successful. */, 'data' => "");
         }
 
         public function insertProfileDetails($params,$userID = 0) {
@@ -2512,7 +2231,7 @@
 
             $sponsorTree = Tree::insertSponsorTree($userID, $sponsorID);
             if (!$sponsorTree)
-                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language] /* Failed to register member. */, 'data' => "");
+                return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00334"][$language] /* Failed to register member. */, 'data' => "7");
 
             return array('status'=>'ok','code'=>'1','statusMsg'=>$translations['E00696'][$language],'data'=>'');
         }

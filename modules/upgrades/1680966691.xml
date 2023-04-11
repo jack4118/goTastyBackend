@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `purchase_request` ADD COLUMN `remarks` varchar(255) NOT NULL AFTER `buying_date`;
+    </query>
+</document> 

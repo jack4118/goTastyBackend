@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `inv_delivery_order` ADD `batch_id` BIGINT(20) NOT NULL AFTER `status`;
+    </query>
+</document> 

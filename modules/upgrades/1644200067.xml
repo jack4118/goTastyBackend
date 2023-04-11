@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	INSERT INTO `system_settings` (`name`, `value`, `type`, `reference`, `description`, `module`) VALUES ('InvEditableRoles', '2', '', '', 'Allow certain admin roles can edit inventory details', 'Standard Platform');
+    </query>
+</document>

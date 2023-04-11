@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+		INSERT INTO `mlm_bonus_setting` (`id`, `name`, `value`, `type`, `reference`, `description`, `bonus_id`) SELECT NULL, 'spReceiverRank', (SELECT priority FROM rank WHERE name = 'fizDirector'), 'Rank Setting', (SELECT priority FROM rank WHERE name = 'fizUnicorn'), 'Rank for receive special percentage. Reference = Vaild Rank for Receive bonus', b.id FROM `mlm_bonus` b WHERE name = 'teamBonus';
+    </query>
+    <query>
+    	UPDATE `mlm_bonus_setting` SET `reference` = '4#5', `description` = 'Rank for receive special percentage. Reference = Vaild Rank for Receive bonus', `type` = 'Rank Setting' WHERE `mlm_bonus_setting`.`bonus_id` = (SELECT id FROM mlm_bonus WHERE name = 'teamBonus') AND `mlm_bonus_setting`.`name` = 'spReceiverRank' AND `mlm_bonus_setting`.`value` = (SELECT priority FROM rank WHERE name = 'fizExecutive');
+    </query>
+</document>

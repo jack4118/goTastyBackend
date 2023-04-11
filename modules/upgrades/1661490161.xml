@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `rank_setting` RENAME TO `rank_setting_old`;
+    </query>
+    <query>
+        CREATE TABLE `rank_setting` LIKE `rank_setting_old`;
+    </query>
+    <query>
+        ALTER TABLE `client_rank` RENAME TO `client_rank_old`;
+    </query>
+    <query>
+        CREATE TABLE `client_rank` LIKE `client_rank_old`;
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Fiz Member' WHERE `language_translation`.`module` = 'Rank' AND `language_translation`.`content` = 'Member';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Fiz Preneur' WHERE `language_translation`.`module` = 'Rank' AND `language_translation`.`content` = 'Fiz Entreprenuer';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Fiz Manager' WHERE `language_translation`.`module` = 'Rank' AND `language_translation`.`content` = 'Fiz Director';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Fiz Director' WHERE `language_translation`.`module` = 'Rank' AND `language_translation`.`content` = 'Fiz Unicorn';
+    </query>
+    <query>
+        UPDATE `rank` SET `name` = 'fizManager' WHERE `rank`.`type` = 'Bonus Tier' AND `rank`.`name` = 'fizDirector';
+    </query>
+    <query>
+        UPDATE `rank` SET `name` = 'fizDirector' WHERE `rank`.`type` = 'Bonus Tier' AND `rank`.`name` = 'fizUnicorn';
+    </query>
+    <query>
+        INSERT INTO rank_setting (rank_id, name, value, type, reference, description) VALUES
+        ((SELECT id FROM rank WHERE name = 'member' AND type = 'Bonus Tier'), 'discountPercentage', 25, 'percentage', '', 'Discount Percentage.'),
+        ((SELECT id FROM rank WHERE name = 'fizEntreprenuer' AND type = 'Bonus Tier'), 'discountPercentage', 25, 'percentage', '', 'Discount Percentage.'),
+        ((SELECT id FROM rank WHERE name = 'fizExecutive' AND type = 'Bonus Tier'), 'discountPercentage', 25, 'percentage', '', 'Discount Percentage.'),
+        ((SELECT id FROM rank WHERE name = 'fizManager' AND type = 'Bonus Tier'), 'discountPercentage', 25, 'percentage', '', 'Discount Percentage.'),
+        ((SELECT id FROM rank WHERE name = 'fizDirector' AND type = 'Bonus Tier'), 'discountPercentage', 25, 'percentage', '', 'Discount Percentage.');
+    </query>
+    <query>
+        INSERT INTO rank_setting (rank_id, name, value, type, reference, description) VALUES
+        ((SELECT id FROM rank WHERE name = 'fizEntreprenuer' AND type = 'Bonus Tier'), 'minOwnSales', 100, 'purchase', '', 'Minimum 100 PV.'),
+        ((SELECT id FROM rank WHERE name = 'fizEntreprenuer' AND type = 'Bonus Tier'), 'minActiveLeg', 1, 'purchase', 'fizEntreprenuer', 'Minimum 1 Active Downline with Fiz Prenuer rank'),
+        ((SELECT id FROM rank WHERE name = 'fizExecutive' AND type = 'Bonus Tier'), 'minCouple', 200, 'purchase', '', 'Minimum Collective 200 couples in 12 months.'),
+        ((SELECT id FROM rank WHERE name = 'fizManager' AND type = 'Bonus Tier'), 'minCouple', 600, 'purchase', '', 'Minimum Collective 600 couples in 12 months.'),
+        ((SELECT id FROM rank WHERE name = 'fizDirector' AND type = 'Bonus Tier'), 'minCouple', 1000, 'purchase', '', 'Minimum Collective 1000 couples in 12 months.');
+    </query>
+</document> 

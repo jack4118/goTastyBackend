@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'english';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'chineseSimplified';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'chineseTraditional';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'vietnam';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'malay';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'japanese';
+    </query>
+    <query>
+        UPDATE `language_translation` SET `content` = 'Personal Group Bonus' WHERE `code` = (SELECT language_code FROM `mlm_bonus` WHERE name = 'goldmineBonus') AND `language` = 'korean';
+    </query>
+</document> 

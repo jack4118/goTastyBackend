@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'spCalSalesDate', '2022-01-01', '', '2022-02-01#2022-02-28', 'Special Calculate Sales Date, Value = include start from this column sales. Reference = effected period', 'Standard Platform');
+    </query>
+</document>

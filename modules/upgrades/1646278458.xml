@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+   <query>
+      INSERT INTO system_settings(name, value, type, reference, description) VALUES('nicepaySetting', '02', '15 minutes#30 minutes', 'Bank', '{"BMRI":"Bank Mandiri","IBBK":"Bank International Indonesia Maybank","BBBA":"Bank Permata","BBBB":"Bank Permata Syariah","CENA":"Bank Central Asia","BNIN":"Bank Negara Indonesia 46","HNBN":"Bank KEB Hana Indonesia","BRIN":"Bank Rakyat Indonesia","BNIA":"Bank PT. BANK CIMB NIAGA, TBK.","BDIN":"Bank PT. BANK DANAMON INDONESIA, TBK","PDJB":"Bank BJB","YUDB":"Bank BNC"}');
+   </query>
+   <query>
+      DROP TABLE IF EXISTS `mlm_pending_payment`;
+   </query>
+   <query>
+      CREATE TABLE `mlm_pending_payment` (
+        `id` bigint(20) NOT NULL,
+        `type` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `client_id` bigint(20) NOT NULL,
+        `data` text NOT NULL,
+        `data_in` text NOT NULL,
+        `data_out` text NOT NULL,
+        `tx_id` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `merchant_token` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `currency` varchar(50) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `bank_code` varchar(50) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `vacct_no` varchar(50) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `amount` decimal(20,8) NOT NULL,
+        `reference_no` varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `status` varchar(50) COLLATE utf8mb3_unicode_ci NOT NULL,
+        `created_at` datetime NOT NULL,
+        `expired_at` datetime NOT NULL,
+        `error_msg` text NOT NULL,
+        `call_back_amount` decimal(20,8) NOT NULL,
+        `call_back_data` text NOT NULL,
+        `batch_id` bigint(20) NOT NULL,
+        `updated_at` datetime NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+   </query>
+   <query>
+      ALTER TABLE `mlm_pending_payment` ADD PRIMARY KEY (`id`), ADD KEY `txIDx` (`tx_id`), ADD KEY `status` (`status`), ADD KEY `bankCode` (`bank_code`), ADD KEY `vacctNo` (`vacct_no`), ADD KEY `referenceNo` (`reference_no`), ADD KEY `createdAt` (`created_at`), ADD KEY `expiredAt` (`expired_at`);
+   </query>
+   <query>
+      ALTER TABLE `mlm_pending_payment` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+   </query>
+   <query>
+      ALTER TABLE `mlm_product` ADD total_holding decimal(20,8) NOT NULL AFTER total_sold
+   </query>
+   <query>
+      INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'PG Request listing', 'Payment Gateway Request', 'Menu', '0', 'paymentGatewayReqList.php', '1', (SELECT MAX(priority) + 1 FROM permissions AS b), '', '', '0', '0', 'Admin', 'now()', 'now()', '', '', '0');
+   </query>
+   <query>
+      INSERT INTO system_settings(name, value, reference, description) VALUES ('processMaturedPendingPayment', '1', '1', '0 = running, 1 = stop');
+   </query>
+   <query>
+      INSERT INTO `processes` (`name`, `file_path`,`output_path`,`arg1`, created_at) VALUES ('processMaturedPendingPayment', '../modules/mlmPlatform/process/processMaturedPendingPayment.php','../modules/mlmPlatform/process/log/processMaturedPendingPayment.log', '', NOW());
+   </query>
+   <query>
+      ALTER TABLE inv_order ADD payment_type varchar(255) COLLATE utf8mb3_unicode_ci NOT NULL AFTER paid_amount
+   </query>
+   <query>
+      UPDATE inv_order SET payment_type = 'Credit'
+   </query>
+</document>

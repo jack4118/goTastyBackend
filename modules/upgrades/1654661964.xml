@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `languages` SET `disabled` = '1' WHERE `languages`.`language` = 'chineseSimplified' AND `languages`.`iso_code` = 'zh-Hans';
+    </query>
+</document> 

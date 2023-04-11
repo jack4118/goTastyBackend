@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `permissions` SET `disabled` = '0', `master_disabled` = '0' WHERE `name` = 'Placement Tree' AND `type` = 'Page' AND `site` = 'Admin';
+    </query>
+</document> 

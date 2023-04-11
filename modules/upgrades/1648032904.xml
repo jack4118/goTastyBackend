@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        DROP TABLE IF EXISTS `client_monthly_detail`;
+    </query>
+    <query>
+        CREATE TABLE `client_monthly_detail` (
+          `id` bigint(20) NOT NULL,
+          `client_id` bigint(20) NOT NULL,
+          `bonus_date` date NOT NULL,
+          `level` int(10) NOT NULL,
+          `new_recruit` int(10) NOT NULL,
+          `city_id` bigint(20) NOT NULL,
+          `state_id` bigint(20) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
+    </query>
+    <query>
+        ALTER TABLE `client_monthly_detail` ADD PRIMARY KEY (`id`),ADD KEY `client_id` (`client_id`),ADD KEY `bonus_date` (`bonus_date`);
+    </query>
+    <query>
+        ALTER TABLE `client_monthly_detail` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+    </query>
+    <query>
+        ALTER TABLE `client_sales` ADD `active_leg` INT(10) NOT NULL AFTER `active_downline_count`;
+    </query>
+    <query>
+        ALTER TABLE `client_sales_cache` ADD `active_leg` INT(10) NOT NULL AFTER `active_downline_count`;
+    </query>
+    <query>
+        ALTER TABLE `client_monthly_sales` ADD `active_leg` INT(10) NOT NULL AFTER `active_downline_count`;
+    </query>
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Monthly Performance Report', 'Monthly Performance Report', 'Menu', '0', 'monthlyPerformanceRpt.php', '0', (SELECT MAX(b.priority)+1 FROM permissions b WHERE b.site = 'Admin' AND b.type = 'Menu'), '', 'A01623', '0', '0', 'Admin', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '', '0');
+    </query>
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Monthly Performance Detail', 'Monthly Performance Detail', 'Page', (SELECT b.id FROM permissions b WHERE b.name = 'Monthly Performance Report'), 'monthlyPerformanceDetail.php', '1', '1', '', 'A01624', '0', '0', 'Admin', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '', '0');
+    </query>
+</document> 

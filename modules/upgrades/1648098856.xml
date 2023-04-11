@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `system_settings` SET `reference` = '2022-03-31' WHERE `system_settings`.`name` = 'promoPeriod' AND `system_settings`.`type` = 'Recruit Promo Setting'
+    </query>
+</document> 

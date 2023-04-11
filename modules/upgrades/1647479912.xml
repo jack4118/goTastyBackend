@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `permissions` SET `priority` = '37', `last_line` = '1' WHERE `name` = 'PG Request Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '38' WHERE `name` = 'Bonus Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '39' WHERE `name` = 'Recruit n Active Program Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '44', `last_line` = '1' WHERE `name` = 'Bonus Payout Summary Monetary' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '45' WHERE `name` = 'PVP Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '46' WHERE `name` = 'PGP Monthly Sales' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '47', `last_line` = '1' WHERE `name` = 'Sales Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '48' WHERE `name` = 'Set Main Leader' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `last_line` = '0' WHERE `name` = 'Address Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '87' WHERE `name` = 'Export File Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '91' WHERE `name` = 'Activity Log' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+</document> 

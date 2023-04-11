@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+      INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Add Business Basic Module', 'Add Business Basic Module', 'Menu', '0', 'updateStarterpackEmailAttachment.php', '0', (SELECT MAX(priority) + 1 FROM permissions AS b), '', 'A01633', '0', '0', 'Admin', NOW(), NOW(), '', '', '0');
+   </query>
+	<query>
+        INSERT INTO roles_permission(role_id, permission_id, disabled, created_at) VALUES
+        ((SELECT id FROM roles WHERE name = 'Master Admin'), (SELECT id FROM permissions WHERE name = 'Add Business Basic Module' AND description = 'Add Business Basic Module'), 0, NOW()),
+        ((SELECT id FROM roles WHERE name = 'Admin'), (SELECT id FROM permissions WHERE name = 'Add Business Basic Module' AND description = 'Add Business Basic Module'), 0, NOW());
+    </query>
+</document>

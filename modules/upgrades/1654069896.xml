@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+		ALTER TABLE `mlm_pending_payment` ADD discount_amount DECIMAL(20,8) NOT NULL AFTER amount;
+	</query>
+</document>

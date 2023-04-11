@@ -1,0 +1,111 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Invoice/PO/DO', 'Invoice/PO/DO', 'Menu', '0', '', '0',  '35', '', 'A01615', '0', '0', 'Admin', 'NOW()', 'NOW()', '', '', '0');
+    </query>
+    <query>
+        UPDATE `permissions` SET `disabled` = '1', `master_disabled` = '1' WHERE `name` IN ('Fund In Listing', 'Withdrawal', 'Portfolio', 'Products Settings') AND `type` = 'Menu' and `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '1' WHERE `name` = 'Dashboard' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '10' WHERE `name` = 'KYC Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '11', `last_line` = '0' WHERE `name` = 'Ticketing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '15', `last_line` = '1' WHERE `name` = 'Memo/News/Upload' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '17' WHERE `name` = 'Accounts' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '18', `last_line` = '0' WHERE `name` = 'Purchase Credit Menu' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '20' WHERE `name` = 'Balance Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '23', `last_line` = '1' WHERE `name` = 'Credit Transaction' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '25' WHERE `name` = 'Inventory' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '34', `type` = 'Menu' WHERE `name` = 'Set Taxes' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '36', `type` = 'Menu', `last_line` = '1' WHERE `name` = 'Admin Order Listing' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '37', `type` = 'Menu' WHERE `name` = 'PVP Listing' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '38' WHERE `name` = 'PGP Monthly Sales' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '40' WHERE `name` = 'Bonus Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '43' WHERE `name` = 'Bonus Payout Summary' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '44' WHERE `name` = 'Sales Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '45', `last_line` = '1' WHERE `name` = 'Export File Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '46' WHERE `name` = 'Set Main Leader' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '67' WHERE `name` = 'Edit CV Rate' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '85' WHERE `name` = 'Low Stock Quantity' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '86', `last_line` = '1' WHERE `name` = 'Address Listing' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `disabled` = '0', `master_disabled` = '0' WHERE `name` = 'Activity Log' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '87' WHERE `name` = 'Activity Log' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '88' WHERE `name` = 'Recruit n Active Program Report' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `disabled` = '1', `master_disabled` = '1' WHERE `parent_id` = (SELECT `id` FROM `permissions` WHERE `name` = 'Sales Report' AND `type` = 'Menu') AND `name` NOT IN ('Sales Purchase Report') AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `parent_id` = (SELECT `id` FROM `permissions` WHERE `name` = 'Invoice/PO/DO'), `priority` = '1', `type` = 'Sub Menu', `file_path` = 'invoiceList.php' WHERE `name` = 'Invoice' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `parent_id` = (SELECT `id` FROM `permissions` WHERE `name` = 'Invoice/PO/DO'), `priority` = '2' WHERE `name` = 'Delivery Order Listing' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `parent_id` = (SELECT `id` FROM `permissions` WHERE `name` = 'Delivery Order Listing'), `level` = '2' WHERE `name` = 'Delivery Order Details' AND `type` = 'Page' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `parent_id` = (SELECT `id` FROM `permissions` WHERE `name` = 'Invoice/PO/DO'), `priority` = '3' WHERE `name` = 'Purchase Order Listing' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '2' WHERE `name` = 'Supplier' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '3' WHERE `name` = 'Category' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '4' WHERE `name` = 'Product' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '6' WHERE `name` = 'Package' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `priority` = '12' WHERE `name` = 'Starter Package' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+</document> 

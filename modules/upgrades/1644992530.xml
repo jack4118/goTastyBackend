@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `mlm_product`  ADD `weight` DECIMAL(20,8) NOT NULL  AFTER `code`;
+    </query>
+</document>

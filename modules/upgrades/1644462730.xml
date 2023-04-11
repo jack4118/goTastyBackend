@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	UPDATE `rank_setting` SET `reference` = '10' WHERE `rank_setting`.`name` = 'minActiveLeg' AND `rank_setting`.`rank_id` IN (SELECT id FROM rank WHERE type = 'Bonus Tier');
+    </query>
+</document>

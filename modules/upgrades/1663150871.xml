@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<document type="TABLE">
+	<query>
+		UPDATE `language_translation` SET `content` = 'Leadership Cash Reward' WHERE `module` = 'Bonus' AND `content` = 'Leadership Award Bonus';
+	</query>
+</document>

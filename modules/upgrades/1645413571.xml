@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `mlm_memo`  ADD `type` varchar(255) NOT NULL  AFTER `description`;
+    </query>
+</document>

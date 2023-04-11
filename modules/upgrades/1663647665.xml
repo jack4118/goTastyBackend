@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO credit_setting(credit_id, name, value, admin, member, type, reference, description) VALUES
+        ((SELECT id FROM credit WHERE name = 'mfizDef'), 'isPurchaseCredit', 1, 1, 1, '', '','');
+    </query>
+</document>

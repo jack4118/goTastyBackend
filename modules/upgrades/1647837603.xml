@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `mlm_bonus_report` ADD `tax_percentage` DECIMAL(20,8) NOT NULL AFTER `bonus_amount`;
+    </query>
+    <query>
+        INSERT INTO `system_settings_admin` (`id`, `name`, `type`, `value`, `reference`, `ref_id`, `created_at`, `creator_id`, `status`, `active_at`) VALUES (NULL, 'bonusTaxPercentage', '5', '0', '6', '0', CURRENT_TIME(), '0', 'Active', CURRENT_DATE());
+    </query>
+    <query>
+        INSERT INTO `system_settings_admin` (`id`, `name`, `type`, `value`, `reference`, `ref_id`, `created_at`, `creator_id`, `status`, `active_at`) VALUES (NULL, 'bonusTaxPercentage', '15', '50000001', '18', '0', CURRENT_TIME(), '0', 'Active', CURRENT_DATE());
+    </query>
+    <query>
+        INSERT INTO `system_settings_admin` (`id`, `name`, `type`, `value`, `reference`, `ref_id`, `created_at`, `creator_id`, `status`, `active_at`) VALUES (NULL, 'bonusTaxPercentage', '25', '250000001', '30', '0', CURRENT_TIME(), '0', 'Active', CURRENT_DATE());
+    </query>
+    <query>
+        INSERT INTO `system_settings_admin` (`id`, `name`, `type`, `value`, `reference`, `ref_id`, `created_at`, `creator_id`, `status`, `active_at`) VALUES (NULL, 'bonusTaxPercentage', '30', '500000001', '36', '0', CURRENT_TIME(), '0', 'Active', CURRENT_DATE());
+    </query>
+</document> 

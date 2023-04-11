@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+        INSERT INTO `mlm_product_setting` (`id`, `product_id`, `name`, `value`, `type`, `reference`) VALUES (NULL, '2013', 'Active Program Bonus', '1', 'active program bonus', '')
+	</query>
+	<query>
+        INSERT INTO `mlm_product_setting` (`id`, `product_id`, `name`, `value`, `type`, `reference`) VALUES (NULL, '2014', 'Active Program Bonus', '1', 'active program bonus', '')
+	</query>
+	<query>
+        INSERT INTO `mlm_product_setting` (`id`, `product_id`, `name`, `value`, `type`, `reference`) VALUES (NULL, '2013', 'active program bonus rebate', '200000', 'active program bonus', '')
+    </query>      
+    <query>
+        INSERT INTO `mlm_product_setting` (`id`, `product_id`, `name`, `value`, `type`, `reference`) VALUES (NULL, '2014', 'active program bonus rebate', '200000', 'active program bonus', '')
+    </query>
+</document>

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `permissions` SET `reference_table` = '' WHERE `permissions`.`name` = 'goldmineBonus' AND `permissions`.`description` = 'goldmineBonus Bonus Report Listing';
+    </query>
+    <query>
+        UPDATE `permissions` SET `reference_table` = '' WHERE `permissions`.`name` = 'teamBonus' AND `permissions`.`description` = 'teamBonus Bonus Report Listing';
+    </query>
+    <query>
+        UPDATE `permissions` SET `reference_table` = '' WHERE `permissions`.`name` = 'leadershipBonus' AND `permissions`.`description` = 'leadershipBonus Bonus Report Listing';
+    </query>
+    <query>
+        UPDATE `permissions` SET `reference_table` = '' WHERE `permissions`.`name` = 'awardBonus' AND `permissions`.`description` = 'awardBonus Bonus Report Listing';
+    </query>
+</document> 

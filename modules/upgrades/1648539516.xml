@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `zip_code` ADD `tariff_code` VARCHAR(255) NOT NULL AFTER `name`;
+    </query>
+    <query>
+        ALTER TABLE `state` ADD KEY `name` (`name`);
+    </query>
+    <query>
+        ALTER TABLE `sub_county` ADD KEY `countyID` (`county_id`), ADD KEY `name` (`name`);
+    </query>
+    <query>
+        ALTER TABLE `zip_code` ADD KEY `subCountyID` (`sub_county_id`), ADD KEY `countryID` (`country_id`);
+    </query>
+</document> 

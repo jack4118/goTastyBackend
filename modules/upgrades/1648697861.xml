@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE `inv_order` ADD `courier_company` VARCHAR(255) NOT NULL AFTER `delivery_add_id`;
+    </query>
+    <query>
+        ALTER TABLE `inv_order` ADD `service_id` tinyint(5) NOT NULL AFTER `courier_service`;
+    </query>
+    <query>
+        ALTER TABLE `zip_code` ADD `destination_id` int(10) NOT NULL AFTER `tariff_code`;
+    </query>
+    <query>
+        UPDATE `inv_order` SET `courier_company` = 'JNE' WHERE `delivery_option` = 'delivery';
+    </query>
+    <query>
+        UPDATE `inv_order` SET `courier_company` = '-' WHERE `delivery_option` = 'pickup';
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'onServiceList', 'service-list', 'On Delivery', '', 'On Delivery Get Delivery Fee Path', 'Standard Platform');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'onCreateWaybill', 'transaction/create', 'On Delivery', '', 'On Delivery Create Waybill Path', 'Standard Platform');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'onCancelWaybill', 'transaction/cancel', 'On Delivery', '', 'On Delivery Cancel Waybill Path', 'Standard Platform');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'onTrackingWaybill', 'tracking-waybill', 'On Delivery', '', 'On Delivery Tracking Waybill', 'Standard Platform');
+    </query>
+    <query>
+        ALTER TABLE `inv_delivery_order` ADD `updater_id` BIGINT(20) NOT NULL AFTER `creator_id`, ADD `updated_at` DATETIME NOT NULL AFTER `updater_id`;
+    </query>
+</document> 

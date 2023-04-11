@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+        ALTER TABLE `inv_order`  ADD `insurance_tax` DECIMAL(20,8) NOT NULL  AFTER `tax_charges`;
+   </query>
+</document>

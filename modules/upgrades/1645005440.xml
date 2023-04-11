@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+   <query>
+      DROP TABLE IF EXISTS `acc_closing_batch`;
+   </query>
+   <query>
+      CREATE TABLE `acc_closing_batch` (
+         `id` bigint(20) NOT NULL,
+         `closing_date` date NOT NULL,
+         `completed` tinyint(1) NOT NULL,
+         `created_at` datetime NOT NULL,
+         `completed_at` datetime NOT NULL
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+   </query>
+   <query>
+      ALTER TABLE `acc_closing_batch` ADD PRIMARY KEY (`id`), ADD KEY `completed` (`completed`);
+   </query>
+   <query>
+      ALTER TABLE `acc_closing_batch` MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+   </query>
+</document>

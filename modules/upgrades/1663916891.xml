@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+		ALTER TABLE `mlm_withdrawal` ADD bank_city VARCHAR(255) NOT NULL AFTER branch;
+	</query>
+</document>

@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'extendOptionDuration', '6 months', '', (SELECT priority FROM rank WHERE name = 'fizExecutive'), 'Extend Option Duration', 'Standard Platform');
+    </query>
+</document> 

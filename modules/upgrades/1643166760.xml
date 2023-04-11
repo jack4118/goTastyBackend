@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	ALTER TABLE `client_rank_monthly` DROP INDEX `createdAt`, ADD INDEX `entitle_award` (`entitle_award`) USING BTREE;
+    </query>
+</document>

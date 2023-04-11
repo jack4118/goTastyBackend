@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	ALTER TABLE `inv_order` ADD `courier_service` VARCHAR(255) NOT NULL AFTER `delivery_add_id`;
+    </query>
+    <query>
+        UPDATE `inv_order` SET `courier_service` = 'REG' WHERE `delivery_option` IN ('delivery');
+    </query>
+    <query>
+        UPDATE `inv_order` SET `courier_service` = '-' WHERE `delivery_option` NOT IN ('delivery');
+    </query>
+</document>

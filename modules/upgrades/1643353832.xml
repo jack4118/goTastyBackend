@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `client_session` (
+          `id` bigint(20) NOT NULL,
+          `token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `wb_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `bkend_token` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `client_id` bigint(20) NOT NULL,
+          `user_type` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `created_at` datetime NOT NULL,
+          `ip` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `os` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `device` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `wb_name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `wb_ver` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+          `auto_login` tinyint(1) NOT NULL,
+          `expired` tinyint(1) NOT NULL,
+          `last_act` datetime NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+    <query>
+        ALTER TABLE `client_session`
+          ADD PRIMARY KEY (`id`), ADD KEY `client_id` (`client_id`), ADD KEY `token` (`token`), ADD KEY `wb_token` (`wb_token`), ADD KEY `expired` (`expired`), ADD KEY `auto_login` (`auto_login`);
+    </query>
+    <query>
+        ALTER TABLE `client_session`
+            MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+    </query>
+
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'allowMultipleSessions', '0', '', '', 'Setting for allow user have multiple session id.', 'Standard Platform');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'allowKeepLogin', '0', '', '', 'Setting for Allow Keep member login.', 'Standard Platform');
+    </query>
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'autoLoginExpiryDay', '14 Days', '', '', 'Setting for Auto Login Expiry Day.', 'Standard Platform');
+    </query>
+</document> 

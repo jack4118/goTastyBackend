@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `permissions` SET `disabled` = '0', `master_disabled` = '0' WHERE `name` = 'Withdrawal' AND `type` = 'Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `permissions` SET `disabled` = '0', `master_disabled` = '0' WHERE `name` = 'Withdrawal List' AND `type` = 'Sub Menu' AND `site` = 'Admin';
+    </query>
+    <query>
+        UPDATE `roles_permission` SET `disabled` = '0' WHERE `permission_id` = (SELECT id FROM permissions b WHERE name = 'Withdrawal' AND description = 'Withdrawal') AND `role_id` NOT LIKE (SELECT id FROM roles c WHERE description = 'For Reporting Access');
+    </query>
+    <query>
+        UPDATE `roles_permission` SET `disabled` = '0' WHERE `permission_id` = (SELECT id FROM permissions b WHERE name = 'Withdrawal List' AND description = 'Withdrawal list') AND `role_id` NOT LIKE (SELECT id FROM roles c WHERE description = 'For Reporting Access');
+    </query>
+</document> 

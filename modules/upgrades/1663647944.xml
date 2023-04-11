@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `credit_setting` SET `value` = '1' WHERE `credit_id` = (SELECT id FROM credit b WHERE name = 'bonusDef' AND type = 'bonusCredit') AND `name` = 'isWithdrawable';
+    </query>
+</document>

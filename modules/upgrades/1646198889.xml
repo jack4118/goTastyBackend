@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Bonus Payout Summary Monetary', 'Bonus Payout Summary Monetary', 'Menu', '0', 'bonusPayoutSummaryMonetary.php', '0', (SELECT MAX(b.priority) + 1 FROM permissions AS b WHERE site = 'Admin' and type = 'Menu'), '', 'A01622', '0', '0', 'Admin', NOW(), NOW(), '', '', '0');
+    </query>
+</document> 

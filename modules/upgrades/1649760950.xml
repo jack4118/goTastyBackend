@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `system_settings_admin` SET `type` = '2.5', `reference` = '3', `ref_id` = 1 WHERE `system_settings_admin`.`name` = 'bonusTaxPercentage' AND `system_settings_admin`.`value` = 0;
+    </query>
+    <query>
+        UPDATE `system_settings_admin` SET `type` = '7.5', `reference` = '9', `value` = '60000001', `ref_id` = 2 WHERE `system_settings_admin`.`name` = 'bonusTaxPercentage' AND `system_settings_admin`.`value` = 50000001;
+    </query>
+    <query>
+        UPDATE `system_settings_admin` SET `type` = '12.5', `reference` = '15', `value` = '250000001', `ref_id` = 3 WHERE `system_settings_admin`.`name` = 'bonusTaxPercentage' AND `system_settings_admin`.`value` = 250000001;
+    </query>
+    <query>
+        UPDATE `system_settings_admin` SET `type` = '15', `reference` = '18', `value` = '500000001', `ref_id` = 4 WHERE `system_settings_admin`.`name` = 'bonusTaxPercentage' AND `system_settings_admin`.`value` = 500000001;
+    </query>
+    <query>
+        INSERT INTO `system_settings_admin` (`id`, `name`, `type`, `value`, `reference`, `ref_id`, `created_at`, `creator_id`, `status`, `active_at`) VALUES (NULL, 'bonusTaxPercentage', '17.5', '5000000001', '21', 5, '2022-03-24 10:16:46', '0', 'Active', '2022-03-24 00:00:00');
+    </query>
+</document> 

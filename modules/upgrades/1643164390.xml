@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `system_settings` SET `value` = '{"contactNo":"021-75685326","email":"cs@meta-fiz.com"}' WHERE `type` = 'companyContact' AND `description` = 'Company Contact';
+    </query>
+</document>

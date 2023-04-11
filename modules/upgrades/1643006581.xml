@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `system_settings` (`id`, `name`, `value`, `type`, `reference`, `description`, `module`) VALUES (NULL, 'pickUpOrigins', 'TGR10000', '', 'Pergudangan Taman Tekno Nomor C17 BSD Tangerang Selatan - Banten 15314', 'Default Pickup Origin and Address', ' Standard Platform');
+    </query>
+    <query>
+        ALTER TABLE county ADD tariff_code varchar(255) NOT NULL AFTER name;
+    </query>
+</document>

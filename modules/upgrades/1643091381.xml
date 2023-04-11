@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	INSERT INTO `mlm_bonus_setting` (`id`, `name`, `value`, `type`, `reference`, `description`, `bonus_id`) VALUES (NULL, 'spReceiverRank', '3', 'Bonus Setting', '', 'Rank for receive special percentage.', (SELECT id FROM `mlm_bonus` WHERE name = 'teamBonus'));
+    </query>
+</document>

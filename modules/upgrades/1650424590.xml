@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+	<query>
+		UPDATE api_params SET `compulsory` = '0' where api_id = (SELECT `id` FROM `api` WHERE `command` LIKE 'addTicket' and `site` = 'Member') and `params_name` = 'subject';
+	</query>
+	<query>
+		UPDATE api_params SET `compulsory` = '0' where api_id = (SELECT `id` FROM `api` WHERE `command` LIKE 'addTicket' and `site` = 'Member') and `params_name` = 'message';
+	</query>
+</document>

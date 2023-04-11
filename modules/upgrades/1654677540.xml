@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<document type="TABLE">`
+     <query>
+        CREATE TABLE `pdffile` (
+                  `Id` bigint(20) NOT NULL AUTO_INCREMENT,
+                  `pdfname` varchar(255) NOT NULL,
+                  `path` varchar(255) NOT NULL,
+                  `type` varchar(255) NOT NULL,
+                  `isActive` varchar(255) NOT NULL,
+                  `created_at` datetime NOT NULL,
+                  PRIMARY KEY (`Id`)
+                ) ;
+    </query>
+</document> 

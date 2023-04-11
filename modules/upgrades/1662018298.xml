@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        UPDATE `mlm_bonus` SET `disabled` = '1' WHERE `mlm_bonus`.`name` = 'goldmineBonus' AND `mlm_bonus`.`table_name` = 'mlm_bonus_goldmine';
+    </query>
+    <query>
+        UPDATE `mlm_bonus` SET `disabled` = '1' WHERE `mlm_bonus`.`name` = 'teamBonus' AND `mlm_bonus`.`table_name` = 'mlm_bonus_team';
+    </query>
+    <query>
+        UPDATE `mlm_bonus` SET `disabled` = '1' WHERE `mlm_bonus`.`name` = 'leadershipBonus' AND `mlm_bonus`.`table_name` = 'mlm_bonus_leadership';
+    </query>
+    <query>
+        UPDATE `mlm_bonus` SET `disabled` = '1' WHERE `mlm_bonus`.`name` = 'awardBonus' AND `mlm_bonus`.`table_name` = 'mlm_bonus_award';
+    </query>
+</document> 

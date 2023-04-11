@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Discount Voucher Setting', 'Discount Voucher Setting', 'Menu', '0', 'discountVoucherSetting.php', '0', (SELECT MAX(b.priority) + 1 FROM permissions AS b), '', 'A01618', '0', '0', 'Admin', 'NOW()', 'NOW()', '', '', '0');
+    </query>
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Add Voucher', 'Add Voucher', 'Page', (SELECT b.id FROM permissions b WHERE b.name = 'Discount Voucher Setting'), 'addVoucher.php', '',  '', '', 'A01619', '0', '0', 'Admin', 'NOW()', 'NOW()', '', '', '0');
+    </query>
+    <query>
+        INSERT INTO `permissions` (`id`, `name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) VALUES (NULL, 'Edit Voucher', 'Edit Voucher', 'Page', (SELECT b.id FROM permissions b WHERE b.name = 'Discount Voucher Setting'), 'editVoucher.php', '',  '', '', 'A01620', '0', '0', 'Admin', 'NOW()', 'NOW()', '', '', '0');
+    </query>
+</document> 

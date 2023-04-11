@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+		INSERT INTO `mlm_bonus_setting` (`id`, `name`, `value`, `type`, `reference`, `description`, `bonus_id`) SELECT NULL, 'skipFirstGen', (SELECT priority FROM rank WHERE name = 'fizExecutive'), 'Bonus Setting', '', 'Skip first generation valid upline for certain rank priority(will pass to next valid upline).', b.id FROM `mlm_bonus` b WHERE name = 'leadershipBonus';
+    </query>
+    <query>
+		INSERT INTO `mlm_bonus_setting` (`id`, `name`, `value`, `type`, `reference`, `description`, `bonus_id`) SELECT NULL, 'excludeRankSales', (SELECT priority FROM rank WHERE name = 'fizExecutive'), 'Bonus Setting', '', 'Exclude this Rank Sales for this bonus', b.id FROM `mlm_bonus` b WHERE name = 'leadershipBonus';
+    </query>
+    <query>
+    	UPDATE `mlm_bonus_setting` SET `reference` = (SELECT priority FROM rank WHERE name = 'fizUnicorn') WHERE `mlm_bonus_setting`.`bonus_id` = (SELECT id FROM mlm_bonus WHERE name = 'leadershipBonus') AND `mlm_bonus_setting`.`name` = 'isNoLevelLimit';
+    </query>
+    <query>
+    	UPDATE `mlm_bonus_setting` SET `value` = (SELECT priority FROM rank WHERE name = 'fizUnicorn'), `reference` = '' WHERE `mlm_bonus_setting`.`bonus_id` = (SELECT id FROM mlm_bonus WHERE name = 'leadershipBonus') AND `mlm_bonus_setting`.`name` = 'levelBreak';
+    </query>
+</document>

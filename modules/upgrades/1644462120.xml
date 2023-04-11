@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	ALTER TABLE `mlm_product` 
+            DROP INDEX `activeAt`, 
+            DROP INDEX `createdAt`,
+            ADD KEY `isStarterKit` (`is_starter_kit`)
+    </query>
+    <query>
+        ALTER TABLE `mlm_product_price` 
+            ADD KEY `priceSetting` (`product_id`, `country_id`)
+    </query>
+    <query>
+        ALTER TABLE `shopping_cart` 
+            ADD KEY `cartSetting` (`client_id`, `mlm_product_id`)
+    </query>
+    <query>
+        ALTER TABLE `inv_language` 
+            ADD KEY `module` (`module_id`, `module`),
+            ADD KEY `language` (`language`),
+            ADD KEY `type` (`type`)
+    </query>
+    <query>
+        ALTER TABLE `inv_delivery_order` 
+            ADD KEY `invOrderID` (`inv_order_id`),
+            ADD KEY `status` (`status`)
+    </query>
+    <query>
+        ALTER TABLE `inv_delivery_order_detail` 
+            ADD KEY `doID` (`inv_delivery_order_id`)
+    </query>
+    <query>
+        ALTER TABLE `inv_order` 
+            ADD KEY `clientID` (`client_id`),
+            ADD KEY `status` (`status`)
+    </query>
+    <query>
+        ALTER TABLE `inv_order_detail` 
+            ADD KEY `orderID` (`inv_order_id`),
+            ADD KEY `packageID` (`mlm_product_id`)
+    </query>
+    <query>
+        ALTER TABLE `inv_order_payment` 
+            ADD KEY `orderID` (`inv_order_id`)
+    </query>
+    <query>
+        ALTER TABLE `inv_product` 
+            ADD KEY `code` (`code`),
+            ADD KEY `status` (`status`)
+    </query>
+    <query>
+        ALTER TABLE `inv_product_detail` 
+            ADD KEY `productID` (`inv_product_id`),
+            ADD KEY `type` (`type`)
+    </query>
+    <query>
+        ALTER TABLE `inv_stock` 
+            ADD KEY `productID` (`inv_product_id`)
+    </query>
+</document>

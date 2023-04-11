@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `client_rank` (`id`, `client_id`, `name`, `value`, `rank_type`, `type`, `rank_id`, `created_at`, `updated_at`, `updated_by`) VALUES (NULL, (SELECT b.id FROM client AS b WHERE name = 'Helvianri'), 'leadershipBonusPercentage', '0', 'Bonus Tier', 'System', '2', NOW(), NOW(), '0');
+    </query>
+    <query>
+        INSERT INTO `client_rank` (`id`, `client_id`, `name`, `value`, `rank_type`, `type`, `rank_id`, `created_at`, `updated_at`, `updated_by`) VALUES (NULL, (SELECT b.id FROM client AS b WHERE name = 'Helvianri'), 'teamBonusPercentage', '0', 'Bonus Tier', 'System', '2', NOW(), NOW(), '0');
+    </query>
+    <query>
+        INSERT INTO `client_rank` (`id`, `client_id`, `name`, `value`, `rank_type`, `type`, `rank_id`, `created_at`, `updated_at`, `updated_by`) VALUES (NULL, (SELECT b.id FROM client AS b WHERE name = 'Helvianri'), 'goldmineBonusPercentage', '0', 'Bonus Tier', 'System', '2', NOW(), NOW(), '0');
+    </query>
+    <query>
+        INSERT INTO `client_rank` (`id`, `client_id`, `name`, `value`, `rank_type`, `type`, `rank_id`, `created_at`, `updated_at`, `updated_by`) VALUES (NULL, (SELECT b.id FROM client AS b WHERE name = 'Helvianri'), 'discountPercentage', '25', 'Bonus Tier', 'System', '2', NOW(), NOW(), '0');
+    </query>
+</document> 

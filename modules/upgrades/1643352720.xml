@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+    	UPDATE `rank_setting` SET `reference` = '1' WHERE `rank_setting`.`name` = 'minOwnSales' AND `rank_setting`.`rank_id` = (SELECT id FROM rank WHERE name = 'fizEntreprenuer');
+    </query>
+</document>

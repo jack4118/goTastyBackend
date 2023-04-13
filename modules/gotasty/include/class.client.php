@@ -6907,19 +6907,20 @@
                     }
                 }
             // add to shopping cart
-            foreach ($package as $value) {
-                $cartParams['packageID'] = $value['packageID'];
-                $cartParams['quantity'] = $value['quantity'];
-                $cartParams['product_template'] = $value['product_template'];
-                $cartParams['clientID'] = $clientID;
-                $cartParams['type'] = 'inc';
-                $addCartResult = Inventory::addShoppingCart($cartParams);
+            // print_r("package:".json_encode($package)."\n");
+            // foreach ($package as $value) {
+            //     $cartParams['packageID'] = $value['packageID'];
+            //     $cartParams['quantity'] = $value['quantity'];
+            //     $cartParams['product_template'] = $value['product_template'];
+            //     $cartParams['clientID'] = $clientID;
+            //     $cartParams['type'] = 'inc';
+            //     $addCartResult = Inventory::addShoppingCart($cartParams);
 
-                if(!$addCartResult)
-                {
-                    return array("code" => 1, "status" => "error", "statusMsg" => 'failure' , 'data' => $addCartResult['statusMsg']);
-                }
-            }
+            //     if(!$addCartResult)
+            //     {
+            //         return array("code" => 1, "status" => "error", "statusMsg" => 'failure' , 'data' => $addCartResult['statusMsg']);
+            //     }
+            // }
 
             // get the shipping address id
             $db->where('client_id', $clientID);
@@ -6937,6 +6938,10 @@
             {
                 return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01183"][$language] /* Failed to update shopping card. */, 'data' => $updateInventory['statusMsg']);
             }
+
+            // $saleParams['clientID'] = $clientID;
+            // $InsertSO = Inventory::InsertSO($saleParams);
+            
             unset($params);
             $params['quantityOfReward'] = '0';
             $params['isRedeemReward'] = '0';
@@ -6947,15 +6952,16 @@
             $params['purchase_amount'] = $purchaseAmount;
             $params['clientID'] = $clientID;
             $params['delivery_method'] = $deliveryMethod;
+
             $addNewPayment = Cash::addNewPayment($params, $clientID); // addNewPayment
             if($addNewPayment['status'] == 'error')
             {
-                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01184"][$language] /* Failed to add new payment. */, 'data' => $addNewPayment);
+                return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01184"][$language] /* Failed to add new payment. */, 'data' => $addNewPayment, 'clientID' => $clientID, 'updateInventory' => $updateInventory);
             }
             
             $content = '*Register New guest Message* '."\n\n".'Member ID: '.$memberID."\n"."Name: ".$name."\n".'Type: Guest'."\n".'Phone Number: +'.$dialingArea.$phone."\n".'Date: '.date('Y-m-d')."\n".'Time: '.date('H:i:s');
             Client::sendTelegramNotification($content);
-            return array('status' => 'ok', 'code' => 0, 'statusMsg' => $addNewPayment['statusMsg'], 'data' => $addNewPayment['data']);
+            return array('status' => 'ok', 'code' => 0, 'statusMsg' => $addNewPayment['statusMsg'], 'data' => $addNewPayment['data'], 'InsertSO' => $InsertSO);
         }
 
         public function getState($params)

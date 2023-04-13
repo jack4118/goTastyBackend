@@ -126,8 +126,9 @@ $repository = array(
     "1680951524" => "add column deleted in table sale_order_detail",
     "1680963658" => "add record for companyAddressActual in table system_settings",
     "1681092317" => "add column sale_id in table shopping_cart",
+    "1681353301" => "add column Created_by in table purchase_request",
     
-
+    
     /* Chee Lam */
     "1679370085" => "Modify Address table city_id column able to accept string",
     "1679377353" => "Import Malaysia State into state table",
@@ -140,6 +141,11 @@ $repository = array(
     "1680966691" => "Add new column 'remarks' in purchase_product table",
     "1681052264" => "Update System_Settings minPasswordLength from 6 to 8",
     "1681092614" => "Create Delivery Method table",
+    "1681184568" => "Add new page 'edit Sale Order'",
+    "1681202998" => "Create new table 'serial_number'",
+    "1681282538" => "Add new column 'remarks' for purchase_order table",
+    "1681286166" => "Add new column 'type' for purchase_product table",
+    "1681358187" => "Tune purchase request table missing column",
 
     /* Sam */
     "1680156089" => "client table add new column to define encryption method",

@@ -2961,7 +2961,7 @@
     
                                 if($checkTheNuxUser['value'] == "1" && $checkTheNuxUser['reference'] == "register"){
                                     $totalReceivedRewardAmount = $rewardAmount;
-                                    $updatedStatus = "Pending";
+                                    $updatedStatus = "draft";
                                     $isOfflineReward = 0;
     
                                 }else{
@@ -3002,7 +3002,7 @@
     
                                     }else{
                                         $totalReceivedRewardAmount = $rewardAmount;
-                                        $updatedStatus = "Pending";
+                                        $updatedStatus = "draft";
                                         $isOfflineReward = 0;
                                     }
                                 }
@@ -3306,80 +3306,32 @@
             if($billing_address == "") return array ('status' => 'error' ,'code' => 1, 'statusMsg' => "Billing address empty.", 'data' => ""); 
             if($shipping_address == "") return array ('status' => 'error' ,'code' => 1, 'statusMsg' => "Shipping address empty", 'data' => ""); 
 
-            $status = "Pending";
-            $payment_tax = 0;
-            $release_amount = $payment_amount;
-
-            $createdDate = date("Y-m-d H:i:s");
-            //insert sale
-            $field = array(
-                    "client_id","package_id","payment_amount","redeem_amount",
-                    "shipping_fee","payment_tax","release_amount",
-                    "payment_expired_date","status",
-                    "refund","remark","updated_at","created_at",
-                    "promotion", "promotion_code", 'discount_amount', 'billing_address', 'shipping_address'
-                    );
-
-            $value = array(
-                    $client_id,$package_id,$payment_amount,$redeemAmount,
-                    $shipping_fee,$payment_tax,$release_amount,
-                    date("Y-m-d H:i:s"),$status,
-                    $refund,$remark,date("Y-m-d H:i:s"), $createdDate,
-                    $isPromo, $promoCode, $discountAmount, $billing_address, $shipping_address
-                    );
-
-            $arrayData = array_combine($field, $value);
-            $purchase_id = $db->insert("sale_order",$arrayData); 
-
-            // if(strtolower($payment_method) == "fpx")
-            // {
-            //     $fpxParams['purchaseID'] = $purchase_id;
-            //     $fpxParams['paymentAmount'] = $payment_amount;
-            //     $fpxParams['paymentCurrency'] = "MYR";
-            //     $fpxParams['client_phone'] = $client_phone;
-            //     $fpxParams['client_email'] = $client_email;
-            //     $fpxParams['first_name']   = $first_name;
-            //     $fpxParams['clientID'] = $client_id;
-            //     $fpxParams['txnTime'] = $createdDate;
-
-            //     $verifyFPX = Self::fpxPaymentVerify($fpxParams);
-            // }
-
+            
             $db->where('disabled', 0);
-            $db->where('client_id',$client_id);
-            $db->join('product b', 'a.product_id = b.id', 'LEFT');
-            $shopping_cart = $db->get('shopping_cart a', $limit, '');
-            //    print_r(json_encode($shopping_cart)."\n");
-            if ($purchase_id){
-                $createdDate = date("Y-m-d H:i:s");
-                $subtotal = 0;
+            $db->where("client_id", $client_id);
+            $shopping_cart = $db->getOne("shopping_cart");
 
-                // loop through each shopping cart item
-                foreach ($shopping_cart as $i => $item) {
-                    $item_price = $item['sale_price'];
-                    $subtotal = bcmul($item_price, $item['quantity'],2);
+            $db->where('deleted', 0);
+            $db->where("client_id", $client_id);
+            $order_detail = $db->getOne("sale_order_detail");
 
-                    //insert sale detail
-                    $field = array(
-                        "client_id","product_id","product_template_id","item_name","item_price","quantity",
-                        "subtotal","sale_id","deleted","created_at", "updated_at"
-                        );
-                       
-                    $value = array(
-                            $client_id,$item['product_id'],$item['product_template_id'],$item['name'],$item_price,$item['quantity'],
-                            $subtotal,$purchase_id, 0, date("Y-m-d H:i:s"),date("Y-m-d H:i:s")
-                            );
+            $purchase_id = $shopping_cart['sale_id'];
+            $saleDetail_id = $order_detail['id'];
+            $createdDate = date('Y-m-d H:i:s');
 
-                    $arrayData = array_combine($field, $value);
-                    $saleDetail_id = $db->insert("sale_order_detail",$arrayData); 
-                }
-            }
+            $updateData = array(
+                'billing_address' => $billing_address,
+                'shipping_address' => $shipping_address,
+                'payment_amount' => $payment_amount,
+                'shipping_fee' => $shipping_fee,
+            );
+            $db->where('id', $purchase_id);
+            $db->where('client_id', $client_id);
+            $db->update('sale_order', $updateData);
 
             $data = array("purchase_id" => $purchase_id, "payment_amount" => $payment_amount, 
-                        "clientID" => $client_id, "iPay88Details"=>$verifyiPay88, "fpxDetails" => $verifyFPX, 
-                        "nuxPayDetails"=>$verifyNuxPay, 'getTxnTime' => $createdDate, 
-                        'test1' => $calculatePromoParams, 'afterPromoRes' => $afterPromoRes, 
-                        "release_amount" => $release_amount, "quantityOfReward" => $quantityOfReward, 
+                        "clientID" => $client_id, 'getTxnTime' => $createdDate, 
+                        "release_amount" => $payment_amount,
                         "saleDetail_id" => $saleDetail_id, "shippingFee" => $checking['data']['shippingFee']);
 
             return array ('status' => 'ok' ,'code' => 0, 'statusMsg' => "Completed Successfully", 'data' => $data); //Completed Successfully
@@ -4004,13 +3956,14 @@
             $db->where('deleted', 0);
             $db->where('id', $saleOrderID);
             $saleID = $db->getOne('sale_order_detail');
+            
             if($saleID)
             {
                 $saleID = $saleID['sale_id'];
             }
             else
             {
-                return array ('status' => 'error' ,'code' => 1, 'statusMsg' => $translations["B00524"][$language], 'data' => ""); // Payment not found.
+                return array ('status' => 'error' ,'code' => 1, 'statusMsg' => $translations["B00524"][$language], 'data' => $saleID); // Payment not found.
             }
             
             $db->where("id",$saleID);
@@ -4260,6 +4213,7 @@
             $db->where('client_id', $clientID);
             $db->where('disabled', '0');
             $shoppingCart = $db->get('shopping_cart',null, 'product_id, quantity');
+
             $db->where('name', 'percentage');
             $db->where('type', 'marginPercen');
             $margin_percen = $db->getOne('system_settings','value');

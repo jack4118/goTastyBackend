@@ -6769,29 +6769,6 @@
                 }
             }
 
-            $saleParams['clientID'] = $clientID;
-            $CheckSaleOrderDraftStatus = self::CheckSaleOrderDraftStatus($saleParams);
-
-            // if (!$CheckSaleOrderDraftStatus['saleID'] == 0){
-            //     unset($params);
-            //     $params['quantityOfReward'] = '0';
-            //     $params['isRedeemReward'] = '0';
-            //     $params['redeemAmount'] = '0';
-            //     $params['memberPointDeduct'] = '0';
-            //     $params['billing_address'] = $BillingId;
-            //     $params['shipping_address'] = $ShippingId;
-            //     $params['purchase_amount'] = $purchaseAmount;
-            //     $params['shipping_fee'] = $shippingFee;
-            //     $params['clientID'] = $clientID;
-            //     $addNewPayment = Cash::addNewPayment($params, $clientID); // addNewPayment
-            //     if($addNewPayment['status'] == 'error')
-            //     {
-            //         return array('status' => 'error', 'code' => 1, 'statusMsg' => $translations["E01184"][$language] /* Failed to add new payment. */, 'data' => $addNewPayment);
-            //     }
-            // }else{
-            //     $sale_id = $CheckSaleOrderDraftStatus['saleID'];
-            // }
-
             switch ($type) {
                 case 'add':
                     $db->where('disabled', 0);
@@ -6859,6 +6836,9 @@
                     break;
             }
 
+           $saleParams['clientID'] = $clientID;
+           $purchase_id = self::InsertSO($saleParams);
+
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00516"][$language] /* Added To Cart */, 'data' => '');
         }
 
@@ -6925,7 +6905,7 @@
 
                 if($shoppingCart){
                     $updateData = array(
-                        'quantity' => $db->inc($packageRow['quantity']),
+                        'quantity' => ($packageRow['quantity']),
                     );
                     $copyDB->update('shopping_cart', $updateData);
                 }else{
@@ -6941,8 +6921,18 @@
                         );
                         $db->insert('shopping_cart', $insertData);
                     }
+                    else{
+                        return array('status' => "error", 'code' => 2, 'statusMsg' => 'Product Template ID empty.' /* Product Template ID empty. */, 'data'=>"");
+                    }
                 }
             }
+
+            $saleParams['clientID'] = $clientID;
+            $purchase_id = self::InsertSO($saleParams);
+
+            $data['clientID'] = $clientID;
+            $data['purchase_id'] = $purchase_id;
+            $data['product_template_id'] = $product_template_id;
 
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00521"][$language] /* Updated Cart */, 'data' => $data);
         }
@@ -7015,6 +7005,9 @@
             $db->where('product_template_id', $product_template_id);
             $db->delete('shopping_cart');
 
+            $saleParams['clientID'] = $clientID;
+            $purchase_id = self::InsertSO($saleParams);
+
             return array('status' => "ok", 'code' => 0, 'statusMsg' => $translations["B00454"][$language] /* Removed From Cart */, 'data' => '');
         }
 
@@ -7027,7 +7020,7 @@
             $clientID = $params['clientID'];
 
             $db->where("client_id",$clientID);
-            $db->where("status",'pending');
+            $db->where("status",'draft');
             $resSaleOrder = $db->getOne("sale_order");
 
             if($resSaleOrder){
@@ -7036,6 +7029,183 @@
             else{
                 return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'saleID' => 0);
             }
+        }
+
+        function InsertSO($params){
+            $db = MysqliDb::getInstance();
+            $language = General::$currentLanguage;
+            $translations = General::$translations;
+            $dateTimeFormat = Setting::$systemSetting['systemDateTimeFormat'];
+            $deliveryFee = Setting::$systemSetting['deliveryFee'];
+            $clientID = $params['clientID'];
+
+            $status = "draft";
+            $payment_tax = 0;
+            $createdDate = date("Y-m-d H:i:s");
+
+            $saleParams['clientID'] = $clientID;
+            $CheckSaleOrderDraftStatus = self::CheckSaleOrderDraftStatus($saleParams);
+       
+            $db->where('a.disabled', 0);
+            $db->where('a.client_id', $clientID);
+            $db->join('product b', 'a.product_id = b.id', 'LEFT');
+            $payment_amount = $db->getValue('shopping_cart a', 'SUM(b.sale_price * a.quantity)');
+
+            $db->where('client_id', $clientID);
+            $ShippingAddressList = $db->get('address', null,'id');
+            $ShippingId = $ShippingAddressList[0]['id'];
+            $BillingId = $ShippingAddressList[1]['id'];
+
+            $release_amount = $payment_amount;
+
+
+            if ($payment_amount > 280){
+                $shippingFee = 0;
+            }else{
+                $shippingFee = $deliveryFee;
+            }
+
+            $payment_amount = $payment_amount + $shippingFee;
+            // return array('status' => "error", 'code' => 1, 'statusMsg' => '', 'data' => $CheckSaleOrderDraftStatus);
+
+            if ($CheckSaleOrderDraftStatus['saleID'] == 0){
+                //insert sale
+                $field = array(
+                    "client_id","package_id","payment_amount","redeem_amount",
+                    "shipping_fee","payment_tax","release_amount",
+                    "payment_expired_date","status",
+                    "refund","remark","updated_at","created_at",
+                    "promotion", "promotion_code", 'discount_amount', 'billing_address', 'shipping_address'
+                    );
+
+                $value = array(
+                        $clientID,$package_id,$payment_amount,$redeemAmount,
+                        $shippingFee,$payment_tax,$release_amount,
+                        date("Y-m-d H:i:s"),$status,
+                        $refund,$remark,date("Y-m-d H:i:s"), $createdDate,
+                        $isPromo, $promoCode, $discountAmount, $billing_address, $shipping_address
+                        );
+
+                $arrayData = array_combine($field, $value);
+                $purchase_id = $db->insert("sale_order",$arrayData); 
+
+                $db->where('disabled', 0);
+                $db->where('client_id',$clientID);
+                $shopping_cart = $db->get('shopping_cart a', null, '');
+
+                foreach ($shopping_cart as $detailRow) {
+                    $product_idAry[$detailRow['product_id']] = $detailRow['product_id'];
+                }
+
+                if($product_idAry){
+                    $db->where("id", $product_idAry, "IN" );
+                    $productAry= $db->map('id')->get("product", NULL,"");
+                }
+
+                if ($purchase_id){
+                    $createdDate = date("Y-m-d H:i:s");
+                    $subtotal = 0;
+
+                    // loop through each shopping cart item
+                    foreach ($shopping_cart as $i => $item) {
+                        $updateData = array(
+                            "deleted"    => 1
+                        );
+                        $db->where('deleted', 0);
+                        // $db->where('sale_id', $purchase_id);
+                        $db->where('client_id', $clientID);
+                        $db->update("sale_order_detail", $updateData);
+
+                        //insert sale detail
+                        $field = array(
+                            "client_id","product_id","product_template_id",
+                            "item_name","item_price",
+                            "quantity", "subtotal","sale_id","deleted","created_at", "updated_at"
+                            );
+                        
+                        $value = array(
+                                $clientID,$item['product_id'],$item['product_template_id'],
+                                $productAry[$item['product_id']]['name'],$productAry[$item['product_id']]['sale_price'],
+                                $item['quantity'], Setting::setDecimal($productAry[$item['product_id']]['sale_price']*$item['quantity']),
+                                $purchase_id, 0, date("Y-m-d H:i:s"),date("Y-m-d H:i:s")
+                                );
+
+                        $arrayData = array_combine($field, $value);
+                        $saleDetail_id = $db->insert("sale_order_detail",$arrayData); 
+                    }
+
+                    $updateData = array(
+                        'sale_id' => $purchase_id,
+                    );
+                    $db->where('disabled', 0);
+                    $db->where('client_id', $clientID);
+                    $db->update('shopping_cart', $updateData);
+                }
+            }else{
+                $purchase_id = $CheckSaleOrderDraftStatus['saleID'];
+
+                // $db->where('sale_id', $purchase_id);
+                $db->where('disabled', 0);
+                $db->where('client_id', $clientID);
+                $shopping_cart = $db->get('shopping_cart', null, '');
+
+                foreach ($shopping_cart as $detailRow) {
+                    $product_idAry[$detailRow['product_id']] = $detailRow['product_id'];
+                }
+
+                if($product_idAry){
+                    $db->where("id", $product_idAry, "IN" );
+                    $productAry= $db->map('id')->get("product", NULL,"");
+                }
+
+                $updateData = array(
+                    'sale_id' => $purchase_id,
+                );
+                $db->where('disabled', 0);
+                $db->where('client_id', $clientID);
+                $db->update('shopping_cart', $updateData);
+
+                $updateData = array(
+                    "deleted"    => 1
+                );
+                $db->where('deleted', 0);
+                // $db->where('sale_id', $purchase_id);
+                $db->where('client_id', $clientID);
+                $db->update("sale_order_detail", $updateData);
+
+                $updateData = array(
+                    "payment_amount"    => $payment_amount,
+                    "shipping_fee"      => $shippingFee,
+                    "release_amount"    => $payment_amount,
+                );
+                $db->where('id', $purchase_id);
+                $db->update("sale_order", $updateData);
+
+                unset($shopping_cart);
+                $db->where('sale_id', $purchase_id);
+                $db->where('disabled', 0);
+                $db->where('client_id', $clientID);
+                $shopping_cart = $db->get('shopping_cart', null, '');
+    
+                foreach ($shopping_cart as $detailRow) {
+                    unset($newRecord);
+                    $newRecord = array(
+                        "client_id"             =>  $detailRow['client_id'],
+                        "product_id"            =>  $detailRow['product_id'],
+                        "product_template_id"   =>  $detailRow['product_template_id'],
+                        "item_name"             =>  $productAry[$detailRow['product_id']]['name'],
+                        "item_price"            =>  $productAry[$detailRow['product_id']]['sale_price'],
+                        "quantity"              =>  $detailRow['quantity'],
+                        "subtotal"              =>  Setting::setDecimal($productAry[$detailRow['product_id']]['sale_price']*$detailRow['quantity']),
+                        "sale_id"               =>  $purchase_id,
+                        "deleted"               =>  0,
+                        "created_at"            =>  date("Y-m-d H:i:s")
+                    );
+                    $saleDetail_id = $db->insert("sale_order_detail", $newRecord);
+                }
+            }
+
+            return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $purchase_id);
         }
 
         function validPackageVerification($countryID,$packageAry){
@@ -10179,7 +10349,7 @@
             $sort = "ORDER BY created_at DESC";
             if($orderRules) $orderRule = "WHERE ". implode(" AND ", $orderRules);
 
-            $pendingRules[] = "status IN ('Draft', 'Pending', 'Expired', 'Waiting for Payment', 'Cancelled', 'Payment Verified')" ;
+            $pendingRules[] = "status IN ('draft', 'Pending', 'Expired', 'Waiting for Payment', 'Cancelled', 'Payment Verified')" ;
             if($pendingRules) $pendingRule = "WHERE ". implode(" AND ", $pendingRules);
 
             $query = "SELECT id, client_id, created_at, 'order' FROM sale_order ".$orderRule. $sort;
@@ -13803,7 +13973,7 @@
             $payment_method = (!empty($params['payment_method'])) ? $params['payment_method'] : $sale['payment_method'];
             $delivery_method = (!empty($params['delivery_method'])) ? $params['delivery_method'] : $sale['delivery_method'];
      
-            foreach ($SaleOrderDetail as $detailRow) {
+            foreach ($SaleOrderDetail as &$detailRow) {
                 if(!$detailRow['product_id']) {
                     return array('status' => "error", 'code' => 24, 'statusMsg' => $translations["E01188"][$language] /* Invalid Stock. */, 'data' => "");
                 }
@@ -13814,8 +13984,27 @@
                     return array('status' => "error", 'code' => 26, 'statusMsg' => $translations["E01188"][$language] /* Invalid Stock. */, 'data' => "");
                 }
 
+                if(!empty($detailRow['product_template_id'])){
+                    $product_template_id = explode(',', $detailRow['product_template_id']);
+                    $product_template_id = array_map('trim', $product_template_id);
+
+                    $db->where('product_id', $detailRow['product_id']);
+                    $db->where('product_attribute_value_id',json_encode($product_template_id));
+                    $product_template_id = $db->getOne('product_template a');
+
+                    $product_template_id = $product_template_id['id'];
+                }
+                else{
+                    $db->where('product_id', $detailRow['product_id']);
+                    $db->where('product_attribute_value_id',$detailRow['product_template_id']);
+                    $product_template_id = $db->getOne('product_template a');
+                    $product_template_id = $product_template_id['id'];
+                }
+
+                $detailRow['product_template_id']=$product_template_id;
+
                 $product_idAry[$detailRow['product_id']] = $detailRow['product_id'];
-                $product_template_idAry[$detailRow['product_template_id']] = $detailRow['product_template_id'];
+                $product_template_idAry[$product_template_id] = $product_template_id;
             }
 
             if($product_idAry){
@@ -13826,7 +14015,7 @@
                 $db->where("id", $product_template_idAry, "IN" );
                 $product_templateAry= $db->map('id')->get("product_template", NULL,"");
             }
-            
+
             $updateData = array(
                 "deleted"    => 1
             );
@@ -13845,7 +14034,14 @@
             $db->where('id', $SaleID);
             $db->update("sale_order", $updateData);
 
-            foreach ($SaleOrderDetail as $detailRow) {
+            if ($status == "Paid"){
+                $tempUpdateStatus = array("disabled" => 1);
+            
+                $db->where("sale_id", $SaleID);
+                $result = $db->update("shopping_cart", $tempUpdateStatus);
+            }
+
+            foreach ($SaleOrderDetail as &$detailRow) {
                 unset($newRecord);
                 $newRecord = array(
                     "client_id"             =>  $sale['client_id'],

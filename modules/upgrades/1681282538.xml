@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE purchase_order ADD remarks varchar(255) AFTER total_cost;
+    </query>
+</document> 

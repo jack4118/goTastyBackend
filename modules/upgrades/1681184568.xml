@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        INSERT INTO `permissions` (`name`, `description`, `type`, `parent_id`, `file_path`, `level`, `priority`, `icon_class_name`, `translation_code`, `disabled`, `master_disabled`, `site`, `created_at`, `updated_at`, `reference_table`, `reference_id`, `last_line`) 
+        VALUES ('Edit Sale Order', 'Edit Sale Order', 'Sub Menu', '421', 'editSaleOrder.php', '1', '3', '', 'A01706', '0', '0', 'Admin', '0000-00-00 00:00:00', '0000-00-00 00:00:00', '', '', '0');
+    </query>
+    <query>
+        INSERT INTO `roles_permission` (`role_id`, `permission_id`, `disabled`, `created_at`, `updated_at`) 
+        VALUES ('3', '422', '0', '0000-00-00 00:00:00', '0000-00-00 00:00:00')
+    </query>
+</document> 

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        ALTER TABLE purchase_request ADD product_cost decimal(20,8) AFTER product_name;
+    </query>
+    <query>
+        ALTER TABLE purchase_request ADD product_id varchar(255) COLLATE latin1_swedish_ci AFTER product_cost;
+    </query>
+    <query>
+        ALTER TABLE purchase_request ADD quantity int(20) AFTER product_id;
+    </query>
+    <query>
+        ALTER TABLE purchase_request ADD total_quantity decimal(11) AFTER quantity;
+    </query>
+</document> 

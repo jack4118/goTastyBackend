@@ -7739,8 +7739,7 @@
             $db->join('vendor v', 'v.id = pr.vendor_id');
             $db->join('product p', 'p.id = pr.id');
             // $results = $db->get('purchase_request pr', $limit, 'pr.id, pr.product_name, pr.vendor_id, pr.total_quantity, pr.total_cost, pr.approved_by, pr.approved_date, v.name');
-            $results = $db->get('purchase_request pr', $limit, 'pr.id, pr.product_name as pr_name, pr.vendor_id, pr.total_quantity, pr.total_cost, pr.buying_date, pr.status, pr.approved_by, pr.approved_date, p.name, v.name as vendor_name, p.id as pid');
-
+            $results = $db->get('purchase_request pr', $limit, 'pr.id, pr.product_name as pr_name, pr.vendor_id, pr.total_quantity, pr.total_cost, pr.buying_date, pr.status, pr.approved_by, pr.approved_date, pr.Created_by, p.name, v.name as vendor_name, p.id as pid');
             $totalRecord = $copyDb->getValue ('purchase_request pr', 'count(*)');
 
             if (!empty($results)) {
@@ -7753,10 +7752,11 @@
                     $purchaseRequest['buying_date']     = $value['buying_date'];
                     $purchaseRequest['status']          = $value['status'];
                     $purchaseRequest['approved_by']     = $value['approved_by'];
+                    $purchaseRequest['Created_by']      = $value['Created_by'];
                     $purchaseRequest['approved_date']   = $value['approved_date'] != '0000-00-00 00:00:00' ? date($dateTimeFormat, strtotime($value['approved_date'])) : "-";
-
                     $purchaseRequestList[] = $purchaseRequest;
                 }
+
                 $data['purchaseRequestList']    = $purchaseRequestList;
                 $data['pageNumber']             = $pageNumber;
                 $data['totalRecord']            = $totalRecord;
@@ -7783,7 +7783,7 @@
             $product_list       = ($params['product_list']);
             $product_request_id       = ($params['product_request_id']);
             $approved_by       = trim($params['approved_by']);
-            $remark            = ($params['remarks']);
+            $remarks           = ($params['remarks']);
 
             // $dateObj = DateTime::createFromFormat('m/d/Y', $buying_date);
             // $buying_date = $dateObj ? $dateObj->format('Y-m-d H:i:s') : null;
@@ -7822,15 +7822,15 @@
             }
 
             $current_time = date("Y-m-d H:i:s");
-            $fields = array("product_name", "vendor_id", "product_id", "quantity", "product_cost","total_quantity", "total_cost", "buying_date", "remarks", "approved_date", "approved_by", "status", "created_at");
-            $values = array($product_name, $vendor_id, $product_id, $quantity, $product_cost, $total_quantity, $total_cost, $buying_date, $remarks, $current_time, $approved_by, "Save", $current_time);
+            $fields = array("product_name", "vendor_id", "product_id", "quantity", "product_cost","total_quantity", "total_cost", "buying_date", "remarks", "approved_date", "approved_by", "status", "Created_by", "created_at");
+            $values = array($product_name, $vendor_id, $product_id, $quantity, $product_cost, $total_quantity, $total_cost, $buying_date, $remarks, $current_time, $approved_by, "Save", $approved_by,$current_time);
             $arrayData = array_combine($fields, $values);
             
             try{
                 $result = $db->insert('purchase_request', $arrayData);
-                $db->where('created_at', $current_time);
-                $prId = $db->getOne('purchase_request','id');
-                $arrayData['id'] = $prId['id'];
+                // $db->where('created_at', $current_time);
+                // $prId = $db->getOne('purchase_request','id');
+                $arrayData['id'] = $result;
                 $params['product_request_id'] = $arrayData['id'];
                 Admin::addPurchaseProduct($params);
             }
@@ -7916,6 +7916,7 @@
             $remarks            = ($params['remarks']);
             $buying_date        = trim($params['buying_date']);
             $purchase_product_list   = ($params['purchase_product_list']);
+            $vendor_id   = trim($params['vendor_id']);
             
             if($total_cost || !$total_cost)
                 $total_cost = $product_cost * $quantity;
@@ -7940,6 +7941,7 @@
                 $productDetail['quantity']    = $row['quantity'];
                 $productDetail['cost']        = $row['cost'];
                 $productDetail['total_cost']  = floatval($row['quantity'] * $row['cost']);
+                $productDetail['product_id']  = $row['product_id'];
 
                 $fields = array("quantity", "cost", "total_cost", "updated_at");
                 $values = array($productDetail['quantity'],$productDetail['cost'], $productDetail['total_cost'], date("Y-m-d H:i:s"));
@@ -7949,10 +7951,87 @@
                 $db->where('id', $row['id']);
                 $db->update('purchase_product', $arrayData);
 
+                if($row['action'] == 'add')
+                {
+                    // get po id
+                    $db->where('pr_id',$id);
+                    $po_id = $db->getOne('purchase_order', 'id');
+                    $po_id = $po_id['id'];
+                    // add new product
+                    $productDetail2['id']           = $row['id'];
+                    $productDetail2['product_id']   = $row['product_id'];
+                    $productDetail2['name']         = $row['name'];
+                    $productDetail2['cost']         = $row['cost'];
+                    $productDetail2['quantity']     = $row['quantity'];
+                    $total_cost = intval($productDetail2['cost']) * intval($productDetail2['quantity']);
+                    $current_time = date('Y-m-d H:i:s');
+
+                    $total_cost = intval($productDetail2['quantity']) * floatval($productDetail2['cost']);
+                    $fields = array("purchase_request_id","purchase_order_id", "vendor_id", "product_id", 'product_name', "quantity", "cost", "total_cost", "created_at");
+                    $values = array($id,$po_id, $vendor_id, $productDetail2['product_id'], $productDetail2['name'], $productDetail2['quantity'], $productDetail2['cost'], $total_cost, date("Y-m-d H:i:s"));
+                    $arrayData2 = array_combine($fields, $values);
+
+                    // check if there is existing record or not
+                    $db->where('product_id', $productDetail2['product_id']);
+                    $result = $db->get('purchase_product');
+                    if(empty($result))
+                    {
+                        $db->insert('purchase_product', $arrayData2);
+                    }
+                    else
+                    {
+                        $db->where('purchase_request_id',$id);
+                        $db->where('product_id', $productDetail2['product_id']);
+                        $db->update('purchase_product', $arrayData2);
+                    }
+                }
+                else if($row['action'] == 'delete')
+                {
+                    // get po id
+                    $db->where('pr_id',$id);
+                    $po_id = $db->getOne('purchase_order', 'id');
+                    $po_id = $po_id['id'];
+                    // add new product
+                    $productDetail2['id']           = $row['id'];
+                    $productDetail2['product_id']   = $row['product_id'];
+                    $productDetail2['name']         = $row['name'];
+                    $productDetail2['cost']         = $row['cost'];
+                    $productDetail2['quantity']     = $row['quantity'];
+                    $total_cost = intval($productDetail2['cost']) * intval($productDetail2['quantity']);
+                    $current_time = date('Y-m-d H:i:s');
+
+                    $total_cost = intval($productDetail2['quantity']) * floatval($productDetail2['cost']);
+                    $fields = array("purchase_request_id","purchase_order_id", "vendor_id", "product_id", 'product_name', "quantity", "cost", "total_cost", "created_at");
+                    $values = array($id,$po_id, $vendor_id, $productDetail2['product_id'], $productDetail2['name'], $productDetail2['quantity'], $productDetail2['cost'], $total_cost, date("Y-m-d H:i:s"));
+                    $arrayData2 = array_combine($fields, $values);
+
+                    // check if there is existing record or not
+                    $db->where('product_id', $productDetail2['product_id']);
+                    $result = $db->get('purchase_product');
+
+                    if(!empty($result))
+                    {
+                        foreach($result as $row)
+                        {
+                            $db->where('id', $row['id']);
+                            $db->where('purchase_order_id',$row['purchase_order_id']);
+                            $db->where('product_id', $row['product_id']);
+                            $db->delete('purchase_product');
+                        }
+                    }
+                }
+                else
+                {
+                    $fields = array("vendor_id", "quantity", "cost", "total_cost", "type", "updated_at");
+                    $values = array($vendor_id, $productDetail['quantity'],$productDetail['cost'], $productDetail['total_cost'], $productDetail['type'], date("Y-m-d H:i:s"));
+                    $arrayData = array_combine($fields, $values);
+                    $db->where('purchase_order_id',$id);
+                    $db->where('product_id',$productDetail['product_id']);
+                    $db->update('purchase_product', $arrayData);
+                }
                 $costList[]     = $productDetail['total_cost'];
-                $quantityList[] = $productDetail['quantity'];
+                // $quantityList[] = $productDetail['quantity'];
                 $nameList[]     = $row['name'];
-                $productList[]  = $row['product_id'];
             }
             // update on pr
             $totalCost = 0;
@@ -7960,24 +8039,30 @@
             {
                 $nameList[] = $nameList;
             }
+            // get product id list again
+            $db->where('purchase_request_id', $id);
+            $productDetail = $db->get('purchase_product',null,'product_id, quantity');
+            foreach($productDetail as $row)
+            {
+                $productId = $row['product_id'];
+                $productQuantity = $row['quantity'];
+                $productList1[] = $productId;
+                $quantityList[] = $productQuantity;
+            }
             $nameList = implode(", ", $nameList);
-            $productList = implode(", ", $productList);
+            $productList = implode(", ", $productList1);
             $totalCost = 0;
             foreach($costList as $row)
             {
                 $totalCost = floatval($row) + $totalCost;
             }
-            foreach($quantityList as $quantity)
-            {
-                $totalQuantity = intval($quantity) + $quantity;
-            }
+            $totalQuantity = array_sum($quantityList);
 
             // update pr request
             $current_time = date("Y-m-d H:i:s");
             $fields = array("product_name", "product_cost", "product_id", "quantity","total_quantity", "total_cost", "buying_date", "remarks", "updated_at");
             $values = array($nameList, $totalCost, $productList, $totalQuantity, $totalQuantity, $totalCost, $buying_date, $remarks, $current_time);
             $data = array_combine($fields, $values);
-
             $db->where('id', $id);
             $result = $db->update('purchase_request', $data);
 
@@ -8002,7 +8087,7 @@
             $db->where('pr.id', $id);
             $db->join('vendor v', 'pr.vendor_id = v.id', 'LEFT');
             $db->join('purchase_product pp', 'pr.id = pp.purchase_request_id', "LEFT");
-            $result = $db->get('purchase_request pr', null, 'pp.id as purchase_product_id, pp.product_id, pp.cost, pp.product_name as name, pp.quantity, v.id as vendor_id, v.name as vendor_name, pr.approved_by, pr.id as purchase_request_id, pr.total_cost');
+            $result = $db->get('purchase_request pr', null, 'pp.id as purchase_product_id, pp.product_id, pp.cost, pp.product_name as name, pp.quantity, v.id as vendor_id, v.name as vendor_name, pr.approved_by, pr.id as purchase_request_id, pr.total_cost, pr.remarks, pr.buying_date');
 
             if (empty($result))
             {
@@ -8017,17 +8102,23 @@
                     $productDetail['cost'] = $row['cost'];
                     $productDetail['name'] = $row['name'];
                     $productDetail['quantity'] = $row['quantity'];
-                    $productDetail['vendor_id'] = $row['vendor_id'];
+                    // $productDetail['vendor_id'] = $row['vendor_id'];
                     $productDetail['vendor_name'] = $row['vendor_name'];
                     $otherDetails['approved_by'] = $row['approved_by'];
                     $productDetail['purchase_request_id'] = $row['purchase_request_id'];
                     $otherDetails['total_cost'] = $row['total_cost'];
+                    $otherDetails['remarks'] = $row['remarks'];
+                    $otherDetails['buying_date'] = $row['buying_date'];
+                    $otherDetails['vendor_id'] = $row['vendor_id'];
 
                     $productList[] = $productDetail;
                 }
                 $data['productList'] = $productList;
                 $data['total_cost'] = $otherDetails['total_cost'];
                 $data['approved_by'] = $otherDetails['approved_by'];
+                $data['remarks'] = $otherDetails['remarks'];
+                $data['buying_date'] = $otherDetails['buying_date'];
+                $data['vendor_id'] = $otherDetails['vendor_id'];
                 return array("code" => 0, "status" => "ok", "statusMsg" => '', 'data' => $data);
             }
         }
@@ -8645,7 +8736,7 @@
             }
             else
             {
-                return array('status' => "error", 'code' => 1, 'statusMsg' => "No product data", 'data' => '');
+                return array('status' => "ok", 'code' => 0, 'statusMsg' => "No product data", 'data' => '');
             }
         }
 
@@ -9038,16 +9129,36 @@
             $data['warehouse'] = $getWarehouse['data'];
 
             $db->where('po.id', $id);
-            // $db->join('purchase_request pr', 'pr.id = po.pr_id', 'INNER');
-            $result = $db->getOne('purchase_order po', 'po.id, po.product_name, po.quantity, po.product_cost, po.total_quantity, po.total_cost, po.warehouse_id, po.status');
+            $db->join('purchase_product pp', 'po.id = pp.purchase_order_id', 'LEFT');
+            $result = $db->get('purchase_order po', null , 'pp.id as purchase_product_id, pp.product_id, pp.cost, pp.product_name as name, pp.quantity, po.approved_by, po.id as purchase_order_id, po.total_cost, po.remarks');
             // return $result;
             if (empty($result)) {
                 // return $result;
                 return array('status' => "error", 'code' => 1, 'statusMsg' => 'Unexpected Error Occured', 'data' => $result);
             }
-            $data['purchaseOrderDetail'] = $result;
+            else
+            {
+                foreach($result as $row)
+                {
+                    $productDetail['purchase_product_id'] = $row['purchase_product_id'];
+                    $productDetail['product_id'] = $row['product_id'];
+                    $productDetail['cost'] = $row['cost'];
+                    $productDetail['name'] = $row['name'];
+                    $productDetail['quantity'] = $row['quantity'];
+                    // $productDetail['vendor_id'] = $row['vendor_id'];
+                    $otherDetails['approved_by'] = $row['approved_by'];
+                    $productDetail['purchase_order_id'] = $row['purchase_order_id'];
+                    $otherDetails['total_cost'] = $row['total_cost'];
+                    $otherDetails['remarks'] = $row['remarks'];
 
-            return array('status' => "ok", 'code' => 0, 'statusMsg' => '', 'data' => $data);
+                    $productList[] = $productDetail;
+                }
+                $data['productList'] = $productList;
+                $data['total_cost'] = $otherDetails['total_cost'];
+                $data['approved_by'] = $otherDetails['approved_by'];
+                $data['remarks'] = $otherDetails['remarks'];
+                return array("code" => 0, "status" => "ok", "statusMsg" => '', 'data' => $data);
+            }
         }
 
         public function purchaseOrderEdit($params) {
@@ -9056,11 +9167,12 @@
             $translations   = General::$translations;
 
             $id                 = trim($params['id']);
-            $product_name       = trim($params['product_name']);
-            $quantity           = trim($params['quantity']);
-            $product_cost       = trim($params['product_cost']);
             $warehouse_id     = trim($params['warehouse_id']);
-            $status             = trim($params['status']);
+            $remarks            = ($params['remarks']);
+            $purchase_product_list   = ($params['purchase_product_list']);
+            $vendor_id   = trim($params['vendor_id']);
+            $buying_date   = trim($params['buying_date']);
+            $approved_by       = trim($params['approved_by']);
             
             if($total_cost || !$total_cost)
                 $total_cost = $product_cost * $quantity;
@@ -9070,39 +9182,133 @@
 
             if($updated_at || !$updated_at)
                 $updated_at = $updated_at;
-            
-            // if(strlen($id) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00113"][$language] / Admin ID does not exist /, 'data'=>"");
 
-            // if(strlen($total_quantity) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00114"][$language] / Please Enter Email /, 'data'=>"");
+            foreach($purchase_product_list as $row)
+            {
+                $productDetail['quantity']    = $row['quantity'];
+                $productDetail['cost']        = $row['cost'];
+                $productDetail['total_cost']  = floatval($row['quantity'] * $row['cost']);
+                $productDetail['product_id']  = $row['product_id'];
+                if($row['type'] != 'FOC')
+                {
+                    $row['type'] = 'Purchase';
+                }
+                $productDetail['type']        = $row['type'];
+                if($row['action'] == 'add')
+                {
+                    // get pr id
+                    $db->where('id',$id);
+                    $pr_id = $db->getOne('purchase_order', 'pr_id');
+                    $pr_id = $pr_id['pr_id'];
+                    // add new product
+                    $productDetail2['id']           = $row['id'];
+                    $productDetail2['product_id']   = $row['product_id'];
+                    $productDetail2['name']         = $row['name'];
+                    $productDetail2['cost']         = $row['cost'];
+                    $productDetail2['quantity']     = $row['quantity'];
+                    $total_cost = intval($productDetail2['cost']) * intval($productDetail2['quantity']);
+                    $current_time = date('Y-m-d H:i:s');
 
-            // if(strlen($total_cost) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00115"][$language] / Please Enter Full Name /, 'data'=>"");
+                    $total_cost = intval($productDetail2['quantity']) * floatval($productDetail2['cost']);
+                    $fields = array("purchase_request_id","purchase_order_id", "vendor_id", "product_id", 'product_name', "quantity", "cost", "type", "total_cost", "created_at");
+                    $values = array($pr_id,$id, $vendor_id, $productDetail2['product_id'], $productDetail2['name'], $productDetail2['quantity'], $productDetail2['cost'], $row['type'], $total_cost, date("Y-m-d H:i:s"));
+                    $arrayData2 = array_combine($fields, $values);
+                    
+                    // check if there is existing record or not
+                    $db->where('product_id', $productDetail2['product_id']);
+                    $result = $db->get('purchase_product');
+                    if(empty($result))
+                    {
+                        $db->insert('purchase_product', $arrayData2);
+                    }
+                    else
+                    {
+                        $db->where('purchase_order_id',$id);
+                        $db->where('product_id', $productDetail2['product_id']);
+                        $db->update('purchase_product', $arrayData2);
+                    }
+                }
+                else if($row['action'] == 'delete')
+                {
+                    // get pr id
+                    $db->where('id',$id);
+                    $pr_id = $db->getOne('purchase_order', 'pr_id');
+                    $pr_id = $pr_id['pr_id'];
+                    // add new product
+                    $productDetail2['id']           = $row['id'];
+                    $productDetail2['product_id']   = $row['product_id'];
+                    $productDetail2['name']         = $row['name'];
+                    $productDetail2['cost']         = $row['cost'];
+                    $productDetail2['quantity']     = $row['quantity'];
+                    $total_cost = intval($productDetail2['cost']) * intval($productDetail2['quantity']);
+                    $current_time = date('Y-m-d H:i:s');
 
-            // if(strlen($product_name) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations["E00116"][$language] / Please Enter Username /, 'data'=>"");
+                    $total_cost = intval($productDetail2['quantity']) * floatval($productDetail2['cost']);
+                    $fields = array("purchase_request_id","purchase_order_id", "vendor_id", "product_id", 'product_name', "quantity", "cost", "total_cost", "created_at");
+                    $values = array($pr_id,$id, $vendor_id, $productDetail2['product_id'], $productDetail2['name'], $productDetail2['quantity'], $productDetail2['cost'], $total_cost, date("Y-m-d H:i:s"));
+                    $arrayData2 = array_combine($fields, $values);
 
-            // if(strlen($roleID) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => $translations[""][$language]/ Please Select a Role /, 'data'=>"");
+                    // check if there is existing record or not
+                    $db->where('product_id', $productDetail2['product_id']);
+                    $result = $db->get('purchase_product');
 
-            // if(strlen($warehouse_name) == 0)
-            //     return array('status' => "error", 'code' => 1, 'statusMsg' => 'Please enter a warehouse!', 'data'=>"");
+                    if(!empty($result))
+                    {
+                        foreach($result as $row)
+                        {
+                            $db->where('id', $row['id']);
+                            $db->where('purchase_order_id',$row['purchase_order_id']);
+                            $db->where('product_id', $row['product_id']);
+                            $db->delete('purchase_product');
+                        }
+                    }
+                }
+                else
+                {
+                    $fields = array("vendor_id", "quantity", "cost", "total_cost", "type", "updated_at");
+                    $values = array($vendor_id, $productDetail['quantity'],$productDetail['cost'], $productDetail['total_cost'], $productDetail['type'], date("Y-m-d H:i:s"));
+                    $arrayData = array_combine($fields, $values);
+                    $db->where('purchase_order_id',$id);
+                    $db->where('product_id',$productDetail['product_id']);
+                    $db->update('purchase_product', $arrayData);
+                }
+                // $productDetail['action']      = $row['action'];
+                
+        
+                $costList[]     = $productDetail['total_cost'];
+                $quantityList[] = $productDetail['quantity'];
+                $nameList[]     = $row['name'];
+                $productList[]  = $row['product_id'];
+                $arrayList[]    = $arrayData;
+            }
+            // return array("code" => 110, "status" => "ok", "costList" => $costList, "quantityList" => $quantityList, "nameList" => $nameList, "productList" => $productList, 'arrayList' => $arrayList);
+            // update on po
+            $totalCost = 0;
+            // foreach($product_list as $list)
+            // {
+            //     $nameList[] = $nameList;
+            // }
+            $nameList = implode(", ", $nameList);
+            $productList = implode(", ", $productList);
+            $totalCost = 0;
+            foreach($costList as $row)
+            {
+                $totalCost = floatval($row) + $totalCost;
+            }
+            foreach($quantityList as $quantity)
+            {
+                $totalQuantity = intval($quantity) + $quantity;
+            }
 
-
-            // $fields = array("product_name", "quantity", "product_cost","total_quantity", "total_cost", "approved_date", "approved_by");
-            // $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, date("Y-m-d H:i:s"), $approved_by);
-            
-            $fields = array("product_name", "quantity", "product_cost", "total_quantity", "total_cost", "warehouse_id", "updated_at");
-            $values = array($product_name, $quantity, $product_cost, $total_quantity, $total_cost, $warehouse_id, date("Y-m-d H:i:s"));
-            
-            $arrayData = array_combine($fields, $values);
-            // return $arrayData;
+            // update po request
+            $current_time = date("Y-m-d H:i:s");
+            $fields = array("product_name", "product_cost", "quantity","total_quantity", "total_cost", "remarks", "warehouse_id", "updated_at");
+            $values = array($nameList, $totalCost, $totalQuantity, $totalQuantity, $totalCost, $remarks, $warehouse_id, date('Y-m-d H:i:s'));
+            $data = array_combine($fields, $values);
+            // return array("code" => 110, "status" => "ok", "data" => $data);
             $db->where('id', $id);
-            $result = $db->update("purchase_order", $arrayData);
+            $result = $db->update('purchase_order', $data);
 
-            // return $arrayData;
-            
             if ($result) {
                 return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'data' => '');
             }
@@ -9115,100 +9321,170 @@
             $db             = MysqliDb::getInstance();
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
-
+        
             $id             = trim($params['id']);
             $product_name   = trim($params['product_name']);
-
-            $db->where('po.id', $id);
-            $db->join("purchase_order po", "po.id = s.po_id", "LEFT");
-            $db->join("product p ", "p.id = s.product_id", "LEFT");
-            $result = $db->getOne("stock s", "max(s.serial_number) AS serial_number, p.id, p.name, p.barcode, po.total_quantity");
-
-            if (!empty($result)){
-                $getId = $result['id'];
-                $getName = $result['name'];
-                $getBarcode = $result['barcode'];
-                $getSerial = $result['serial_number'];
-                $getTotalQuantity = $result['total_quantity'];
-                $getSerialSplit = explode('-', $getSerial);
-                $lastThreeNumbers = $getSerialSplit[2]; // Convert the second element to an integer
-                $startFromFirstNum = '000';
-
-                // separate the product by comma
-                $itemsArray = explode(',', $product_name);
-                $itemsArray = array_map('trim', $itemsArray);
-                foreach ($itemsArray as $item) {
-                    $itemDetail = $item;
-                    // Get the current product details
-                    $db->where('p.name', $item);
-                    $db->join('purchase_order po', 'po.product_name = p.name', 'LEFT');
-                    $db->join('stock s', 's.product_id = p.id', 'LEFT');
-                    $getLastSerial = $db->getOne('product p', 'p.id, p.name, p.barcode, max(s.serial_number) as serial');
-                    $getLastSerialList[] = $getLastSerial;
-                }
+        
                 
-                foreach($getLastSerialList as $getLastSerial)
-                {
-                    $currentBarcode = $getLastSerial['barcode'];
-                    $currentSerial = $getLastSerial['serial'];
-                    $currentSerialSplit = explode('-', $currentSerial);
-                    $currentFirstSecond = $currentSerialSplit[0] . '-' . $currentSerialSplit[1];
-                    $currentLastThreeNum = $currentSerialSplit[2];
-
-                    $incrementedNumbers = array();
-                    $date = array();
-
-                    if ($currentBarcode == $currentFirstSecond){
-                        for ($i = 0; $i < $getTotalQuantity; $i++) {
-                            $currentLastThreeNum++;
-                            $currentLastThreeNum = str_pad($currentLastThreeNum, 3, '0', STR_PAD_LEFT);
-                            $incrementedNumbers = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
-                            $showIncrement[] = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
-                            $data = $showIncrement;
-                            $date[] = date("Y-m-d H:i:s");
-                            $serial = $incrementedNumbers;
-                        }
-                    }
-                    else if ($getBarcode != $currentFirstSecond){
-                        for ($i = 0; $i < $getTotalQuantity; $i++) {
-                            $startFromFirstNum++;
-                            $startFromFirstNum = str_pad($startFromFirstNum, 3, '0', STR_PAD_LEFT);
-                            $incrementedNumbers = $currentBarcode . '-' . $startFromFirstNum;
-                            $showIncrement[] = $currentBarcode . '-' . $startFromFirstNum;
-                            $data = $showIncrement;
-                            $date[] = date("Y-m-d H:i:s");
-                            $serial = $incrementedNumbers;
-                        }
-                    }
-                    $showIncrementList[] = $showIncrement;
-                }
-                
-                return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'data' =>$showIncrementList);
+            $db->where('purchase_order_id', $id);
+            $purchaseProduct = $db->get('purchase_product');
+        
+            foreach($purchaseProduct as $product)
+            {
+                $db->where('id', $product['product_id']);
+                $productName = $db->getOne('product','name');
+                $productNameList[] = $productName;
             }
-            
+            foreach($purchaseProduct as $productId)
+            {
+                $db->where('id', $productId['product_id']);
+                $product = $db->getOne('product','id');
+                $productIdList[] = $product;
+            }
+            foreach($productIdList as $idList)
+            {
+                // $db->orderBy('s.serial_number');
+                $db->where('p.id', $idList['id']);
+                $db->join('purchase_order po', 'po.product_name = p.name', 'LEFT');
+                $db->join('serial_number s', 's.product_id = p.id', 'LEFT');
+                $db->join('purchase_product pp', 'pp.product_id = p.id', 'LEFT');
+                $getLastSerial = $db->getOne('product p', 'p.id, p.name, p.barcode, max(s.serial_number) as serial');
+        
+                if (!empty($getLastSerial))
+                {
+                    $getId = $getLastSerial['id'];
+                    $getName = $getLastSerial['name'];
+                    $getBarcode = $getLastSerial['barcode'];
+                    $getSerial = $getLastSerial['serial'];
+                    // $getTotalQuantity = $getLastSerial['total_quantity'];
+                    $getSerialSplit = explode('-', $getSerial);
+                    $lastThreeNumbers = $getSerialSplit[2]; // Convert the second element to an integer
+                }
+                $lq = $db->getLastQuery();
+                $queryList[] = $lq;
+                $getLastSerialList[] = $getLastSerial;
+            }
+        
+            foreach($purchaseProduct as $productList)
+            {
+                $productDetails['id'] = $productList['id'];
+                $productDetails['product_name'] = $productList['product_name'];
+                $productDetails['quantity'] = $productList['quantity'];
+                $productDetail[] = $productDetails;
+            }
+            $count = 0;
+        
+            foreach($getLastSerialList as $getLastSerial) // loop with how many product in purchase_product table
+            {
+                $startFromFirstNum = '000';
+        
+                $currentBarcode = $getLastSerial['barcode'];
+                $currentSerial = $getLastSerial['serial'];
+                $currentSerialSplit = explode('-', $currentSerial); // example its is GT001-001-001
+                $currentFirstSecond = $currentSerialSplit[0] . '-' . $currentSerialSplit[1]; // GT001 & 001
+                $currentLastThreeNum = $currentSerialSplit[2]; // 001
+        
+                $incrementedNumbers = array();
+                $date = array();
+                $currentData['currentBarcode'] = $currentBarcode;
+                $currentData['currentSerial'] = $currentSerial;
+                $currentData['currentSerialSplit'] = $currentSerialSplit;
+                $currentData['currentFirstSecond'] = $currentFirstSecond;
+                $currentData['currentLastThreeNum'] = $currentLastThreeNum;
+                $currentData['getBarcode'] = $getBarcode;
+                $currentList[] = $currentData;
+        
+                if ($currentBarcode == $currentFirstSecond){
+                    for ($i = 0; $i < $productDetail[$count]['quantity']; $i++) {
+                        $currentLastThreeNum++;
+                        $currentLastThreeNum = str_pad($currentLastThreeNum, 3, '0', STR_PAD_LEFT);
+                        $incrementedNumbers = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
+                        $showIncrement[] = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum . ',id:' . $productIdList[$count]['id'];
+                        $data2[] = $currentSerialSplit[0] . '-' . $currentSerialSplit[1] . '-' . $currentLastThreeNum;
+                        $date[] = date("Y-m-d H:i:s");
+                        $serial = $incrementedNumbers;
+                        // insert into serial number table
+                        $fields = array("purchase_order_id", "product_id", "serial_number", "created_at");
+                        $values = array($id, $getLastSerial['id'], $serial , date("Y-m-d H:i:s"));
+                        $arrayData = array_combine($fields, $values);
+                        try
+                        {
+                            $db->insert('serial_number', $arrayData);
+                        }catch(Exception $e)
+                        {
+                            return array('status' => "error", 'code' => 1, 'statusMsg'=> $translations["E01185"][$language] /* Failed to execute query */, 'data' => '');
+                        }
+                        $arrayList[] = $arrayData;
+                    }
+                }
+                else if ($getBarcode != $currentFirstSecond){
+                    for ($i = 0; $i < $productDetail[$count]['quantity']; $i++) {
+                        $startFromFirstNum++; // if first code, then its 001
+                        $startFromFirstNum = str_pad($startFromFirstNum, 3, '0', STR_PAD_LEFT); // add 00 at 1, so its 001
+                        $incrementedNumbers = $currentBarcode . '-' . $startFromFirstNum; // GT051 - 001
+                        $showIncrement[] = $currentBarcode . '-' . $startFromFirstNum . ',id:' . $productIdList[$count]['id'];
+                        $data2[] = $currentBarcode . '-' . $startFromFirstNum;
+                        $data = $showIncrement;
+                        $date[] = date("Y-m-d H:i:s");
+                        $serial = $incrementedNumbers;
+                        // insert into serial number table
+                        $fields = array("purchase_order_id", "product_id", "serial_number", "created_at");
+                        $values = array($id, $getLastSerial['id'], $currentBarcode . '-' . $startFromFirstNum, date("Y-m-d H:i:s"));
+                        $arrayData = array_combine($fields, $values);
+                        try
+                        {
+                            $db->insert('serial_number', $arrayData);
+                        }catch(Exception $e)
+                        {
+                            return array('status' => "error", 'code' => 1, 'statusMsg'=> $translations["E01185"][$language] /* Failed to execute query */, 'data' => '');
+                        }
+                        $arrayList[] = $arrayData;
+                    }
+                }
+                $count++;
+            }
+        
+                return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'data' => $showIncrement, 'data2' => $data2);
         }
 
         function confirmSerial($params, $username){
             $db             = MysqliDb::getInstance();
             $language       = General::$currentLanguage;
             $translations   = General::$translations;
-
+        
             $id             = trim($params['id']);
             $dateTime       = date("Y-m-d H:i:s");
-
+        
             $insertSerial = array();
             $product_name = trim($params['product_name']);
             $insertSerial = $params['serial'];
-            $arr = explode(",", $insertSerial);
-
-            $db->where('name', $product_name);
-            $result = $db->getOne('product', 'id, name, barcode');
-            // return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'last_query' => $db->getLastQuery(), 'data' => $result);
-
-            foreach ($arr as $serial) {
+            // $arr = explode(",", $insertSerial);
+        
+            $db->where('purchase_order_id', $id);
+            $purchaseProduct = $db->get('purchase_product');
+        
+            foreach($purchaseProduct as $product)
+            {
+                $db->where('id', $product['product_id']);
+                $productName = $db->getOne('product','name');
+                $productNameList[] = $productName;
+            }
+            $lq = $db->getLastQuery();
+            foreach($productNameList as $nameList)
+            {
+                $db->where('name', $nameList['name']);
+                $result = $db->getOne('product', 'id, name, barcode');
+                $resultList[] = $result;
+            }
+            // return array("code" => 110, "status" => "ok", "query" => $lq, 'productNameList' => $resultList);
+            foreach ($insertSerial as $serial) {
+                $dataArr = explode(',', $serial);
+                $serial = $dataArr[0];
+                $productId = $dataArr[1];
+                $productId = substr($productId, strpos($productId, ":") + 1);
                 $new_item = array(
                     "po_id"         => $id,
-                    "product_id"    => $result['id'],
+                    "product_id"    => $productId,
                     "serial_number" => $serial,
                     "stock_in_datetime" => $dateTime,
                     "created_at"    => $dateTime,
@@ -9216,18 +9492,19 @@
                 );
                 $new_list[] = $new_item;
             }
+            // return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language], 'new_list' => $new_list, 'data' => '', 'arr' => $insertSerial, 'resultList' => $resultList);
             
             $insertSerial = $db->insertMulti("stock", $new_list);
-
-            $fields = array("status");
-            $values = array("Done");
+        
+            $fields = array("status", "updated_at");
+            $values = array("Done", date('Y-m-d H:i:s'));
             $arrayData = array_combine($fields, $values);
-
+        
             $db->where('id', $id);
             $updateStatus = $db->update("purchase_order", $arrayData);
             
-
-            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'last_query' => $db->getLastQuery(), 'data' => $arrayData);
+        
+            return array('status' => "ok", 'code' => 0, 'statusMsg'=> $translations["B00103"][$language] /* Admin Profile Successfully Updated */, 'data' => $arrayData);
         }
 
         function getVendor($params){

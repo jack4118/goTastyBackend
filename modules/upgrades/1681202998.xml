@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<document type="TABLE">
+    <query>
+        CREATE TABLE `serial_number` (
+            `id` bigint(20) NOT NULL AUTO_INCREMENT,
+            `purchase_order_id` bigint(20),
+            `product_id` bigint(20),
+            `serial_number` varchar(255) COLLATE utf8_unicode_ci,
+            `created_at` datetime,
+            `updated_at` datetime,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+    </query>
+</document> 
